@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="sta_chat_in">#FF008080</color>
+    <color name="sta_chat_out">#FF000000</color>
+    <color name="sta_apdu_in">#FF0099CC</color>
+    <color name="sta_apdu_out">#FF669900</color>
+    <color name="sta_info">#FF505050</color>
+    <color name="sta_warn">#FF505050</color>
+    <color name="sta_msg">#FFFF8800</color>
+    <color name="sta_error">#FFCC0000</color>
+    <color name="text_select">#FFCC0000</color>
+    <color name="text_edit">#FF008080</color>
+    <color name="text_hint">#FFD0D0D0</color>
+    <color name="text_normal">#FF505050</color>
+    <color name="bg_splitter">#FFBABABA</color>
+    <color name="bg_window">#FFF0F0F0</color>
+</resources>

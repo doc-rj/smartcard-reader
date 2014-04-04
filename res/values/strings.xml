@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">smartcard-reader</string>
+    <string name="activity_intro">Reader ready to select AID&#8230;</string>
+    <string name="wrong_tag_err">Not ISO-DEP, emulate card with AID above!</string>
+    <string name="wrong_resp_err">Select fail, emulate card with AID above!</string>
+    <string name="select_success">AID selected!</string>
+    <string name="select_success_prefix">AID</string>
+    <string name="hce_msg_prefix">Smartcard Msg</string>
+    <string name="reader_msg_prefix">Reader Msg</string>
+    <!-- proprietary unregistered AID starts with 0xFx, length 5 - 16 bytes -->
+    <string name="default_aid">F0646F632D726A</string>
+</resources>

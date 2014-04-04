@@ -1,0 +1,55 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    tools:context=".ReaderActivity" >
+
+    <TextView
+        android:id="@+id/intro"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-condensed"
+        android:gravity="left"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textSize="@dimen/font_small"
+        android:text="@string/activity_intro" />
+    
+    <AutoCompleteTextView
+        android:id="@+id/aid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-condensed"
+        android:layout_below="@+id/intro"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="10dp"
+        android:ems="10"
+        android:digits="0123456789ABCDEF"
+        android:inputType="textCapCharacters"
+        android:imeOptions="actionDone"
+        android:singleLine="true"
+        android:text="@string/default_aid" />
+    
+    <View
+        android:id="@+id/splitter" 
+        style="@style/splitter"
+        android:layout_below="@+id/aid"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="0dp" />    
+
+    <ListView
+        android:id="@+id/listView"
+	    style="@style/list"
+        android:layout_below="@+id/splitter"
+        android:divider="@null"
+        android:listSelector="#00000000"
+        android:paddingTop="@dimen/margin_window"
+        android:paddingBottom="@dimen/margin_window"
+        android:transcriptMode="alwaysScroll" />
+
+</RelativeLayout>
