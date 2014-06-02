@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<apdu cat="iso7816" >
+	<cmds>
+	    <class val="90" > <!-- class for Wrapping of native DESFire APDUs -->
+			<ins name="Authenticate (keyNo)" val="0A" spec="DESFire" />
+			<ins name="Change Key Settings" val="54" spec="DESFire" />
+			<ins name="Get Key Settings" val="45" spec="DESFire" />
+			<ins name="Change Key (KeyNo)" val="C4" spec="DESFire" />
+			<ins name="Get Key Version (KeyNo)" val="64" spec="DESFire" />
+			<ins name="Create Application" val="CA" spec="DESFire" />
+			<ins name="Delete Application" val="DA" spec="DESFire" />
+			<ins name="Get Application IDs" val="6A" spec="DESFire" />
+			<ins name="Select Application" val="5A" spec="DESFire" />
+			<ins name="Format PICC" val="FC" spec="DESFire" />
+			<ins name="Get Version" val="60" spec="DESFire" />
+			<ins name="More Data" val="AF" spec="DESFire" />
+			<ins name="Get File IDs" val="6F" spec="DESFire" />
+			<ins name="Get File Settings" val="F5" spec="DESFire" />
+			<ins name="Change File Settings" val="5F" spec="DESFire" />
+			<ins name="Create Std Data File" val="CD" spec="DESFire" />
+			<ins name="Create Backup Data File" val="CB" spec="DESFire" />
+			<ins name="Create Value File" val="CC" spec="DESFire" />
+			<ins name="Create Linear Record File" val="C1" spec="DESFire" />
+			<ins name="Create Cyclic Record File" val="C0" spec="DESFire" />
+			<ins name="Delete File" val="DF" spec="DESFire" />
+			<ins name="Read Data" val="BD" spec="DESFire" />
+			<ins name="Write Data" val="3D" spec="DESFire" />
+			<ins name="Get Value" val="6C" spec="DESFire" />
+			<ins name="Credit" val="0C" spec="DESFire" />
+			<ins name="Debit" val="DC" spec="DESFire" />
+			<ins name="Litmited Credit" val="1C" spec="DESFire" />
+			<ins name="Write Record" val="3B" spec="DESFire" />
+			<ins name="Read Records" val="BB" spec="DESFire" />
+			<ins name="Clear Record File" val="EB" spec="DESFire" />
+			<ins name="Commit Transaction" val="C7" spec="DESFire" />
+			<ins name="Abort Transaction" val="A7" spec="DESFire" />
+		</class>
+		<class val="0" > <!-- all class which bit7 is NOT set -->
+			<ins name="Deactivate File" val="04" spec="ISO7816" />
+			<ins name="Erase Record" val="0C" spec="ISO7816" />
+			<ins name="Erase Binary" val="0E" spec="ISO7816" />
+			<ins name="Erase Binary" val="0F" spec="ISO7816" />
+			<ins name="Perform SCQL Operation" val="10" spec="ISO7816" />
+			<ins name="Perform Transaction Operation" val="12" spec="ISO7816" />
+			<ins name="Perform User Operation" val="14" spec="ISO7816" />
+			<ins name="Verify PIN" val="20" spec="ISO7816" />
+			<ins name="Verify PIN" val="21" spec="ISO7816" />
+			<ins name="Manage Security Environment" val="22" spec="ISO7816" />
+			<ins name="Change PIN" val="24" spec="ISO7816" />
+			<ins name="Disable PIN" val="26" spec="ISO7816" />
+			<ins name="Enable PIN" val="28" spec="ISO7816" />
+			<ins name="Perform Security Operation" val="2A" spec="ISO7816" />
+			<ins name="Reset Retry Counter" val="2C" spec="ISO7816" />
+			<ins name="Activate File" val="44" spec="ISO7816" />
+			<ins name="Generate Public Key Pair" val="46" spec="ISO7816" />
+			<ins name="Manage Channel" val="70" spec="ISO7816" />
+			<ins name="Load Key File Lock Manage Channel" val="76" spec="ISO7816" />
+			<ins name="Initialize PSAM For Update Install Internal Authenticate" val="80" spec="ISO7816" />
+			<ins name="External Authenticate" val="82" spec="ISO7816" />
+			<ins name="Get Challenge" val="84" spec="ISO7816" />
+			<ins name="General Authenticate" val="86" spec="ISO7816" />
+			<ins name="General Authenticate" val="87" spec="ISO7816" />
+			<ins name="Internal Authenticate" val="88" spec="ISO7816" />
+			<ins name="Search Binary" val="A0" spec="ISO7816" />
+			<ins name="Search Binary" val="A1" spec="ISO7816" />
+			<ins name="Search Record" val="A2" spec="ISO7816" />
+			<ins name="Select" val="A4" spec="ISO7816" />
+			<ins name="Read Binary" val="B0" spec="ISO7816" />
+			<ins name="Read Binary" val="B1" spec="ISO7816" />
+			<ins name="Read Record" val="B2" spec="ISO7816" />
+			<ins name="Read Record" val="B3" spec="ISO7816" />
+			<ins name="Read Binary Stamped" val="B4" spec="ISO7816" />
+			<ins name="Get Response" val="C0" spec="ISO7816" />
+			<ins name="Envelope" val="C2" spec="ISO7816" />
+			<ins name="Envelope" val="C3" spec="ISO7816" />
+			<ins name="Load Key File Lock Manage Channel" val="D8" spec="ISO7816" />
+			<ins name="Get Data" val="CA" spec="ISO7816" />
+			<ins name="Get Data" val="CB" spec="ISO7816" />
+			<ins name="Write Binary" val="D0" spec="ISO7816" />
+			<ins name="Write Binary" val="D1" spec="ISO7816" />
+			<ins name="Write Record" val="D2" spec="ISO7816" />
+			<ins name="Update Binary" val="D6" spec="ISO7816" />
+			<ins name="Update Binary" val="D7" spec="ISO7816" />
+			<ins name="Put Data" val="DA" spec="ISO7816" />
+			<ins name="Put Data" val="DB" spec="ISO7816" />
+			<ins name="Update Record" val="DC" spec="ISO7816" />
+			<ins name="Update Record" val="DD" spec="ISO7816" />
+			<ins name="Create File" val="E0" spec="ISO7816" />
+			<ins name="Append Record" val="E2" spec="ISO7816" />
+			<ins name="Delete File" val="E4" spec="ISO7816" />
+			<ins name="Terminate DF" val="E6" spec="ISO7816" />
+			<ins name="Terminate EF" val="E8" spec="ISO7816" />
+			<ins name="Get Status" val="F2" spec="ISO7816" />
+			<ins name="Terminate Card" val="FE" spec="ISO7816" />
+		</class>
+		<class val="1" > <!-- all class which bit7 is set -->
+			<ins name="Deactivate File" val="04" spec="TS51.011" />
+			<ins name="Card Block" val="16" spec="EMV" />
+			<ins name="Application Unblock" val="18" spec="EMV" />
+			<ins name="Application Block" val="1E" spec="EMV" />
+			<ins name="Verify PIN" val="20" spec="TS51.011" />
+			<ins name="Change PIN" val="24" spec="TS51.011" />
+			<ins name="Disable PIN" val="26" spec="TS51.011" />
+			<ins name="Enable PIN" val="28" spec="TS51.011" />
+			<ins name="Unblock PIN" val="2C" spec="TS51.011" />
+			<ins name="Decrease" val="30" spec="EN726" />
+			<ins name="Increase" val="32" spec="TS51.011" />
+			<ins name="Decrease Stamped" val="34" spec="EN726" />
+			<ins name="Increase Stamped" val="36" spec="EN726" />
+			<ins name="Rehabilitate" val="44" spec="TS51.011" />
+			<ins name="Initialize IEP" val="50" spec="EN1546" >
+				<p1 name="Initialize For Load" val="00" spec="PBOC" />
+				<p1 name="Initialize For Purchase" val="01" spec="PBOC" />
+				<p1 name="Initialize For Cash Withdraw" val="02" spec="PBOC" />
+				<p1 name="Initialize For CAPP Purchase" val="03" spec="PBOC" />
+				<p1 name="Initialize For Update" val="04" spec="PBOC" />
+				<p1 name="Initialize For Unload" val="05" spec="PBOC" />
+			</ins>
+			<ins name="Credit IEP" val="52" spec="EN1546" />
+			<ins name="Debit IEP" val="54" spec="EN1546" >
+				<p1 name="Debit For Purchase" val="01" spec="PBOC" />
+				<p1 name="Debit For Unload" val="03" spec="PBOC" />
+			</ins>
+			<ins name="Convert IEP Currency" val="56" spec="EN1546" />
+			<ins name="Update IEP Parameter" val="58" spec="EN1546" >
+				<p1 name="Update Overdraw Limit" val="00" spec="PBOC" />
+			</ins>
+			<ins name="Get Previous IEP Signature" val="5A" spec="EN1546" >
+				<p1 name="Get Transaction Prove" val="00" spec="PBOC" />
+			</ins>
+			<ins name="Get Balance" val="5C" spec="PBOC" />
+			<ins name="Change Pin" val="5E" spec="PBOC" >
+				<p1 name="Reload Pin" val="00" spec="PBOC" />
+				<p1 name="Change Pin" val="01" spec="PBOC" />				
+			</ins>
+			<ins name="Initialize PSAM" val="70" spec="EN1546" />
+			<ins name="Credit PSAM" val="72" spec="EN1546" />
+			<ins name="PSAM Complete" val="74" spec="EN1546" />
+			<ins name="Initialize PSAM For Online Collection" val="76" spec="EN1546" />
+			<ins name="PSAM Collect" val="78" spec="EN1546" />
+			<ins name="PSAM Collect" val="7A" spec="EN1546" >
+				<P1 name="Initialize For Grey Lock" val="08" spec="PBOC" />
+				<P1 name="Initialize For Grey Unlock" val="09" spec="PBOC" />
+			</ins>
+			<ins name="Initialize PSAM For Offline Collection" val="7C" spec="EN1546" >
+				<P1 name="Grey Lock" val="08" spec="PBOC" />
+			</ins>
+			<ins name="PSAM Verify Collection" val="7E" spec="EN1546" >
+				<P1 name="Debit For Unlock" val="08" spec="PBOC" />
+				<P1 name="Grey Unlock" val="09" spec="PBOC" />
+			</ins>
+			<ins name="Initialize PSAM For Update Install Internal Authenticate" val="80" spec="EN1546" />
+			<ins name="Issuer Authenticate" val="82" spec="EMV-2" />
+			<ins name="Ask Random" val="84" spec="EN726" />
+			<ins name="Give Random" val="86" spec="EN726" />
+			<ins name="Run GSM Algorithm" val="88" spec="TS51.011" />
+			<ins name="Seek" val="A2" spec="TS51.011" />
+			<ins name="Select" val="A4" spec="TS51.011" />
+			<ins name="Get Processing Options" val="A8" spec="EMV" />
+			<ins name="Close Application" val="AC" spec="EN726" />
+			<ins name="Generate Authorisation Cryptogram" val="AE" spec="EMV" />
+			<ins name="Read Binary" val="B0" spec="TS51.011" />
+			<ins name="Read Record" val="B2" spec="TS51.011" />
+			<ins name="Read Record Stamped" val="B6" spec="EN726" />
+			<ins name="Get Response" val="C0" spec="TS51.011" />
+			<ins name="Envelope" val="C2" spec="EN726" />
+			<ins name="Get Lock Proof" val="CA" spec="PBOC" />
+			<ins name="Extend" val="D4" spec="EN726" />
+			<ins name="Load Key File Lock Manage Channel" val="D8" spec="OP" />
+			<ins name="Update CAPP Data Cache" val="DC" spec="OP" />
+			<ins name="Create Record" val="E2" spec="EN726" />
+			<ins name="Delete" val="E4" spec="OP" />
+			<ins name="Initialize Psam For Update Install Internal Authenticate" val="E6" spec="EN1546" />
+			<ins name="Load" val="E8" spec="OP" />
+			<ins name="Set Status" val="F0" spec="OP" />
+			<ins name="Get Status" val="F2" spec="OP" />
+			<ins name="Sleep" val="FA" spec="TS51.011" />
+		</class>
+	</cmds>
+	<sws>
+	    <sw1 val="61" name="More Data" />
+	    <sw1 val="62" name="Warning">
+	        <sw2 val="81" name="Part of returned data may be corrupted" />
+	        <sw2 val="82" name="End of file or record reached before reading Ne bytes" />
+	        <sw2 val="83" name="Selected file deactivated" />
+	        <sw2 val="84" name="File control information not formatted" />
+	        <sw2 val="85" name="Selected file in termination state" />
+	        <sw2 val="86" name="No input data available from a sensor on the card" />
+	    </sw1>
+	    <sw1 val="63" name="Warning">
+	        <sw2 val="81" name="File filled up by the last write" />
+	    </sw1>
+	    <sw1 val="64" name="Execution Error">
+	        <sw2 val="01" name="mmediate response required by the card" />
+	    </sw1>
+	    <sw1 val="65" name="Execution Error">
+	        <sw2 val="81" name="Memory failure" />
+	    </sw1>
+	    <sw1 val="66" name="Security Issues">
+	        <sw2 val="00" name="OK" />
+	        <sw2 val="00" name="OK" />
+	        <sw2 val="00" name="OK" />
+	        <sw2 val="00" name="OK" />
+	    </sw1>
+	    <sw1 val="67" name="Wrong Length" />
+	    <sw1 val="68" name="CLA Not Supported">
+	        <sw2 val="81" name="Logical channel not supported" />
+	        <sw2 val="82" name="Secure messaging not supported" />
+	        <sw2 val="83" name="Last command of the chain expected" />
+	        <sw2 val="84" name="Command chaining not supported" />
+	    </sw1>
+	    <sw1 val="69" name="Command Not Allowed">
+	        <sw2 val="81" name="Command incompatible with file structure" />
+	        <sw2 val="82" name="Security status not satisfied" />
+	        <sw2 val="83" name="Authentication method blocked" />
+	        <sw2 val="84" name="Reference data not usable" />
+	        <sw2 val="85" name="Conditions of use not satisfied" />
+	        <sw2 val="86" name="Command not allowed (no current EF)" />
+	        <sw2 val="87" name="Expected secure messaging data objects missing" />
+	        <sw2 val="88" name="Incorrect secure messaging data objects" />
+	    </sw1>
+	    <sw1 val="6A" name="Wrong P1-P2">
+	        <sw2 val="80" name="Incorrect parameters in the command data field" />
+	        <sw2 val="81" name="Function not supported" />
+	        <sw2 val="82" name="File or application not found" />
+	        <sw2 val="83" name="Record not found" />
+	        <sw2 val="84" name="Not enough memory space in the file" />
+	        <sw2 val="85" name="Nc inconsistent with TLV structure" />
+	        <sw2 val="86" name="Incorrect parameters P1-P2" />
+	        <sw2 val="87" name="Nc inconsistent with parameters P1-P2" />
+	        <sw2 val="88" name="Referenced data or reference data not found" />
+	        <sw2 val="89" name="File already exists" />
+	        <sw2 val="8A" name="DF name already exists" />
+	    </sw1>
+	    <sw1 val="6B" name="Wrong P1-P2" />
+	    <sw1 val="6C" name="Wrong Le Field" />
+	    <sw1 val="6D" name="INS Not Supported" />  
+	    <sw1 val="6E" name="CLA Not Supported" />
+	    <sw1 val="6F" name="No Precise Diagnosis" />
+	    <sw1 val="90" name="Normal">
+	        <sw2 val="00" name="OK" />
+	    </sw1>
+	    <sw1 val="91" name="Wrapping of native DESFire APDUs">
+	        <sw2 val="00" name="OK" />
+	        <sw2 val="0C" name="No changes" />
+	        <sw2 val="0E" name="Insufficient NV-Memory to complete command" />
+	        <sw2 val="1C" name="Command code not supported" />
+	        <sw2 val="1E" name="CRC or MAC does not match data" />
+	        <sw2 val="40" name="Invalid key number specified" />
+	        <sw2 val="7E" name="Length of command string invalid" />
+	        <sw2 val="9D" name="Not allow the requested command" />
+	        <sw2 val="9E" name="Value of the parameter invalid" />
+	        <sw2 val="A0" name="Requested AID not present on PICC" />
+	        <sw2 val="A1" name="Unrecoverable error within application" />
+	        <sw2 val="AE" name="Authentication status does not allow the requested command" />
+	        <sw2 val="AF" name="Additional data frame is expected to be sent" />
+	        <sw2 val="BE" name="Out of boundary" />
+	        <sw2 val="C1" name="Unrecoverable error within PICC" />
+	        <sw2 val="CA" name="Previous Command was not fully completed" />
+	        <sw2 val="CD" name="PICC was disabled by an unrecoverable error" />
+	        <sw2 val="CE" name="Number of Applications limited to 28" />
+	        <sw2 val="DE" name="File or application already exists" />
+	        <sw2 val="EE" name="Could not complete NV-write operation due to loss of power" />
+	        <sw2 val="F0" name="Specified file number does not exist" />
+	        <sw2 val="F1" name="Unrecoverable error within file" />
+	    </sw1>
+	    <sw1 val="92" name="Writing to EEPROM">
+	        <sw2 val="10" name="Insufficient memory" />
+	        <sw2 val="40" name="Writing to EEPROM not successful" />
+	    </sw1>
+	    <sw1 val="94" name="No EF selected">
+	        <sw2 val="02" name="Address range exceeded" />
+	        <sw2 val="04" name="Not found" />
+	        <sw2 val="08" name="Selected file type does not match command" />
+	    </sw1>
+	    <sw1 val="98" name="Wrong P1-P2">
+	        <sw2 val="02" name="No PIN defined" />
+	        <sw2 val="04" name="Access conditions not satisfied, authentication failed" />
+	        <sw2 val="35" name="ASK RANDOM or GIVE RANDOM not executed" />
+	        <sw2 val="40" name="PIN verification not successful" />
+	        <sw2 val="50" name="INCREASE or DECREASE could not be executed because a limit has been reached" />
+	    </sw1>
+	    <sw1 val="9F" name="More Data" />
+	</sws>
+</apdu>

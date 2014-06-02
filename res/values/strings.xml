@@ -1,13 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">smartcard-reader</string>
-    <string name="activity_intro">Reader ready to select AID&#8230;</string>
+    <string name="app_name">smartcard reader</string>
+    <string name="activity_intro">Tap smartcard or device to select app&#8230;</string>
     <string name="wrong_tag_err">Not ISO-DEP, emulate card with AID above!</string>
     <string name="wrong_resp_err">Select fail, emulate card with AID above!</string>
-    <string name="select_success">AID selected!</string>
-    <string name="select_success_prefix">AID</string>
-    <string name="hce_msg_prefix">Smartcard Msg</string>
-    <string name="reader_msg_prefix">Reader Msg</string>
+    <string name="tag_lost_err">Smartcard was removed.</string>
+    <string name="select_success">app selected!</string>
+    <string name="select_success_prefix">app</string>
+    <string name="hce_msg_prefix">smartcard demo msg</string>
+    <string name="reader_msg_prefix">smartcard reader msg</string>
+    <string name="in_msg_prefix">&lt;--&#160;</string>
+    <string name="out_msg_prefix">--&gt;&#160;</string>
+    <string name="okay_msg_prefix">**&#160;</string>
+    <string name="err_msg_prefix">!!&#160;</string>
     <!-- proprietary unregistered AID starts with 0xFx, length 5 - 16 bytes -->
-    <string name="default_aid">F0646F632D726A</string>
+    <string name="demo_aid">F0646F632D726A</string>
+    <string name="select_ppse_err" formatted="false">Select ppse fail, status: 0x%X (%s)</string>
+    <string name="select_app_err" formatted="false">Select fail, status: 0x%X (%s)</string>
+    <string name="select_ppse_ok">Select ppse okay, status: 0x%X</string>
+    <string name="select_app_ok">Select okay, status: 0x%X</string>
+    <string name="new_app">new smartcard app</string>
+    <string name="edit_apps">edit smartcard apps</string>
+    <string name="clear_msgs">clear messages</string>
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_done">Done</string>
+    <string name="dialog_quit">Quit</string>
+    <string name="new_app_title">smartcard app</string>
+    <string name="new_app_name">App:</string>
+    <string name="new_app_name_hint">&lt;&#160;app name here!&#160;&gt;</string>
+    <string name="new_app_aid">AID:</string>
+    <string name="new_app_aid_hint">&lt;&#160;5&#8211;16 hex bytes&#160;&gt;</string>
+    <string name="new_app_type">Type:</string>    
+    <string name="radio_payment">payment</string>
+    <string name="radio_other">other</string>
+    <string name="make_current">Set as current app to select?</string>
+    <string name="empty_name">App name required!</string>
+    <string name="invalid_aid">5&#8211;16 hex byte AID required!</string>
+    <string name="name_exists">App name %s exists!</string>
+    <string name="aid_exists">AID %s exists!</string>
+    <string name="app_icon_alt">P</string>
+    <string name="edit_apps_title">smartcard apps</string>
+    <string name="tap_to_edit">Click app to edit, long click to discard&#8230;</string>
+    <string name="nfc_disabled">Enable NFC?</string>
+    <string name="enable_nfc">This app is useless when NFC is disabled. Reader mode depends on it. Click OK to go to Settings, where you can enable NFC.</string>
 </resources>
