@@ -85,4 +85,4 @@ new reader mode is a key enabler of smartcard-reader.
 
 #### Screenshots
 
-![Screen](/docs/screen_select_visa.png)
+![Screen](/docs/tn_screen_select_visa.png)

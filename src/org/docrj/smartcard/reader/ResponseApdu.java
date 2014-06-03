@@ -64,14 +64,16 @@ public class ResponseApdu {
     public void checkLengthAndStatus(int length, int sw1sw2, String message)
             throws AccessControlException {
         if (getSW1SW2() != sw1sw2 || mData.length != length) {
-            throw new AccessControlException("ResponseApdu is wrong at " + message);
+            throw new AccessControlException("ResponseApdu is wrong at "
+                    + message);
         }
     }
 
-    public void checkLengthAndStatus(int length, int[] sw1sw2List, String message)
-            throws AccessControlException {
+    public void checkLengthAndStatus(int length, int[] sw1sw2List,
+            String message) throws AccessControlException {
         if (mData.length != length) {
-            throw new AccessControlException("ResponseApdu is wrong at " + message);
+            throw new AccessControlException("ResponseApdu is wrong at "
+                    + message);
         }
         for (int sw1sw2 : sw1sw2List) {
             if (getSW1SW2() == sw1sw2) {
@@ -81,7 +83,8 @@ public class ResponseApdu {
         throw new AccessControlException("ResponseApdu is wrong at " + message);
     }
 
-    public void checkStatus(int[] sw1sw2List, String message) throws AccessControlException {
+    public void checkStatus(int[] sw1sw2List, String message)
+            throws AccessControlException {
         for (int sw1sw2 : sw1sw2List) {
             if (getSW1SW2() == sw1sw2) {
                 return; // sw1sw2 matches => return
@@ -90,17 +93,18 @@ public class ResponseApdu {
         throw new AccessControlException("ResponseApdu is wrong at " + message);
     }
 
-    public void checkStatus(int sw1sw2, String message) throws AccessControlException {
+    public void checkStatus(int sw1sw2, String message)
+            throws AccessControlException {
         if (getSW1SW2() != sw1sw2) {
-            throw new AccessControlException("ResponseApdu is wrong at " + message);
+            throw new AccessControlException("ResponseApdu is wrong at "
+                    + message);
         }
     }
 
     public boolean isStatus(int sw1sw2) {
         if (getSW1SW2() == sw1sw2) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }

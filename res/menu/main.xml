@@ -6,16 +6,22 @@
           android:title="@string/new_app"
           android:icon="@drawable/ic_action_new" />
 
-    <item android:id="@+id/menu_clear_msgs"
-           android:showAsAction="never"
-           android:title="@string/clear_msgs"
-           android:icon="@drawable/ic_action_discard" />    
+    <item android:id="@+id/menu_copy_app"
+          android:showAsAction="ifRoom"
+          android:title="@string/copy_app"
+          android:icon="@drawable/ic_action_copy"
+          android:enabled="false" />
 
     <item android:id="@+id/menu_edit_all_apps"
           android:showAsAction="never"
           android:title="@string/edit_apps"
           android:icon="@drawable/ic_action_edit"
-          android:enabled="false" />
+          android:enabled="false" />    
+
+    <item android:id="@+id/menu_clear_msgs"
+           android:showAsAction="never"
+           android:title="@string/clear_msgs"
+           android:icon="@drawable/ic_action_discard" />
 
 </menu>
 

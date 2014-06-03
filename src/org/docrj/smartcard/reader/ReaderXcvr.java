@@ -24,41 +24,45 @@ import android.nfc.tech.IsoDep;
 
 public class ReaderXcvr implements Runnable {
     protected static final String TAG = "smartcard-reader";
-    
+
     public static final int SW_NO_ERROR = 0x9000;
 
-	public interface OnMessage {
+    public interface OnMessage {
         void onMessageSend(String message);
-		void onMessageRcv(String message);
-		void onOkay(String message);
-		void onError(String message, boolean clearOnNext);
-	}
 
-	protected IsoDep mIsoDep;
-	protected OnMessage mOnMessage;
-	protected Context mContext;
-	
-	protected String mAid;
-	protected byte[] mAidBytes;
+        void onMessageRcv(String message);
 
-	public ReaderXcvr(IsoDep isoDep, String aid, OnMessage onMessage) {
-		this.mIsoDep = isoDep;
-		this.mAid = aid;
-		this.mAidBytes = hexToBytes(aid);
-		this.mOnMessage = onMessage;
-		this.mContext = (Context)onMessage;
-	}
+        void onOkay(String message);
 
-	protected static byte[] hexToBytes(String str) {
-	    byte[] bytes = new byte[str.length() / 2];
-	    for (int i = 0; i < bytes.length; i++)
-	    {
-	        bytes[i] = (byte) Integer.parseInt(str.substring(2 * i, 2 * i + 2), 16);
-	    }
-	    return bytes;
-	}
+        void onError(String message, boolean clearOnNext);
+    }
+
+    protected IsoDep mIsoDep;
+    protected OnMessage mOnMessage;
+    protected Context mContext;
+
+    protected String mAid;
+    protected byte[] mAidBytes;
+
+    public ReaderXcvr(IsoDep isoDep, String aid, OnMessage onMessage) {
+        this.mIsoDep = isoDep;
+        this.mAid = aid;
+        this.mAidBytes = hexToBytes(aid);
+        this.mOnMessage = onMessage;
+        this.mContext = (Context) onMessage;
+    }
+
+    protected static byte[] hexToBytes(String str) {
+        byte[] bytes = new byte[str.length() / 2];
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = (byte) Integer.parseInt(str.substring(2 * i, 2 * i + 2),
+                    16);
+        }
+        return bytes;
+    }
 
     final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
+
     protected static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
         for (int j = 0; j < bytes.length; j++) {
@@ -100,7 +104,7 @@ public class ReaderXcvr implements Runnable {
         return cmdApdu.toBytes();
     }
 
-	@Override
-	public void run() {
-	}
+    @Override
+    public void run() {
+    }
 }

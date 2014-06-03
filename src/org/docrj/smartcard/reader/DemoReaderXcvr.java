@@ -27,38 +27,43 @@ import android.nfc.TagLostException;
 import android.nfc.tech.IsoDep;
 import android.util.Log;
 
-public class DemoReaderXcvr extends ReaderXcvr { 
+public class DemoReaderXcvr extends ReaderXcvr {
 
-	public DemoReaderXcvr(IsoDep isoDep, String aid, OnMessage onMessage) {
-	    super(isoDep, aid, onMessage);
-	}
+    public DemoReaderXcvr(IsoDep isoDep, String aid, OnMessage onMessage) {
+        super(isoDep, aid, onMessage);
+    }
 
-	@Override
-	public void run() {
-		int messageCounter = 0;
-		try {
-			mIsoDep.connect();
-			Log.d(TAG, "select AID: " + mAid);
-			mOnMessage.onMessageSend("00 A4 04 00" + String.format("%02X ", mAidBytes.length) + mAid + " 00");
-			byte[] response = mIsoDep.transceive(buildSelectApdu(mAidBytes));
-			if (new String(response).startsWith(mContext.getString(R.string.select_success_prefix))) { 
-			    mOnMessage.onMessageRcv(new String(response));
-		         while (mIsoDep.isConnected() && !Thread.interrupted()) {
-		             String message = mContext.getString(R.string.reader_msg_prefix) + " " + messageCounter++;
-		             mOnMessage.onMessageSend(message);
-		             response = mIsoDep.transceive(message.getBytes());
-		             mOnMessage.onMessageRcv(new String (response));
-		         }
-		         mIsoDep.close();
-			} else {
-			    mOnMessage.onError(mContext.getString(R.string.wrong_resp_err), true);
-			}
-		}
-		catch (TagLostException e) {
-		    mOnMessage.onError(mContext.getString(R.string.tag_lost_err), false);
-		}
-		catch (IOException e) {
-			mOnMessage.onError(e.getMessage(), false);
-		}
-	}
+    @Override
+    public void run() {
+        int messageCounter = 0;
+        try {
+            mIsoDep.connect();
+            Log.d(TAG, "select AID: " + mAid);
+            mOnMessage.onMessageSend("00 A4 04 00"
+                    + String.format("%02X ", mAidBytes.length) + mAid + " 00");
+            byte[] response = mIsoDep.transceive(buildSelectApdu(mAidBytes));
+            if (new String(response).startsWith(mContext
+                    .getString(R.string.select_success_prefix))) {
+                mOnMessage.onMessageRcv(new String(response));
+                while (mIsoDep.isConnected() && !Thread.interrupted()) {
+                    String message = mContext
+                            .getString(R.string.reader_msg_prefix)
+                            + " "
+                            + messageCounter++;
+                    mOnMessage.onMessageSend(message);
+                    response = mIsoDep.transceive(message.getBytes());
+                    mOnMessage.onMessageRcv(new String(response));
+                }
+                mIsoDep.close();
+            } else {
+                mOnMessage.onError(mContext.getString(R.string.wrong_resp_err),
+                        true);
+            }
+        } catch (TagLostException e) {
+            mOnMessage
+                    .onError(mContext.getString(R.string.tag_lost_err), false);
+        } catch (IOException e) {
+            mOnMessage.onError(e.getMessage(), false);
+        }
+    }
 }

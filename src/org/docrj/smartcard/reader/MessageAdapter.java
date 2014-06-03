@@ -33,7 +33,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 public class MessageAdapter extends BaseAdapter {
-    
+
     public static final int MSG_SEND = 1;
     public static final int MSG_RCV = 2;
     public static final int MSG_OKAY = 0;
@@ -42,32 +42,34 @@ public class MessageAdapter extends BaseAdapter {
     private class Message {
         private String text;
         private int type;
+
         Message(String text, int type) {
             this.text = text;
             this.type = type;
         }
     };
 
-	private LayoutInflater mLayoutInflater;
-	private List<Message> mMessages = new ArrayList<Message>(100);
-	private Context mContext;
+    private LayoutInflater mLayoutInflater;
+    private List<Message> mMessages = new ArrayList<Message>(100);
+    private Context mContext;
 
-	public MessageAdapter(LayoutInflater layoutInflater, Bundle instate) {
-		this.mLayoutInflater = layoutInflater;
-		this.mContext = layoutInflater.getContext();
+    public MessageAdapter(LayoutInflater layoutInflater, Bundle instate) {
+        this.mLayoutInflater = layoutInflater;
+        this.mContext = layoutInflater.getContext();
         if (instate != null) {
             // restore state
-            ArrayList<String> strings = instate.getStringArrayList("msg_strings");
+            ArrayList<String> strings = instate
+                    .getStringArrayList("msg_strings");
             ArrayList<Integer> ints = instate.getIntegerArrayList("msg_ints");
             for (int i = 0; i < strings.size(); i++) {
                 mMessages.add(new Message(strings.get(i), ints.get(i)));
             }
-        }		
-	}
+        }
+    }
 
     public void onSaveInstanceState(Bundle outstate) {
         ArrayList<String> strings = new ArrayList<String>(mMessages.size());
-        ArrayList<Integer> ints = new ArrayList<Integer>(mMessages.size()); 
+        ArrayList<Integer> ints = new ArrayList<Integer>(mMessages.size());
         for (Message msg : mMessages) {
             strings.add(msg.text);
             ints.add(msg.type);
@@ -75,79 +77,81 @@ public class MessageAdapter extends BaseAdapter {
         outstate.putStringArrayList("msg_strings", strings);
         outstate.putIntegerArrayList("msg_ints", ints);
     }
-    
+
     public void clearMessages() {
         mMessages.clear();
         notifyDataSetChanged();
     }
 
-	public void addMessage(String message, int type) {
-	    String prefix = "";
-	    switch(type) {
-	        case MSG_SEND:
-	            prefix = mContext.getString(R.string.out_msg_prefix);
-	            break;
-	        case MSG_RCV:
-	            prefix = mContext.getString(R.string.in_msg_prefix);
-	            break;
-	        case MSG_OKAY:
-	            prefix = mContext.getString(R.string.okay_msg_prefix);
-	            break;
-	        case MSG_ERROR:
-	            prefix = mContext.getString(R.string.err_msg_prefix);
-	            break;
-	    }
+    public void addMessage(String message, int type) {
+        String prefix = "";
+        switch (type) {
+        case MSG_SEND:
+            prefix = mContext.getString(R.string.out_msg_prefix);
+            break;
+        case MSG_RCV:
+            prefix = mContext.getString(R.string.in_msg_prefix);
+            break;
+        case MSG_OKAY:
+            prefix = mContext.getString(R.string.okay_msg_prefix);
+            break;
+        case MSG_ERROR:
+            prefix = mContext.getString(R.string.err_msg_prefix);
+            break;
+        }
         mMessages.add(new Message(prefix + message, type));
         notifyDataSetChanged();
-	}
+    }
 
-	private CharSequence getItemText(int position) {
-	    return (CharSequence)mMessages.get(position).text;
-	}
-	
-	private int getItemType(int position) {
-	    return mMessages.get(position).type;
-	}
+    private CharSequence getItemText(int position) {
+        return (CharSequence) mMessages.get(position).text;
+    }
 
-	@Override
-	public int getCount() {
-		return mMessages == null ? 0 : mMessages.size();
-	}
+    private int getItemType(int position) {
+        return mMessages.get(position).type;
+    }
 
-	@Override
-	public Object getItem(int position) {
-		return mMessages.get(position);
-	}
+    @Override
+    public int getCount() {
+        return mMessages == null ? 0 : mMessages.size();
+    }
 
-	@Override
-	public long getItemId(int position) {
-		return 0;
-	}
+    @Override
+    public Object getItem(int position) {
+        return mMessages.get(position);
+    }
 
-	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
-		if (convertView == null) {
-			convertView = mLayoutInflater.inflate(R.layout.list_item_1, parent, false);
-		}
-		TextView view = (TextView)convertView.findViewById(R.id.list_item_text);
-		view.setText(getItemText(position));
-		int type = getItemType(position);
-		int color = android.R.color.black;
-        switch(type) {
-            case MSG_SEND:
-                color = R.color.msg_send;
-                break;
-            case MSG_RCV:
-                color = R.color.msg_rcv;
-                break;
-            case MSG_OKAY:
-                color = R.color.msg_okay;
-                break;
-            case MSG_ERROR:
-                color = R.color.msg_err;
-                break;
+    @Override
+    public long getItemId(int position) {
+        return 0;
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        if (convertView == null) {
+            convertView = mLayoutInflater.inflate(R.layout.list_item_1, parent,
+                    false);
         }
-		view.setTextColor(mContext.getResources().getColor(color));
-		return convertView;
+        TextView view = (TextView) convertView
+                .findViewById(R.id.list_item_text);
+        view.setText(getItemText(position));
+        int type = getItemType(position);
+        int color = android.R.color.black;
+        switch (type) {
+        case MSG_SEND:
+            color = R.color.msg_send;
+            break;
+        case MSG_RCV:
+            color = R.color.msg_rcv;
+            break;
+        case MSG_OKAY:
+            color = R.color.msg_okay;
+            break;
+        case MSG_ERROR:
+            color = R.color.msg_err;
+            break;
+        }
+        view.setTextColor(mContext.getResources().getColor(color));
+        return convertView;
     }
 }

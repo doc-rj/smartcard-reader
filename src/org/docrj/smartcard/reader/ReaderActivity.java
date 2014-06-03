@@ -34,6 +34,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.PorterDuff;
 import android.nfc.NfcAdapter;
 import android.nfc.NfcAdapter.ReaderCallback;
 import android.nfc.Tag;
@@ -59,227 +62,248 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.docrj.smartcard.reader.R;
 
-public class ReaderActivity extends Activity implements OnMessage, ReaderCallback {
+public class ReaderActivity extends Activity implements OnMessage,
+        ReaderCallback {
     protected static final String TAG = "smartcard-reader";
 
     // update all five items below when adding/removing default apps!
     private final static int NUM_RO_APPS = 10;
     private final static int DEFAULT_APP_POS = 0; // Demo
-    private final static String APP_NAMES =
-                   "Demo" +
-        		   "|Amex|Amex 7-Byte|Amex 8-Byte" +
-        		   "|MC|MC 8-Byte" +
-        		   "|Visa|Visa 8-Byte" +
-                   "|Ryan" +
-        		   "|Discover Zip";
-    private final static String APP_AIDS =
-                   "F0646F632D726A" +
-        		   "|A00000002501|A0000000250109|A000000025010988" +
-        		   "|A0000000041010|A000000004101088" +
-        		   "|A0000000031010|A000000003101088" +
-                   "|7465737420414944" +
-        		   "|A0000003241010";
-    private final static String APP_TYPES =
-                   "1|0|0|0|0" +
-                   "|0|0|0|0|0";
+    private final static String APP_NAMES = "Demo"
+            + "|Amex|Amex 7-Byte|Amex 8-Byte" + "|MC|MC 8-Byte"
+            + "|Visa|Visa 8-Byte" + "|Ryan" + "|Discover Zip";
+    private final static String APP_AIDS = "F0646F632D726A"
+            + "|A00000002501|A0000000250109|A000000025010988"
+            + "|A0000000041010|A000000004101088"
+            + "|A0000000031010|A000000003101088" + "|7465737420414944"
+            + "|A0000003241010";
+    private final static String APP_TYPES = "1|0|0|0|0" + "|0|0|0|0|0";
 
     private final static int DIALOG_NEW_APP = 1;
-    private final static int DIALOG_EDIT_APP = 2;
-    private final static int DIALOG_EDIT_ALL_APPS = 3;
-    private final static int DIALOG_ENABLE_NFC = 4;
+    private final static int DIALOG_COPY_LIST = 2;
+    private final static int DIALOG_COPY_APP = 3;
+    private final static int DIALOG_EDIT_APP = 4;
+    private final static int DIALOG_EDIT_ALL_APPS = 5;
+    private final static int DIALOG_ENABLE_NFC = 6;
 
     private Handler mHandler;
     private Editor mEditor;
+    private MenuItem mCopyMenuItem;
     private MenuItem mEditMenuItem;
-	private NfcAdapter mNfcAdapter;
-	private ListView mMsgListView;
-	private ListView mEditAllListView;
-	private AppAdapter mAppAdapter;
-	private AppAdapter mEditAllAdapter;
-	private MessageAdapter mMsgAdapter;
-	private int mMsgPos;
-	boolean mSkipNextClear;
+    private NfcAdapter mNfcAdapter;
+    private ListView mMsgListView;
+    private ListView mEditAllListView;
+    private AppAdapter mAppAdapter;
+    private AppAdapter mEditAllAdapter;
+    private MessageAdapter mMsgAdapter;
+    private int mMsgPos;
+    boolean mSkipNextClear;
 
     private int mSelectedAppPos = DEFAULT_APP_POS;
-	private ArrayList<SmartcardApp> mApps;
-	private String mDemoAid;
-	private boolean mSelectOnCreate;
+    private ArrayList<SmartcardApp> mApps;
+    private String mDemoAid;
+    private boolean mSelectOnCreate;
     private View mTitleView;
     CharSequence mTitle;
     private Spinner mAidSpinner;
-	private ActionBar mActionBar;
-	private AlertDialog mNewDialog;
-	private AlertDialog mEditDialog;
-	private AlertDialog mEditAllDialog;
-	private AlertDialog mEnableNfcDialog;
-	private int mEditPos;
+    private ActionBar mActionBar;
+    private AlertDialog mNewDialog;
+    private AlertDialog mCopyListDialog;
+    private AlertDialog mCopyDialog;
+    private AlertDialog mEditDialog;
+    private AlertDialog mEditAllDialog;
+    private AlertDialog mEnableNfcDialog;
+    private int mCopyPos;
+    private int mEditPos;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-	    getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         mActionBar = getActionBar();
         mTitleView = getLayoutInflater().inflate(R.layout.app_title, null);
         mActionBar.setCustomView(mTitleView);
-        mActionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_SHOW_HOME);
+        mActionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
+                | ActionBar.DISPLAY_SHOW_HOME);
         mActionBar.show();
 
-		setContentView(R.layout.activity_reader);
-		mMsgListView = (ListView)findViewById(R.id.listView);
-		mMsgAdapter = new MessageAdapter(getLayoutInflater(), savedInstanceState);
-		mMsgListView.setAdapter(mMsgAdapter);
-		if (savedInstanceState != null) {
-		    mMsgPos = savedInstanceState.getInt("msg_pos");
-		}
+        setContentView(R.layout.activity_reader);
+        mMsgListView = (ListView) findViewById(R.id.listView);
+        mMsgAdapter = new MessageAdapter(getLayoutInflater(),
+                savedInstanceState);
+        mMsgListView.setAdapter(mMsgAdapter);
+        if (savedInstanceState != null) {
+            mMsgPos = savedInstanceState.getInt("msg_pos");
+        }
 
-		mHandler = new Handler();
-		mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
-		
-		ApduParser.init(this);
+        mHandler = new Handler();
+        mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
 
-		mDemoAid = getString(R.string.demo_aid);
+        ApduParser.init(this);
 
-		SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
-		mEditor = ss.edit();
-		String appNames = ss.getString("app_names", null);
+        mDemoAid = getString(R.string.demo_aid);
 
-		// if shared prefs is empty, synchronously write defaults
-		if (appNames == null) {
+        SharedPreferences ss = getSharedPreferences("prefs",
+                Context.MODE_PRIVATE);
+        mEditor = ss.edit();
+        String appNames = ss.getString("app_names", null);
+
+        // if shared prefs is empty, synchronously write defaults
+        if (appNames == null) {
             writePrefs();
-	        appNames = ss.getString("app_names", null);
-		}
+            appNames = ss.getString("app_names", null);
+        }
 
-		String appAids = ss.getString("app_aids", null);
-		String[] names = appNames.split("\\|");
-		String[] aids = appAids.split("\\|");
+        String appAids = ss.getString("app_aids", null);
+        String[] names = appNames.split("\\|");
+        String[] aids = appAids.split("\\|");
 
-		String appTypes = ss.getString("app_types", null);
-		String[] typeStrs = appTypes.split("\\|");
+        String appTypes = ss.getString("app_types", null);
+        String[] typeStrs = appTypes.split("\\|");
 
-		int[] types = new int[typeStrs.length];
-		for (int i = 0; i < typeStrs.length; i++) {
-		    types[i] = Integer.valueOf(typeStrs[i]);
-		}
+        int[] types = new int[typeStrs.length];
+        for (int i = 0; i < typeStrs.length; i++) {
+            types[i] = Integer.valueOf(typeStrs[i]);
+        }
 
-		mApps = new ArrayList<SmartcardApp>();
-		for (int i = 0; i < names.length; i++) {
-		    mApps.add(new SmartcardApp(names[i], aids[i], types[i]));   
-		}
+        mApps = new ArrayList<SmartcardApp>();
+        for (int i = 0; i < names.length; i++) {
+            mApps.add(new SmartcardApp(names[i], aids[i], types[i]));
+        }
 
-        mAidSpinner = (Spinner)findViewById(R.id.aid);
-	    mAppAdapter = new AppAdapter(this, mApps, savedInstanceState, false);
-	    mAidSpinner.setAdapter(mAppAdapter);
-	    mAidSpinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
-	        @Override
-	        public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                if (!mSelectOnCreate) {
-	                clearMessages();
-                }
-                mSelectOnCreate = false;
-	            mSelectedAppPos = pos;	            
-	            Log.d(TAG, "App: " + mApps.get(pos).getName() +
-	                  ", AID: " + mApps.get(pos).getAid());
-            }
+        mAidSpinner = (Spinner) findViewById(R.id.aid);
+        mAppAdapter = new AppAdapter(this, mApps, savedInstanceState, false);
+        mAidSpinner.setAdapter(mAppAdapter);
+        mAidSpinner
+                .setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent,
+                            View view, int pos, long id) {
+                        if (!mSelectOnCreate) {
+                            clearMessages();
+                        }
+                        mSelectOnCreate = false;
+                        mSelectedAppPos = pos;
+                        Log.d(TAG, "App: " + mApps.get(pos).getName()
+                                + ", AID: " + mApps.get(pos).getAid());
+                    }
 
-	        @Override
-	        public void onNothingSelected(AdapterView<?> parent) {
-	        }
-	    });
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                    }
+                });
 
         mSelectOnCreate = true;
         // mSelectedAppPos saved in onPause(), restored in onResume()
-	}
+    }
 
-	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
-	    @SuppressWarnings("deprecation")
+    private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @SuppressWarnings("deprecation")
         @Override
-	    public void onReceive(Context context, Intent intent) {
-	        String action = intent.getAction();
-	        if (action == null) return;
-	        if (action.equals(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED)) {
-	            int state = intent.getIntExtra(NfcAdapter.EXTRA_ADAPTER_STATE, NfcAdapter.STATE_ON);
-	            if (state == NfcAdapter.STATE_ON || state == NfcAdapter.STATE_TURNING_ON) {
-                    Log.d(TAG, "state: " + state + " , dialog: " + mEnableNfcDialog);
-	                if (mEnableNfcDialog != null) {
-	                    mEnableNfcDialog.dismiss();
-	                }
-	                if (state == NfcAdapter.STATE_ON) {
-	                    mNfcAdapter.enableReaderMode(ReaderActivity.this, ReaderActivity.this,
-	                        NfcAdapter.FLAG_READER_NFC_A | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
-	                        null);
-	                }
-	            } else {
-	                if (mEnableNfcDialog == null || !mEnableNfcDialog.isShowing()) {
-	                    showDialog(DIALOG_ENABLE_NFC);
-	                }
-	            }
-	        }
-	    }
-	};
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action == null)
+                return;
+            if (action.equals(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED)) {
+                int state = intent.getIntExtra(NfcAdapter.EXTRA_ADAPTER_STATE,
+                        NfcAdapter.STATE_ON);
+                if (state == NfcAdapter.STATE_ON
+                        || state == NfcAdapter.STATE_TURNING_ON) {
+                    Log.d(TAG, "state: " + state + " , dialog: "
+                            + mEnableNfcDialog);
+                    if (mEnableNfcDialog != null) {
+                        mEnableNfcDialog.dismiss();
+                    }
+                    if (state == NfcAdapter.STATE_ON) {
+                        mNfcAdapter
+                                .enableReaderMode(
+                                        ReaderActivity.this,
+                                        ReaderActivity.this,
+                                        NfcAdapter.FLAG_READER_NFC_A
+                                                | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
+                                        null);
+                    }
+                } else {
+                    if (mEnableNfcDialog == null
+                            || !mEnableNfcDialog.isShowing()) {
+                        showDialog(DIALOG_ENABLE_NFC);
+                    }
+                }
+            }
+        }
+    };
 
-	@SuppressWarnings("deprecation")
+    @SuppressWarnings("deprecation")
     @Override
-	public void onResume() {
-		super.onResume();
+    public void onResume() {
+        super.onResume();
         // restore selected pos from prefs
-        SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
+        SharedPreferences ss = getSharedPreferences("prefs",
+                Context.MODE_PRIVATE);
         mSelectedAppPos = ss.getInt("selected_aid_pos", mSelectedAppPos);
         mAidSpinner.setSelection(mSelectedAppPos);
 
-		// this delay is a bit hacky; would be better to extend ListView
-		// and override onLayout()
-		mHandler.postDelayed(new Runnable() {
-		    public void run() {
-		        mMsgListView.smoothScrollToPosition(mMsgPos);
-		    }
-		}, 50L);
+        // this delay is a bit hacky; would be better to extend ListView
+        // and override onLayout()
+        mHandler.postDelayed(new Runnable() {
+            public void run() {
+                mMsgListView.smoothScrollToPosition(mMsgPos);
+            }
+        }, 50L);
 
         // register broadcast receiver
-        IntentFilter filter = new IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED);
+        IntentFilter filter = new IntentFilter(
+                NfcAdapter.ACTION_ADAPTER_STATE_CHANGED);
         registerReceiver(mBroadcastReceiver, filter);
 
         // prompt to enable NFC if disabled
-		if (!mNfcAdapter.isEnabled()) {
-		    showDialog(DIALOG_ENABLE_NFC);
-		}
+        if (!mNfcAdapter.isEnabled()) {
+            showDialog(DIALOG_ENABLE_NFC);
+        }
 
         // listen for type A tags/smartcards, skipping ndef check
-		mNfcAdapter.enableReaderMode(this, this,
-		        NfcAdapter.FLAG_READER_NFC_A | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
-				null);
-	}
+        mNfcAdapter.enableReaderMode(this, this, NfcAdapter.FLAG_READER_NFC_A
+                | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null);
+    }
 
-	@Override
-	public void onPause() {
-		super.onPause();
-	    // save selected pos to prefs
+    @Override
+    public void onPause() {
+        super.onPause();
+        // save selected pos to prefs
         writePrefs();
         // unregister broadcast receiver
         unregisterReceiver(mBroadcastReceiver);
         // disable reader mode
-		mNfcAdapter.disableReaderMode(this);
-	}
+        mNfcAdapter.disableReaderMode(this);
+    }
 
-	@Override
-	public void onStop() {
-	    super.onStop();
-	    if (mNewDialog != null) {
-	        mNewDialog.dismiss();
-	    }
-	    if (mEditDialog != null) {
-	        mEditDialog.dismiss();
-	    }
-	    if (mEditAllDialog != null) {
-	        mEditAllDialog.dismiss();
-	    }
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mNewDialog != null) {
+            mNewDialog.dismiss();
+        }
+        if (mCopyDialog != null) {
+            mCopyDialog.dismiss();
+        }
+        if (mCopyListDialog != null) {
+            mCopyListDialog.dismiss();
+        }
+        if (mEditDialog != null) {
+            mEditDialog.dismiss();
+        }
+        if (mEditAllDialog != null) {
+            mEditAllDialog.dismiss();
+        }
         if (mEnableNfcDialog != null) {
             mEnableNfcDialog.dismiss();
         }
-	}
+    }
 
     @Override
     protected void onSaveInstanceState(Bundle outstate) {
@@ -293,34 +317,39 @@ public class ReaderActivity extends Activity implements OnMessage, ReaderCallbac
 
     @Override
     protected Dialog onCreateDialog(int id) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(ReaderActivity.this, R.style.dialog);
+        AlertDialog.Builder builder = new AlertDialog.Builder(
+                ReaderActivity.this, R.style.dialog);
         final LayoutInflater li = getLayoutInflater();
         Dialog dialog = null;
-        switch(id) {
+        switch (id) {
         case DIALOG_NEW_APP: {
             final View view = li.inflate(R.layout.new_app, null);
             builder.setView(view)
-            .setCancelable(false)
-            .setIcon(R.drawable.credit_card_add_dark)
-            .setTitle(R.string.new_app_title)
-            .setPositiveButton(R.string.dialog_ok, null)
-            .setNegativeButton(R.string.dialog_cancel,
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                });
+                    .setCancelable(false)
+                    .setIcon(R.drawable.credit_card_add_dark)
+                    .setTitle(R.string.new_app_title)
+                    .setPositiveButton(R.string.dialog_ok, null)
+                    .setNegativeButton(R.string.dialog_cancel,
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog,
+                                        int id) {
+                                    dialog.cancel();
+                                }
+                            });
 
             mNewDialog = builder.create();
-            dialog = mNewDialog;        
+            dialog = mNewDialog;
             dialog.setOnShowListener(new DialogInterface.OnShowListener() {
                 @Override
                 public void onShow(DialogInterface di) {
-                    Button b = mNewDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                    Button b = mNewDialog
+                            .getButton(AlertDialog.BUTTON_POSITIVE);
                     b.setOnClickListener(new View.OnClickListener() {
                         public void onClick(View v) {
-                            EditText appName = (EditText)view.findViewById(R.id.app_name);
-                            EditText appAid = (EditText)view.findViewById(R.id.app_aid);
+                            EditText appName = (EditText) view
+                                    .findViewById(R.id.app_name);
+                            EditText appAid = (EditText) view
+                                    .findViewById(R.id.app_aid);
 
                             // validate name and aid
                             String name = appName.getText().toString();
@@ -329,39 +358,47 @@ public class ReaderActivity extends Activity implements OnMessage, ReaderCallbac
                                 showToast(getString(R.string.empty_name));
                                 return;
                             }
-                            if (aid.length() < 10 || aid.length() > 32 || aid.length() % 2 != 0) {
+                            if (aid.length() < 10 || aid.length() > 32
+                                    || aid.length() % 2 != 0) {
                                 showToast(getString(R.string.invalid_aid));
                                 return;
                             }
                             // ensure name is unique (aid can be dup)
                             for (SmartcardApp app : mApps) {
                                 if (app.getName().equals(name)) {
-                                    showToast(getString(R.string.name_exists, name));
+                                    showToast(getString(R.string.name_exists,
+                                            name));
                                     return;
                                 }
                             }
                             // app type radio group
-                            RadioGroup appTypeGrp = (RadioGroup)view.findViewById(R.id.radio_grp_type);
-                            int selectedId = appTypeGrp.getCheckedRadioButtonId();
-                            RadioButton radioBtn = (RadioButton)view.findViewById(selectedId);
-                            int type = radioBtn.getText().toString().equals(getString(R.string.radio_payment)) ?
-                                SmartcardApp.TYPE_PAYMENT : SmartcardApp.TYPE_OTHER;
+                            RadioGroup appTypeGrp = (RadioGroup) view
+                                    .findViewById(R.id.radio_grp_type);
+                            int selectedId = appTypeGrp
+                                    .getCheckedRadioButtonId();
+                            RadioButton radioBtn = (RadioButton) view
+                                    .findViewById(selectedId);
+                            int type = radioBtn.getText().toString()
+                                    .equals(getString(R.string.radio_payment)) ? SmartcardApp.TYPE_PAYMENT
+                                    : SmartcardApp.TYPE_OTHER;
 
                             // current app checkbox
-                            CheckBox cbCurrent = (CheckBox)view.findViewById(R.id.make_current);
+                            CheckBox cbCurrent = (CheckBox) view
+                                    .findViewById(R.id.make_current);
                             if (cbCurrent.isChecked()) {
                                 mSelectedAppPos = mApps.size();
                             }
 
                             // update apps list
-                            SmartcardApp newApp = new SmartcardApp(appName.getText().toString(),
-                                appAid.getText().toString(), type);
+                            SmartcardApp newApp = new SmartcardApp(appName
+                                    .getText().toString(), appAid.getText()
+                                    .toString(), type);
                             Log.d(TAG, "newApp: " + newApp);
-                            synchronized(mApps) {
+                            synchronized (mApps) {
                                 mApps.add(newApp);
                                 if (mApps.size() == NUM_RO_APPS + 1) {
-                                   // enable edit menu item
-                                   mEditMenuItem.setEnabled(true); 
+                                    // enable copy and edit menu items
+                                    prepareOptionsMenu();
                                 }
                             }
 
@@ -378,35 +415,72 @@ public class ReaderActivity extends Activity implements OnMessage, ReaderCallbac
             });
             break;
         } // case
-        case DIALOG_EDIT_APP: {
+        case DIALOG_COPY_LIST: {
+            final View view = li.inflate(R.layout.edit_apps, null);
+            final TextView textView = (TextView) view.findViewById(R.id.text1);
+            final ListView listView = (ListView) view
+                    .findViewById(R.id.listView);
+
+            textView.setText(R.string.tap_to_copy);
+            ArrayList<SmartcardApp> sl = new ArrayList<SmartcardApp>(
+                    mApps.subList(NUM_RO_APPS, mApps.size()));
+            AppAdapter copyListAdapter = new AppAdapter(this, sl, null, true);
+            listView.setAdapter(copyListAdapter);
+            listView.setOnItemClickListener(new ListView.OnItemClickListener() {
+                @SuppressWarnings("deprecation")
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view,
+                        int pos, long id) {
+                    mCopyPos = NUM_RO_APPS + pos;
+                    showDialog(DIALOG_COPY_APP);
+                    mCopyListDialog.dismiss();
+                }
+            });
+            listView.setOnItemLongClickListener(new ListView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> parent,
+                        View view, int pos, long id) {
+                    return true;
+                }
+            });
+
+            builder.setView(view).setCancelable(false)
+                    .setIcon(R.drawable.ic_action_copy)
+                    .setTitle(R.string.copy_list_title)
+                    .setPositiveButton(R.string.dialog_cancel, null);
+
+            mCopyListDialog = builder.create();
+            dialog = mCopyListDialog;
+            break;
+        } // case
+        case DIALOG_COPY_APP: {
             final View view = li.inflate(R.layout.new_app, null);
             builder.setView(view)
-            .setCancelable(false)
-            .setIcon(R.drawable.credit_card_edit_dark)
-            .setTitle(R.string.new_app_title)
-            .setPositiveButton(R.string.dialog_ok, null)
-            .setNegativeButton(R.string.dialog_cancel,
-                new DialogInterface.OnClickListener() {
-                    @SuppressWarnings("deprecation")
-                    public void onClick(DialogInterface dialog, int id) {
-                        dismissKeyboard(mEditDialog.getCurrentFocus());
-                        showDialog(DIALOG_EDIT_ALL_APPS);
-                        dialog.cancel();
-                    }
-                });
+                    .setCancelable(false)
+                    .setIcon(R.drawable.credit_card_add_dark)
+                    .setTitle(R.string.new_app_title)
+                    .setPositiveButton(R.string.dialog_ok, null)
+                    .setNegativeButton(R.string.dialog_cancel,
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog,
+                                        int id) {
+                                    dialog.cancel();
+                                }
+                            });
 
-            mEditDialog = builder.create();
-            dialog = mEditDialog;
-
+            mCopyDialog = builder.create();
+            dialog = mCopyDialog;
             dialog.setOnShowListener(new DialogInterface.OnShowListener() {
                 @Override
                 public void onShow(DialogInterface di) {
-                    Button b = mEditDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                    Button b = mCopyDialog
+                            .getButton(AlertDialog.BUTTON_POSITIVE);
                     b.setOnClickListener(new View.OnClickListener() {
-                        @SuppressWarnings("deprecation")
                         public void onClick(View v) {
-                            EditText appName = (EditText)view.findViewById(R.id.app_name);
-                            EditText appAid = (EditText)view.findViewById(R.id.app_aid);
+                            EditText appName = (EditText) view
+                                    .findViewById(R.id.app_name);
+                            EditText appAid = (EditText) view
+                                    .findViewById(R.id.app_aid);
 
                             // validate name and aid
                             String name = appName.getText().toString();
@@ -415,36 +489,139 @@ public class ReaderActivity extends Activity implements OnMessage, ReaderCallbac
                                 showToast(getString(R.string.empty_name));
                                 return;
                             }
-                            if (aid.length() < 10 || aid.length() > 32 || aid.length() % 2 != 0) {
+                            if (aid.length() < 10 || aid.length() > 32
+                                    || aid.length() % 2 != 0) {
+                                showToast(getString(R.string.invalid_aid));
+                                return;
+                            }
+                            // ensure name is unique (aid can be dup)
+                            for (SmartcardApp app : mApps) {
+                                if (app.getName().equals(name)) {
+                                    showToast(getString(R.string.name_exists,
+                                            name));
+                                    return;
+                                }
+                            }
+                            // app type radio group
+                            RadioGroup appTypeGrp = (RadioGroup) view
+                                    .findViewById(R.id.radio_grp_type);
+                            int selectedId = appTypeGrp
+                                    .getCheckedRadioButtonId();
+                            RadioButton radioBtn = (RadioButton) view
+                                    .findViewById(selectedId);
+                            int type = radioBtn.getText().toString()
+                                    .equals(getString(R.string.radio_payment)) ? SmartcardApp.TYPE_PAYMENT
+                                    : SmartcardApp.TYPE_OTHER;
+
+                            // current app checkbox
+                            CheckBox cbCurrent = (CheckBox) view
+                                    .findViewById(R.id.make_current);
+                            if (cbCurrent.isChecked()) {
+                                mSelectedAppPos = mApps.size();
+                            }
+
+                            // update apps list
+                            SmartcardApp newApp = new SmartcardApp(appName
+                                    .getText().toString(), appAid.getText()
+                                    .toString(), type);
+                            Log.d(TAG, "newApp: " + newApp);
+                            synchronized (mApps) {
+                                mApps.add(newApp);
+                            }
+
+                            mAidSpinner.setAdapter(mAppAdapter);
+                            mAidSpinner.setSelection(mSelectedAppPos);
+                            mAppAdapter.notifyDataSetChanged();
+
+                            // write apps to shared prefs
+                            new writePrefsTask().execute();
+                            mCopyDialog.dismiss();
+                        }
+                    });
+                }
+            });
+            break;
+        } // case
+        case DIALOG_EDIT_APP: {
+            final View view = li.inflate(R.layout.new_app, null);
+            builder.setView(view)
+                    .setCancelable(false)
+                    .setIcon(R.drawable.credit_card_edit_dark)
+                    .setTitle(R.string.new_app_title)
+                    .setPositiveButton(R.string.dialog_ok, null)
+                    .setNegativeButton(R.string.dialog_cancel,
+                            new DialogInterface.OnClickListener() {
+                                @SuppressWarnings("deprecation")
+                                public void onClick(DialogInterface dialog,
+                                        int id) {
+                                    dismissKeyboard(mEditDialog
+                                            .getCurrentFocus());
+                                    showDialog(DIALOG_EDIT_ALL_APPS);
+                                    dialog.cancel();
+                                }
+                            });
+
+            mEditDialog = builder.create();
+            dialog = mEditDialog;
+
+            dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                @Override
+                public void onShow(DialogInterface di) {
+                    Button b = mEditDialog
+                            .getButton(AlertDialog.BUTTON_POSITIVE);
+                    b.setOnClickListener(new View.OnClickListener() {
+                        @SuppressWarnings("deprecation")
+                        public void onClick(View v) {
+                            EditText appName = (EditText) view
+                                    .findViewById(R.id.app_name);
+                            EditText appAid = (EditText) view
+                                    .findViewById(R.id.app_aid);
+
+                            // validate name and aid
+                            String name = appName.getText().toString();
+                            String aid = appAid.getText().toString();
+                            if (name.isEmpty()) {
+                                showToast(getString(R.string.empty_name));
+                                return;
+                            }
+                            if (aid.length() < 10 || aid.length() > 32
+                                    || aid.length() % 2 != 0) {
                                 showToast(getString(R.string.invalid_aid));
                                 return;
                             }
                             // ensure name is unique
                             for (int i = 0; i < mApps.size(); i++) {
                                 // skip the app being edited
-                                if (i == mEditPos) continue;
+                                if (i == mEditPos)
+                                    continue;
                                 SmartcardApp app = mApps.get(i);
                                 if (app.getName().equals(name)) {
-                                    showToast(getString(R.string.name_exists, name));
+                                    showToast(getString(R.string.name_exists,
+                                            name));
                                     return;
                                 }
                             }
                             // app type radio group
-                            RadioGroup appTypeGrp = (RadioGroup)view.findViewById(R.id.radio_grp_type);
-                            int selectedId = appTypeGrp.getCheckedRadioButtonId();
-                            RadioButton radioBtn = (RadioButton)view.findViewById(selectedId);
-                            int type = radioBtn.getText().toString().equals(getString(R.string.radio_payment)) ?
-                                SmartcardApp.TYPE_PAYMENT : SmartcardApp.TYPE_OTHER;
+                            RadioGroup appTypeGrp = (RadioGroup) view
+                                    .findViewById(R.id.radio_grp_type);
+                            int selectedId = appTypeGrp
+                                    .getCheckedRadioButtonId();
+                            RadioButton radioBtn = (RadioButton) view
+                                    .findViewById(selectedId);
+                            int type = radioBtn.getText().toString()
+                                    .equals(getString(R.string.radio_payment)) ? SmartcardApp.TYPE_PAYMENT
+                                    : SmartcardApp.TYPE_OTHER;
 
                             // current app checkbox
-                            CheckBox cbCurrent = (CheckBox)view.findViewById(R.id.make_current);
+                            CheckBox cbCurrent = (CheckBox) view
+                                    .findViewById(R.id.make_current);
                             if (cbCurrent.isChecked()) {
                                 mSelectedAppPos = mEditPos;
                             }
 
                             // update apps list
                             SmartcardApp app;
-                            synchronized(mApps) {
+                            synchronized (mApps) {
                                 app = mApps.get(mEditPos);
                                 app.setName(name);
                                 app.setAid(aid);
@@ -455,7 +632,8 @@ public class ReaderActivity extends Activity implements OnMessage, ReaderCallbac
                             mAidSpinner.setSelection(mSelectedAppPos);
                             mAppAdapter.notifyDataSetChanged();
 
-                            SmartcardApp subApp = mEditAllAdapter.getItem(mEditPos - NUM_RO_APPS);
+                            SmartcardApp subApp = mEditAllAdapter
+                                    .getItem(mEditPos - NUM_RO_APPS);
                             subApp.copy(app);
                             mEditAllAdapter.notifyDataSetChanged();
                             mEditAllListView.setAdapter(mEditAllAdapter);
@@ -473,17 +651,19 @@ public class ReaderActivity extends Activity implements OnMessage, ReaderCallbac
         } // case
         case DIALOG_EDIT_ALL_APPS: {
             final View view = li.inflate(R.layout.edit_apps, null);
-            final ListView listView = (ListView)view.findViewById(R.id.listView);
+            final ListView listView = (ListView) view
+                    .findViewById(R.id.listView);
             mEditAllListView = listView;
 
-            ArrayList<SmartcardApp> sl =
-                new ArrayList<SmartcardApp>(mApps.subList(NUM_RO_APPS, mApps.size()));
+            ArrayList<SmartcardApp> sl = new ArrayList<SmartcardApp>(
+                    mApps.subList(NUM_RO_APPS, mApps.size()));
             mEditAllAdapter = new AppAdapter(this, sl, null, true);
             listView.setAdapter(mEditAllAdapter);
             listView.setOnItemClickListener(new ListView.OnItemClickListener() {
                 @SuppressWarnings("deprecation")
                 @Override
-                public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
+                public void onItemClick(AdapterView<?> parent, View view,
+                        int pos, long id) {
                     mEditPos = NUM_RO_APPS + pos;
                     showDialog(DIALOG_EDIT_APP);
                     mEditAllDialog.dismiss();
@@ -491,13 +671,13 @@ public class ReaderActivity extends Activity implements OnMessage, ReaderCallbac
             });
             listView.setOnItemLongClickListener(new ListView.OnItemLongClickListener() {
                 @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
+                public boolean onItemLongClick(AdapterView<?> parent,
+                        View view, int pos, long id) {
                     // TODO: confirmation dialog or discard icon?
                     mApps.remove(NUM_RO_APPS + pos);
                     if (mSelectedAppPos == NUM_RO_APPS + pos) {
                         mSelectedAppPos = 0;
-                    } else
-                    if (mSelectedAppPos > NUM_RO_APPS + pos) {
+                    } else if (mSelectedAppPos > NUM_RO_APPS + pos) {
                         mSelectedAppPos--;
                     }
 
@@ -514,17 +694,17 @@ public class ReaderActivity extends Activity implements OnMessage, ReaderCallbac
                     if (mApps.size() == NUM_RO_APPS) {
                         parent.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
                         mEditAllDialog.dismiss();
-                        mEditMenuItem.setEnabled(false);
+                        // disable copy and edit menu items
+                        prepareOptionsMenu();
                     }
                     return true;
                 }
-            });         
+            });
 
-            builder.setView(view)
-            .setCancelable(false)
-            .setIcon(R.drawable.credit_card_edit_dark)
-            .setTitle(R.string.edit_apps_title)
-            .setPositiveButton(R.string.dialog_done, null);
+            builder.setView(view).setCancelable(false)
+                    .setIcon(R.drawable.credit_card_edit_dark)
+                    .setTitle(R.string.edit_apps_title)
+                    .setPositiveButton(R.string.dialog_done, null);
 
             mEditAllDialog = builder.create();
             dialog = mEditAllDialog;
@@ -533,23 +713,26 @@ public class ReaderActivity extends Activity implements OnMessage, ReaderCallbac
         case DIALOG_ENABLE_NFC: {
             final View view = li.inflate(R.layout.enable_nfc, null);
             builder.setView(view)
-            .setCancelable(false)
-            .setIcon(R.drawable.ic_enable_nfc)
-            .setTitle(R.string.nfc_disabled)
-            .setPositiveButton(R.string.dialog_ok,
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // take user to wireless settings
-                        startActivity(new Intent(Settings.ACTION_WIRELESS_SETTINGS));
-                    }
-                })
-            .setNegativeButton(R.string.dialog_quit,
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                        finish(); 
-                    }
-                });
+                    .setCancelable(false)
+                    .setIcon(R.drawable.ic_enable_nfc)
+                    .setTitle(R.string.nfc_disabled)
+                    .setPositiveButton(R.string.dialog_ok,
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog,
+                                        int id) {
+                                    // take user to wireless settings
+                                    startActivity(new Intent(
+                                            Settings.ACTION_WIRELESS_SETTINGS));
+                                }
+                            })
+                    .setNegativeButton(R.string.dialog_quit,
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog,
+                                        int id) {
+                                    dialog.cancel();
+                                    finish();
+                                }
+                            });
 
             mEnableNfcDialog = builder.create();
             dialog = mEnableNfcDialog;
@@ -561,139 +744,187 @@ public class ReaderActivity extends Activity implements OnMessage, ReaderCallbac
 
     @Override
     protected void onPrepareDialog(int id, Dialog dialog) {
-        switch(id) {
-            case DIALOG_NEW_APP: {
-                EditText name = (EditText)dialog.findViewById(R.id.app_name);
-                EditText aid = (EditText)dialog.findViewById(R.id.app_aid);
-                RadioGroup type = (RadioGroup)dialog.findViewById(R.id.radio_grp_type);
-                CheckBox current = (CheckBox)dialog.findViewById(R.id.make_current);
+        switch (id) {
+        case DIALOG_NEW_APP: {
+            EditText name = (EditText) dialog.findViewById(R.id.app_name);
+            EditText aid = (EditText) dialog.findViewById(R.id.app_aid);
+            RadioGroup type = (RadioGroup) dialog
+                    .findViewById(R.id.radio_grp_type);
+            CheckBox current = (CheckBox) dialog
+                    .findViewById(R.id.make_current);
 
-                name.setText("");
-                name.requestFocus();
-                aid.setText("");
-                type.check(R.id.radio_payment);
-                current.setChecked(false);
-                break;
-            }
-            case DIALOG_EDIT_APP: {
-                EditText name = (EditText)dialog.findViewById(R.id.app_name);
-                EditText aid = (EditText)dialog.findViewById(R.id.app_aid);
-                RadioGroup type = (RadioGroup)dialog.findViewById(R.id.radio_grp_type);
-                CheckBox current = (CheckBox)dialog.findViewById(R.id.make_current);
+            name.setText("");
+            name.requestFocus();
+            aid.setText("");
+            type.check(R.id.radio_payment);
+            current.setChecked(false);
+            break;
+        }
+        case DIALOG_COPY_LIST: {
+            ListView listView = (ListView) dialog.findViewById(R.id.listView);
+            TextView textView = (TextView) dialog.findViewById(R.id.text1);
 
-                SmartcardApp app = mApps.get(mEditPos);
-                name.setText(app.getName());
-                name.requestFocus();
-                aid.setText(app.getAid());
-                type.check((app.getType() == SmartcardApp.TYPE_OTHER) ?
-                    R.id.radio_other : R.id.radio_payment);
-                current.setChecked(mEditPos == mSelectedAppPos);
-                current.setEnabled(mEditPos != mSelectedAppPos);
-                break;
-            }
-            case DIALOG_EDIT_ALL_APPS: {
-                ListView listView = (ListView)dialog.findViewById(R.id.listView);
-                ArrayList<SmartcardApp> sl =
-                    new ArrayList<SmartcardApp>(mApps.subList(NUM_RO_APPS, mApps.size()));
-                mEditAllAdapter = new AppAdapter(this, sl, null, true);
-                listView.setAdapter(mEditAllAdapter);
-                break;
-            }
-            case DIALOG_ENABLE_NFC: {
-                break;
-            }
+            textView.setText(R.string.tap_to_copy);
+            ArrayList<SmartcardApp> sl = new ArrayList<SmartcardApp>(
+                    mApps.subList(NUM_RO_APPS, mApps.size()));
+            AppAdapter copyListAdapter = new AppAdapter(this, sl, null, true);
+            listView.setAdapter(copyListAdapter);
+            break;
+        }
+        case DIALOG_COPY_APP: {
+            EditText name = (EditText) dialog.findViewById(R.id.app_name);
+            EditText aid = (EditText) dialog.findViewById(R.id.app_aid);
+            RadioGroup type = (RadioGroup) dialog
+                    .findViewById(R.id.radio_grp_type);
+            CheckBox current = (CheckBox) dialog
+                    .findViewById(R.id.make_current);
+
+            SmartcardApp app = mApps.get(mCopyPos);
+            name.setText(app.getName());
+            name.requestFocus();
+            aid.setText(app.getAid());
+            type.check((app.getType() == SmartcardApp.TYPE_OTHER) ? R.id.radio_other
+                    : R.id.radio_payment);
+            current.setChecked(false);
+            break;
+        }
+        case DIALOG_EDIT_APP: {
+            EditText name = (EditText) dialog.findViewById(R.id.app_name);
+            EditText aid = (EditText) dialog.findViewById(R.id.app_aid);
+            RadioGroup type = (RadioGroup) dialog
+                    .findViewById(R.id.radio_grp_type);
+            CheckBox current = (CheckBox) dialog
+                    .findViewById(R.id.make_current);
+
+            SmartcardApp app = mApps.get(mEditPos);
+            name.setText(app.getName());
+            name.requestFocus();
+            aid.setText(app.getAid());
+            type.check((app.getType() == SmartcardApp.TYPE_OTHER) ? R.id.radio_other
+                    : R.id.radio_payment);
+            current.setChecked(mEditPos == mSelectedAppPos);
+            current.setEnabled(mEditPos != mSelectedAppPos);
+            break;
+        }
+        case DIALOG_EDIT_ALL_APPS: {
+            ListView listView = (ListView) dialog.findViewById(R.id.listView);
+            ArrayList<SmartcardApp> sl = new ArrayList<SmartcardApp>(
+                    mApps.subList(NUM_RO_APPS, mApps.size()));
+            mEditAllAdapter = new AppAdapter(this, sl, null, true);
+            listView.setAdapter(mEditAllAdapter);
+            break;
+        }
+        case DIALOG_ENABLE_NFC: {
+            break;
+        }
         }
     }
 
     private void dismissKeyboard(View focus) {
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);    
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
+        mCopyMenuItem = menu.findItem(R.id.menu_copy_app);
         mEditMenuItem = menu.findItem(R.id.menu_edit_all_apps);
-        if (mApps.size() > NUM_RO_APPS) {
-            mEditMenuItem.setEnabled(true);
-        }
+        prepareOptionsMenu();
         return true;
+    }
+
+    private void prepareOptionsMenu() {
+        boolean enabled = mApps.size() > NUM_RO_APPS;
+        Drawable copyIcon = getResources().getDrawable(
+                R.drawable.ic_action_copy);
+        if (!enabled) {
+            copyIcon.mutate().setColorFilter(Color.LTGRAY,
+                    PorterDuff.Mode.SRC_IN);
+        }
+        mCopyMenuItem.setEnabled(enabled);
+        mCopyMenuItem.setIcon(copyIcon);
+        mEditMenuItem.setEnabled(enabled);
     }
 
     @SuppressWarnings("deprecation")
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
-            case R.id.menu_new_app:
-                showDialog(DIALOG_NEW_APP);
-                return true;
+        switch (item.getItemId()) {
+        case R.id.menu_new_app:
+            showDialog(DIALOG_NEW_APP);
+            return true;
 
-            case R.id.menu_edit_all_apps:
-                showDialog(DIALOG_EDIT_ALL_APPS);
-                return true;
-                
-            case R.id.menu_clear_msgs:
-                clearMessages();
-                return true;
+        case R.id.menu_copy_app:
+            showDialog(DIALOG_COPY_LIST);
+            return true;
+
+        case R.id.menu_edit_all_apps:
+            showDialog(DIALOG_EDIT_ALL_APPS);
+            return true;
+
+        case R.id.menu_clear_msgs:
+            clearMessages();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     private void showToast(String text) {
-        Toast toast = Toast.makeText(ReaderActivity.this, text, Toast.LENGTH_SHORT);
+        Toast toast = Toast.makeText(ReaderActivity.this, text,
+                Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.CENTER_VERTICAL, 0, -100);
         toast.show();
     }
 
-	@Override
-	public void onTagDiscovered(Tag tag) {
-	    // first clear messages
-	    if (mSkipNextClear) {
-	        mSkipNextClear = false;
-	    } else {
+    @Override
+    public void onTagDiscovered(Tag tag) {
+        // first clear messages
+        if (mSkipNextClear) {
+            mSkipNextClear = false;
+        } else {
             clearMessages();
-	    }
+        }
         // get IsoDep handle and run xcvr thread
-		IsoDep isoDep = IsoDep.get(tag);
-		if (isoDep == null) {
-		    onError(getString(R.string.wrong_tag_err), true);
-		} else {
-		    ReaderXcvr xcvr;
-		    String aid = mApps.get(mSelectedAppPos).getAid();
-		    if (mDemoAid.equals(aid)) {
-		        xcvr = new DemoReaderXcvr(isoDep, aid, this);
-		    } else
-		    if (mApps.get(mSelectedAppPos).getType() == 0) {
-		        xcvr = new PaymentReaderXcvr(isoDep, aid, this);
-		    } else {
-		        xcvr = new OtherReaderXcvr(isoDep, aid, this);
-		    }
-		    new Thread(xcvr).start();
-		}
-	}
+        IsoDep isoDep = IsoDep.get(tag);
+        if (isoDep == null) {
+            onError(getString(R.string.wrong_tag_err), true);
+        } else {
+            ReaderXcvr xcvr;
+            String aid = mApps.get(mSelectedAppPos).getAid();
+            if (mDemoAid.equals(aid)) {
+                xcvr = new DemoReaderXcvr(isoDep, aid, this);
+            } else if (mApps.get(mSelectedAppPos).getType() == 0) {
+                xcvr = new PaymentReaderXcvr(isoDep, aid, this);
+            } else {
+                xcvr = new OtherReaderXcvr(isoDep, aid, this);
+            }
+            new Thread(xcvr).start();
+        }
+    }
 
     @Override
     public void onMessageSend(final String message) {
         onMessageAndType(message, MessageAdapter.MSG_SEND);
-    }	
+    }
 
     @Override
-	public void onMessageRcv(final String message) {
+    public void onMessageRcv(final String message) {
         onMessageAndType(message, MessageAdapter.MSG_RCV);
-	}
+    }
 
     @Override
     public void onOkay(final String message) {
         onMessageAndType(message, MessageAdapter.MSG_OKAY);
     }
-    
-	@Override
-	public void onError(final String message, boolean skipNextClear) {
-	    onMessageAndType(message, MessageAdapter.MSG_ERROR);
-        mSkipNextClear = skipNextClear;
-	}
 
-	private void onMessageAndType(final String message, final int type) {
+    @Override
+    public void onError(final String message, boolean skipNextClear) {
+        onMessageAndType(message, MessageAdapter.MSG_ERROR);
+        mSkipNextClear = skipNextClear;
+    }
+
+    private void onMessageAndType(final String message, final int type) {
         runOnUiThread(new Runnable() {
 
             @Override
@@ -701,9 +932,9 @@ public class ReaderActivity extends Activity implements OnMessage, ReaderCallbac
                 mMsgAdapter.addMessage(message, type);
             }
         });
-	}
-	
-	private void clearMessages() {
+    }
+
+    private void clearMessages() {
         if (mMsgAdapter != null) {
             runOnUiThread(new Runnable() {
 
@@ -712,16 +943,16 @@ public class ReaderActivity extends Activity implements OnMessage, ReaderCallbac
                     mMsgAdapter.clearMessages();
                 }
             });
-        }	    
-	}
+        }
+    }
 
-	private void writePrefs() {
+    private void writePrefs() {
         StringBuffer names = new StringBuffer(APP_NAMES);
         StringBuffer aids = new StringBuffer(APP_AIDS);
         StringBuffer types = new StringBuffer(APP_TYPES);
 
         if (mApps != null) {
-            synchronized(mApps) {
+            synchronized (mApps) {
                 for (int i = NUM_RO_APPS; i < mApps.size(); i++) {
                     SmartcardApp app = mApps.get(i);
                     names.append("|" + app.getName());
@@ -735,9 +966,9 @@ public class ReaderActivity extends Activity implements OnMessage, ReaderCallbac
         mEditor.putString("app_aids", aids.toString());
         mEditor.putString("app_types", types.toString());
         mEditor.putInt("selected_aid_pos", mSelectedAppPos);
-        mEditor.commit();	    
-	}
-	
+        mEditor.commit();
+    }
+
     private class writePrefsTask extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... v) {

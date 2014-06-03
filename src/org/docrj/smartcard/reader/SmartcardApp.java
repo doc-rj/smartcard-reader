@@ -20,10 +20,10 @@
 package org.docrj.smartcard.reader;
 
 public class SmartcardApp {
-    
+
     public static final int TYPE_PAYMENT = 0;
     public static final int TYPE_OTHER = 1;
-    
+
     private String mName;
     private String mAid;
     private int mType;
@@ -33,7 +33,7 @@ public class SmartcardApp {
         mAid = aid;
         mType = type;
     }
-    
+
     public SmartcardApp clone() {
         return new SmartcardApp(mName, mAid, mType);
     }
@@ -51,21 +51,21 @@ public class SmartcardApp {
     }
 
     public void setAid(String aid) {
-        mAid = aid;    
+        mAid = aid;
     }
 
     public void setType(int type) {
-        mType = type;        
+        mType = type;
     }
 
     public String getName() {
         return mName;
     }
-    
+
     public String getAid() {
         return mAid;
     }
-    
+
     public int getType() {
         return mType;
     }

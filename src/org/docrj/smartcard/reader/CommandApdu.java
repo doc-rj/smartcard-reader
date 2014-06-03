@@ -147,7 +147,8 @@ public class CommandApdu {
         return apdu;
     }
 
-    public static boolean compareHeaders(byte[] header1, byte[] mask, byte[] header2) {
+    public static boolean compareHeaders(byte[] header1, byte[] mask,
+            byte[] header2) {
         if (header1.length < 4 || header2.length < 4) {
             return false;
         }

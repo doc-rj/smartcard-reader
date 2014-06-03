@@ -31,20 +31,21 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 public class AppAdapter extends ArrayAdapter<SmartcardApp> {
-    
+
     private Activity mContext;
     List<SmartcardApp> mApps;
     boolean mBrief;
 
-    public AppAdapter(Activity context, List<SmartcardApp> apps, Bundle instate, boolean brief) {
+    public AppAdapter(Activity context, List<SmartcardApp> apps,
+            Bundle instate, boolean brief) {
         super(context, R.layout.spinner_item_1, apps);
         mContext = context;
         mApps = apps;
         mBrief = brief;
     }
 
-    //public void onSaveInstanceState(Bundle outstate) {
-    //}
+    // public void onSaveInstanceState(Bundle outstate) {
+    // }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -55,17 +56,20 @@ public class AppAdapter extends ArrayAdapter<SmartcardApp> {
         }
 
         SmartcardApp current = mApps.get(position);
-        TextView textView = (TextView)item.findViewById(android.R.id.text1);
+        TextView textView = (TextView) item.findViewById(android.R.id.text1);
         textView.setText(mBrief ? current.toBriefString() : current.toString());
         Drawable img;
         if (current.getType() == SmartcardApp.TYPE_PAYMENT) {
             img = mContext.getResources().getDrawable(R.drawable.bill2_dark);
-            textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null, null);
+            textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null,
+                    null);
         } else {
-            img = mContext.getResources().getDrawable(R.drawable.credit_card2_dark);
-            textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null, null);
+            img = mContext.getResources().getDrawable(
+                    R.drawable.credit_card2_dark);
+            textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null,
+                    null);
         }
-        return item;        
+        return item;
     }
 
     @Override
@@ -73,19 +77,23 @@ public class AppAdapter extends ArrayAdapter<SmartcardApp> {
         View row = convertView;
         if (row == null) {
             LayoutInflater inflater = mContext.getLayoutInflater();
-            row = inflater.inflate(R.layout.spinner_dropdown_item_1, parent, false);
+            row = inflater.inflate(R.layout.spinner_dropdown_item_1, parent,
+                    false);
         }
-        
+
         SmartcardApp current = mApps.get(position);
-        TextView textView = (TextView)row.findViewById(android.R.id.text1);
+        TextView textView = (TextView) row.findViewById(android.R.id.text1);
         textView.setText(mBrief ? current.toBriefString() : current.toString());
         Drawable img;
         if (current.getType() == SmartcardApp.TYPE_PAYMENT) {
             img = mContext.getResources().getDrawable(R.drawable.bill_dark);
-            textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null, null);
+            textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null,
+                    null);
         } else {
-            img = mContext.getResources().getDrawable(R.drawable.credit_card_dark);
-            textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null, null);
+            img = mContext.getResources().getDrawable(
+                    R.drawable.credit_card_dark);
+            textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null,
+                    null);
         }
         return row;
     }

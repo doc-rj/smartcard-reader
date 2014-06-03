@@ -25,4 +25,3 @@ public class SelectApdu extends CommandApdu {
         super(0x00, 0xA4, 0x04, 0x00, data, 0x00);
     }
 }
-

@@ -29,37 +29,40 @@ import android.util.Log;
 
 public class OtherReaderXcvr extends ReaderXcvr {
 
-	public OtherReaderXcvr(IsoDep isoDep, String aid, OnMessage onMessage) {
-	    super(isoDep, aid, onMessage);
-	}
+    public OtherReaderXcvr(IsoDep isoDep, String aid, OnMessage onMessage) {
+        super(isoDep, aid, onMessage);
+    }
 
-	@Override
-	public void run() {
-		try {
-			mIsoDep.connect();
+    @Override
+    public void run() {
+        try {
+            mIsoDep.connect();
 
-			Log.d(TAG, "select app: " + mAid);
-			mOnMessage.onMessageSend("00 A4 04 00 " + String.format("%02X ", mAidBytes.length) + mAid + " 00");
-			byte[] rsp = mIsoDep.transceive(buildSelectApdu(mAidBytes));
-			mOnMessage.onMessageRcv(bytesToHexAndAscii(rsp));
-			Log.d(TAG, "select app response: " + bytesToHex(rsp));
+            Log.d(TAG, "select app: " + mAid);
+            mOnMessage.onMessageSend("00 A4 04 00 "
+                    + String.format("%02X ", mAidBytes.length) + mAid + " 00");
+            byte[] rsp = mIsoDep.transceive(buildSelectApdu(mAidBytes));
+            mOnMessage.onMessageRcv(bytesToHexAndAscii(rsp));
+            Log.d(TAG, "select app response: " + bytesToHex(rsp));
 
-			ResponseApdu rspApdu = new ResponseApdu(rsp);
+            ResponseApdu rspApdu = new ResponseApdu(rsp);
             if (rspApdu.isStatus(SW_NO_ERROR)) {
-                mOnMessage.onOkay(mContext.getString(R.string.select_app_ok, rspApdu.getSW1SW2()));
+                mOnMessage.onOkay(mContext.getString(R.string.select_app_ok,
+                        rspApdu.getSW1SW2()));
             } else {
-                mOnMessage.onError(mContext.getString(R.string.select_app_err, rspApdu.getSW1SW2(),
-                    ApduParser.parse(false, rsp)), true);
+                mOnMessage.onError(
+                        mContext.getString(R.string.select_app_err,
+                                rspApdu.getSW1SW2(),
+                                ApduParser.parse(false, rsp)), true);
                 mIsoDep.close();
                 return;
             }
-			mIsoDep.close();
-		}
-	    catch (TagLostException e) {
-	        mOnMessage.onError(mContext.getString(R.string.tag_lost_err), false);
-	    }
-		catch (IOException e) {
-			mOnMessage.onError(e.getMessage(), false);
-		}
-	}
+            mIsoDep.close();
+        } catch (TagLostException e) {
+            mOnMessage
+                    .onError(mContext.getString(R.string.tag_lost_err), false);
+        } catch (IOException e) {
+            mOnMessage.onError(e.getMessage(), false);
+        }
+    }
 }
