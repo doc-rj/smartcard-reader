@@ -93,7 +93,6 @@ public class ReaderActivity extends Activity implements OnMessage,
 
     private Handler mHandler;
     private Editor mEditor;
-    private MenuItem mCopyMenuItem;
     private MenuItem mEditMenuItem;
     private NfcAdapter mNfcAdapter;
     private ListView mMsgListView;
@@ -397,7 +396,7 @@ public class ReaderActivity extends Activity implements OnMessage,
                             synchronized (mApps) {
                                 mApps.add(newApp);
                                 if (mApps.size() == NUM_RO_APPS + 1) {
-                                    // enable copy and edit menu items
+                                    // enable edit menu item
                                     prepareOptionsMenu();
                                 }
                             }
@@ -417,21 +416,14 @@ public class ReaderActivity extends Activity implements OnMessage,
         } // case
         case DIALOG_COPY_LIST: {
             final View view = li.inflate(R.layout.edit_apps, null);
-            final TextView textView = (TextView) view.findViewById(R.id.text1);
             final ListView listView = (ListView) view
                     .findViewById(R.id.listView);
-
-            textView.setText(R.string.tap_to_copy);
-            ArrayList<SmartcardApp> sl = new ArrayList<SmartcardApp>(
-                    mApps.subList(NUM_RO_APPS, mApps.size()));
-            AppAdapter copyListAdapter = new AppAdapter(this, sl, null, true);
-            listView.setAdapter(copyListAdapter);
             listView.setOnItemClickListener(new ListView.OnItemClickListener() {
                 @SuppressWarnings("deprecation")
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view,
                         int pos, long id) {
-                    mCopyPos = NUM_RO_APPS + pos;
+                    mCopyPos = pos;
                     showDialog(DIALOG_COPY_APP);
                     mCopyListDialog.dismiss();
                 }
@@ -654,11 +646,6 @@ public class ReaderActivity extends Activity implements OnMessage,
             final ListView listView = (ListView) view
                     .findViewById(R.id.listView);
             mEditAllListView = listView;
-
-            ArrayList<SmartcardApp> sl = new ArrayList<SmartcardApp>(
-                    mApps.subList(NUM_RO_APPS, mApps.size()));
-            mEditAllAdapter = new AppAdapter(this, sl, null, true);
-            listView.setAdapter(mEditAllAdapter);
             listView.setOnItemClickListener(new ListView.OnItemClickListener() {
                 @SuppressWarnings("deprecation")
                 @Override
@@ -694,7 +681,7 @@ public class ReaderActivity extends Activity implements OnMessage,
                     if (mApps.size() == NUM_RO_APPS) {
                         parent.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
                         mEditAllDialog.dismiss();
-                        // disable copy and edit menu items
+                        // disable edit menu item
                         prepareOptionsMenu();
                     }
                     return true;
@@ -765,9 +752,7 @@ public class ReaderActivity extends Activity implements OnMessage,
             TextView textView = (TextView) dialog.findViewById(R.id.text1);
 
             textView.setText(R.string.tap_to_copy);
-            ArrayList<SmartcardApp> sl = new ArrayList<SmartcardApp>(
-                    mApps.subList(NUM_RO_APPS, mApps.size()));
-            AppAdapter copyListAdapter = new AppAdapter(this, sl, null, true);
+            AppAdapter copyListAdapter = new AppAdapter(this, mApps, null, true);
             listView.setAdapter(copyListAdapter);
             break;
         }
@@ -828,23 +813,21 @@ public class ReaderActivity extends Activity implements OnMessage,
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
-        mCopyMenuItem = menu.findItem(R.id.menu_copy_app);
         mEditMenuItem = menu.findItem(R.id.menu_edit_all_apps);
         prepareOptionsMenu();
         return true;
     }
 
     private void prepareOptionsMenu() {
-        boolean enabled = mApps.size() > NUM_RO_APPS;
-        Drawable copyIcon = getResources().getDrawable(
-                R.drawable.ic_action_copy);
-        if (!enabled) {
-            copyIcon.mutate().setColorFilter(Color.LTGRAY,
+        boolean editEnabled = mApps.size() > NUM_RO_APPS;
+        Drawable editIcon = getResources().getDrawable(
+                R.drawable.ic_action_edit);
+        if (!editEnabled) {
+            editIcon.mutate().setColorFilter(Color.LTGRAY,
                     PorterDuff.Mode.SRC_IN);
         }
-        mCopyMenuItem.setEnabled(enabled);
-        mCopyMenuItem.setIcon(copyIcon);
-        mEditMenuItem.setEnabled(enabled);
+        mEditMenuItem.setIcon(editIcon);
+        mEditMenuItem.setEnabled(editEnabled);
     }
 
     @SuppressWarnings("deprecation")
