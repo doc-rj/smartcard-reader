@@ -31,11 +31,10 @@ uses HCE to emulate a smartcard on the host processor), Demo mode can be used to
 demonstrate HCE connectivity and HCE (over ISO-DEP) as an alternative to Android
 Beam, which depends on NFC P2P mode (and SNEP over LLCP over NFC-DEP).
 
-Read more about "application selection" and AIDs here:
-http://en.wikipedia.org/wiki/EMV#Application_selection
+Read more about "application selection" and AIDs [here](http://en.wikipedia.org/wiki/EMV#Application_selection).
 
-An ISO 7816-4 reference containing APDU commands including "select file":
-http://www.cardwerk.com/smartcards/smartcard_standard_ISO7816-4.aspx
+And, [here](http://www.cardwerk.com/smartcards/smartcard_standard_ISO7816-4.aspx)
+is an ISO 7816-4 reference containing APDU commands including "select file".
 
 #### Come again?
 
@@ -56,8 +55,8 @@ block-level protocol based on ISO 7816, and individual apps define command and
 response protocols based on APDU messages, or Application Programming Data Units.
 
 The contactless type of smartcard adds the NFC antenna and speaks an NFC protocol
-called ISO-DEP (based on ISO 14443-4). Apps still send APDUs (based on ISO 7816-4
-on top of the NFC ISO-DEP layer.
+called ISO-DEP, based on ISO 14443-4. Apps still send APDUs -- based on ISO 7816-4
+-- on top of the NFC ISO-DEP layer.
 
 Contactless martcard emulation is made possible by the card emulation function of
 NFC, also known as CE mode. While it's most commonly known for its use in credit
@@ -86,3 +85,6 @@ new reader mode is a key enabler of smartcard-reader.
 #### Screenshots
 
 ![Screen](/docs/tn_screen_select_visa.png)
+
+![Screen](/docs/tn_screen_add_new_app.png)
+
