@@ -44,7 +44,7 @@ public class DemoReaderXcvr extends ReaderXcvr {
             byte[] response = mIsoDep.transceive(buildSelectApdu(mAidBytes));
             if (new String(response).startsWith(mContext
                     .getString(R.string.select_success_prefix))) {
-                mOnMessage.onMessageRcv(new String(response));
+                mOnMessage.onMessageRcv(new String(response), null, null);
                 while (mIsoDep.isConnected() && !Thread.interrupted()) {
                     String message = mContext
                             .getString(R.string.reader_msg_prefix)
@@ -52,7 +52,7 @@ public class DemoReaderXcvr extends ReaderXcvr {
                             + messageCounter++;
                     mOnMessage.onMessageSend(message);
                     response = mIsoDep.transceive(message.getBytes());
-                    mOnMessage.onMessageRcv(new String(response));
+                    mOnMessage.onMessageRcv(new String(response), null, null);
                 }
                 mIsoDep.close();
             } else {

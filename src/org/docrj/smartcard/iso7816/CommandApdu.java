@@ -21,10 +21,20 @@
  * with smartcard-reader. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.docrj.smartcard.reader;
+package org.docrj.smartcard.iso7816;
+
+import org.docrj.smartcard.util.Util;
 
 public class CommandApdu {
 
+    public static final byte ISO_CLA           = (byte)0x00;  
+    public static final byte ISO_SELECT        = (byte)0xA4;
+    public static final byte ISO_READ_RECORD   = (byte)0xB2;
+    public static final byte ISO_INTERNAL_AUTH = (byte)0x88;
+    public static final byte ISO_EXTERNAL_AUTH = (byte)0x82;
+    public static final byte ISO_GET_DATA      = (byte)0xCA;
+
+    protected String mCmdName = "";
     protected int mCla = 0x00;
     protected int mIns = 0x00;
     protected int mP1 = 0x00;
@@ -36,17 +46,19 @@ public class CommandApdu {
     protected int mLe = 0x00;
     protected boolean mLeUsed = false;
 
+    public CommandApdu() {
+    }    
+
     public CommandApdu(int cla, int ins, int p1, int p2) {
+        setCommandName(ins);
         mCla = cla;
         mIns = ins;
         mP1 = p1;
         mP2 = p2;
     }
 
-    public CommandApdu() {
-    }
-
     public CommandApdu(int cla, int ins, int p1, int p2, byte[] data) {
+        setCommandName(ins);
         mCla = cla;
         mIns = ins;
         mLc = data.length;
@@ -56,6 +68,7 @@ public class CommandApdu {
     }
 
     public CommandApdu(int cla, int ins, int p1, int p2, byte[] data, int le) {
+        setCommandName(ins);
         mCla = cla;
         mIns = ins;
         mLc = data.length;
@@ -67,12 +80,35 @@ public class CommandApdu {
     }
 
     public CommandApdu(int cla, int ins, int p1, int p2, int le) {
+        setCommandName(ins);
         mCla = cla;
         mIns = ins;
         mP1 = p1;
         mP2 = p2;
         mLe = le;
         mLeUsed = true;
+    }
+
+    public void setCommandName(String cmdName) {
+        mCmdName = cmdName;
+    }
+
+    private void setCommandName(int ins) {
+        switch(ins) {
+        case ISO_SELECT:
+            mCmdName = "select app";
+            break;
+        case ISO_READ_RECORD:
+            mCmdName = "read record";
+            break;
+        default:
+            mCmdName = "";
+            break;
+        }
+    }
+
+    public String getCommandName() {
+        return mCmdName;
     }
 
     public void setP1(int p1) {
@@ -111,6 +147,12 @@ public class CommandApdu {
 
     public int getLe() {
         return mLe;
+    }
+
+    public static String toString(byte[] cmdApdu, int Lc) {
+        String cmd = Util.bytesToHex(cmdApdu);
+        return cmd.substring(0, 8) + " " + cmd.substring(8, 10) + " " +
+            cmd.substring(10, 10 + Lc*2) + " " + cmd.substring(10 + Lc*2, cmd.length());
     }
 
     public byte[] toBytes() {
@@ -169,6 +211,7 @@ public class CommandApdu {
 
     public CommandApdu clone() {
         CommandApdu apdu = new CommandApdu();
+        apdu.setCommandName(mCmdName);
         apdu.mCla = mCla;
         apdu.mIns = mIns;
         apdu.mP1 = mP1;

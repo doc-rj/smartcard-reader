@@ -30,9 +30,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.TextView;
+import android.widget.Button;
+import android.widget.ImageView;
 
 public class MessageAdapter extends BaseAdapter {
+
+    public interface OnDialog {
+        void onDialogParsedMsg(String name, String text);
+    }
 
     public static final int MSG_SEND = 1;
     public static final int MSG_RCV = 2;
@@ -42,40 +47,54 @@ public class MessageAdapter extends BaseAdapter {
     private class Message {
         private String text;
         private int type;
+        private String name;
+        private String parsed;
 
-        Message(String text, int type) {
+        Message(String text, int type, String name, String parsed) {
             this.text = text;
             this.type = type;
+            this.name = name;
+            this.parsed = parsed;
         }
     };
 
     private LayoutInflater mLayoutInflater;
     private List<Message> mMessages = new ArrayList<Message>(100);
     private Context mContext;
+    private OnDialog mOnDialog;
 
-    public MessageAdapter(LayoutInflater layoutInflater, Bundle instate) {
-        this.mLayoutInflater = layoutInflater;
-        this.mContext = layoutInflater.getContext();
+    public MessageAdapter(LayoutInflater layoutInflater, Bundle instate, OnDialog onDialog) {
+        mLayoutInflater = layoutInflater;
+        mContext = layoutInflater.getContext();
+        mOnDialog = onDialog;
         if (instate != null) {
             // restore state
-            ArrayList<String> strings = instate
-                    .getStringArrayList("msg_strings");
-            ArrayList<Integer> ints = instate.getIntegerArrayList("msg_ints");
-            for (int i = 0; i < strings.size(); i++) {
-                mMessages.add(new Message(strings.get(i), ints.get(i)));
+            ArrayList<String> text = instate.getStringArrayList("msg_text");
+            ArrayList<Integer> type = instate.getIntegerArrayList("msg_type");
+            ArrayList<String> name = instate.getStringArrayList("msg_name");
+            ArrayList<String> parsed = instate.getStringArrayList("msg_parsed");
+            for (int i = 0; i < text.size(); i++) {
+                mMessages.add(new Message(text.get(i), type.get(i),
+                    name.get(i), parsed.get(i)));
             }
         }
     }
 
     public void onSaveInstanceState(Bundle outstate) {
-        ArrayList<String> strings = new ArrayList<String>(mMessages.size());
-        ArrayList<Integer> ints = new ArrayList<Integer>(mMessages.size());
+        ArrayList<String> text = new ArrayList<String>(mMessages.size());
+        ArrayList<Integer> type = new ArrayList<Integer>(mMessages.size());
+        ArrayList<String> name = new ArrayList<String>(mMessages.size());
+        ArrayList<String> parsed = new ArrayList<String>(mMessages.size());
         for (Message msg : mMessages) {
-            strings.add(msg.text);
-            ints.add(msg.type);
+            text.add(msg.text);
+            type.add(msg.type);
+            name.add(msg.name);
+            parsed.add(msg.parsed);
         }
-        outstate.putStringArrayList("msg_strings", strings);
-        outstate.putIntegerArrayList("msg_ints", ints);
+        outstate.putStringArrayList("msg_text", text);
+        outstate.putIntegerArrayList("msg_type", type);
+        outstate.putStringArrayList("msg_name", name);
+        outstate.putStringArrayList("msg_parsed", parsed);
     }
 
     public void clearMessages() {
@@ -83,7 +102,7 @@ public class MessageAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
-    public void addMessage(String message, int type) {
+    public void addMessage(String text, int type, String name, String parsed) {
         String prefix = "";
         switch (type) {
         case MSG_SEND:
@@ -99,16 +118,10 @@ public class MessageAdapter extends BaseAdapter {
             prefix = mContext.getString(R.string.err_msg_prefix);
             break;
         }
-        mMessages.add(new Message(prefix + message, type));
+        Message msg = new Message(prefix + text, type, (name == null) ? "" : name,
+            (parsed == null) ? "" : parsed);
+        mMessages.add(msg);
         notifyDataSetChanged();
-    }
-
-    private CharSequence getItemText(int position) {
-        return (CharSequence) mMessages.get(position).text;
-    }
-
-    private int getItemType(int position) {
-        return mMessages.get(position).type;
     }
 
     @Override
@@ -129,15 +142,30 @@ public class MessageAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
-            convertView = mLayoutInflater.inflate(R.layout.list_item_1, parent,
+            convertView = mLayoutInflater.inflate(R.layout.list_item_2, parent,
                     false);
         }
-        TextView view = (TextView) convertView
-                .findViewById(R.id.list_item_text);
-        view.setText(getItemText(position));
-        int type = getItemType(position);
+        Button btn = (Button) convertView
+                .findViewById(R.id.list_item_btn);
+        ImageView img = (ImageView) convertView
+                .findViewById(R.id.list_item_img);
+        Message msg = (Message)getItem(position);
+        btn.setText(msg.text);
+        // handling based on presence of parsed message contents
+        if (msg.parsed.isEmpty()) {
+            btn.setEnabled(false);
+            btn.setBackgroundResource(0);
+            img.setVisibility(View.GONE);
+        } else {
+            btn.setEnabled(true);
+            btn.setBackgroundResource(R.drawable.button_bg_states);
+            img.setVisibility(View.VISIBLE);
+            btn.setOnClickListener(new MessageClickListener(position));
+        }
+        // default style
         int color = android.R.color.black;
-        switch (type) {
+        // specific message type styles
+        switch (msg.type) {
         case MSG_SEND:
             color = R.color.msg_send;
             break;
@@ -151,7 +179,31 @@ public class MessageAdapter extends BaseAdapter {
             color = R.color.msg_err;
             break;
         }
-        view.setTextColor(mContext.getResources().getColor(color));
+        btn.setTextColor(mContext.getResources().getColor(color));
         return convertView;
-    }
+    }    
+
+    private class MessageClickListener implements View.OnClickListener {
+        int position;
+
+        MessageClickListener(int position) {
+            this.position = position;
+        }
+        
+        @Override
+        public void onClick(View v) {
+            Message msg = (Message)getItem(position);
+            String suffix = "";
+            switch (msg.type) {
+            case MSG_SEND:
+                suffix = mContext.getString(R.string.cmd_suffix);
+                break;
+            case MSG_RCV:
+                suffix = mContext.getString(R.string.rsp_suffix);
+                break;
+            }
+            String name = msg.name + " " + suffix;
+            mOnDialog.onDialogParsedMsg(name, msg.parsed);
+        }
+    };
 }

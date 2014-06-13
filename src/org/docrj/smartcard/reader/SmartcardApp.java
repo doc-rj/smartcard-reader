@@ -19,6 +19,8 @@
 
 package org.docrj.smartcard.reader;
 
+import org.docrj.smartcard.util.Util;
+
 public class SmartcardApp {
 
     public static final int TYPE_PAYMENT = 0;
@@ -26,11 +28,16 @@ public class SmartcardApp {
 
     private String mName;
     private String mAid;
+    private byte[] mAidBytes;
     private int mType;
+
+    public SmartcardApp() {
+    }
 
     public SmartcardApp(String name, String aid, int type) {
         mName = name;
         mAid = aid;
+        mAidBytes = Util.hexToBytes(aid);
         mType = type;
     }
 
@@ -64,6 +71,10 @@ public class SmartcardApp {
 
     public String getAid() {
         return mAid;
+    }
+
+    public byte[] getAidBytes() {
+        return mAidBytes;
     }
 
     public int getType() {

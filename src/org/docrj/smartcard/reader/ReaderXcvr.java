@@ -19,23 +19,30 @@
 
 package org.docrj.smartcard.reader;
 
+import java.io.IOException;
+
+import org.docrj.smartcard.emv.GpoApdu;
+import org.docrj.smartcard.iso7816.CommandApdu;
+import org.docrj.smartcard.iso7816.ResponseApdu;
+import org.docrj.smartcard.iso7816.SelectApdu;
+import org.docrj.smartcard.iso7816.TLVUtil;
+import org.docrj.smartcard.util.Util;
+
 import android.content.Context;
 import android.nfc.tech.IsoDep;
+import android.util.Log;
 
 public class ReaderXcvr implements Runnable {
     protected static final String TAG = "smartcard-reader";
 
-    public static final int SW_NO_ERROR = 0x9000;
-
     public interface OnMessage {
-        void onMessageSend(String message);
-
-        void onMessageRcv(String message);
-
+        void onMessageSend(String raw);
+        void onMessageRcv(String raw, String name, String parsed);
         void onOkay(String message);
-
         void onError(String message, boolean clearOnNext);
     }
+
+    public static final int SW_NO_ERROR = 0x9000;    
 
     protected IsoDep mIsoDep;
     protected OnMessage mOnMessage;
@@ -47,33 +54,12 @@ public class ReaderXcvr implements Runnable {
     public ReaderXcvr(IsoDep isoDep, String aid, OnMessage onMessage) {
         this.mIsoDep = isoDep;
         this.mAid = aid;
-        this.mAidBytes = hexToBytes(aid);
+        this.mAidBytes = Util.hexToBytes(aid);
         this.mOnMessage = onMessage;
         this.mContext = (Context) onMessage;
     }
 
-    protected static byte[] hexToBytes(String str) {
-        byte[] bytes = new byte[str.length() / 2];
-        for (int i = 0; i < bytes.length; i++) {
-            bytes[i] = (byte) Integer.parseInt(str.substring(2 * i, 2 * i + 2),
-                    16);
-        }
-        return bytes;
-    }
-
-    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
-
-    protected static String bytesToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
-
-    protected static String bytesToHexAndAscii(byte[] data) {
+    protected static String bytesToHexAndAscii(byte[] data, boolean ascii) {
         int i;
         if (data.length == 0) {
             return "";
@@ -83,25 +69,51 @@ public class ReaderXcvr implements Runnable {
         String _asciiline = "";
         for (i = 0; i < data.length; i++) {
             _hexline = _hexline.concat(String.format("%02x ", data[i]));
+            if (ascii) {
             if (data[i] > 31 && data[i] < 127) {
                 _asciiline = _asciiline.concat(String.valueOf((char) data[i]));
             } else {
                 _asciiline = _asciiline.concat(".");
             }
+            }
         }
         _sbbuffer.append(_hexline);
         // don't waste space w/ ascii if we just have the two status bytes
-        if (data.length > 2) {
+        if (ascii && data.length > 2) {
             _sbbuffer.append("\n...\t");
             _sbbuffer.append(_asciiline);
         }
         return _sbbuffer.toString();
     }
 
-    // build select command APDU
-    protected byte[] buildSelectApdu(byte[] aid) {
-        SelectApdu cmdApdu = new SelectApdu(aid);
+    // build boilerplate command APDU
+    protected byte[] buildCmdApdu(CommandApdu cmdApdu) {
         return cmdApdu.toBytes();
+    }
+
+    // build select command APDU
+    protected byte[] buildSelectApdu(byte[] aidBytes) {
+        SelectApdu cmdApdu = new SelectApdu(aidBytes);
+        return cmdApdu.toBytes();
+    }
+
+    // send command APDU, get response APDU, and display to user   
+    protected ResponseApdu sendAndRcv(CommandApdu cmdApdu, boolean ascii) throws IOException {
+        byte[] cmdBytes = cmdApdu.toBytes();
+        String cmdStr = GpoApdu.toString(cmdBytes, cmdApdu.getLc());
+        mOnMessage.onMessageSend(cmdStr);
+        byte[] rsp = mIsoDep.transceive(cmdBytes);
+        ResponseApdu rspApdu = new ResponseApdu(rsp);
+        byte[] data = rspApdu.getData();
+
+        mOnMessage.onMessageRcv(bytesToHexAndAscii(rsp, ascii), cmdApdu.getCommandName(),
+            (data.length > 0) ? TLVUtil.prettyPrintAPDUResponse(data) : null);
+
+        Log.d(TAG, "response APDU: " + Util.bytesToHex(rsp));
+        if (data.length > 0) {
+            Log.d(TAG, TLVUtil.prettyPrintAPDUResponse(data));
+        }
+        return rspApdu;
     }
 
     @Override

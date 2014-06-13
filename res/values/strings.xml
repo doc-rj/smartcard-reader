@@ -19,11 +19,18 @@
     <string name="select_app_err" formatted="false">Select fail, status: 0x%X (%s)</string>
     <string name="select_ppse_ok">Select ppse okay, status: 0x%X</string>
     <string name="select_app_ok">Select okay, status: 0x%X</string>
+    <string name="get_data_ok">Get data okay, status: 0x%X</string>
+    <string name="get_data_err">Get data fail, status: 0x%X</string>
+    <string name="gpo_ok">Get processing options okay, status: 0x%X</string>
+    <string name="gpo_err">Get processing options fail, status: 0x%X</string>
+    <string name="read_rec_ok" formatted="false">Read record okay, sfi: %d, rec: %d, status: 0x%X</string>
+    <string name="read_rec_err" formatted="false">Read record fail, sfi: %d, rec: %d, status: 0x%X</string>    
     <string name="new_app">new smartcard app</string>
     <string name="copy_app">copy smartcard app</string>
     <string name="edit_apps">edit smartcard apps</string>
     <string name="clear_msgs">clear messages</string>
     <string name="dialog_ok">OK</string>
+    <string name="dialog_dismiss">Dismiss</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_done">Done</string>
     <string name="dialog_quit">Quit</string>
@@ -47,4 +54,8 @@
     <string name="tap_to_edit">Click app to edit, long click to discard&#8230;</string>
     <string name="nfc_disabled">Enable NFC?</string>
     <string name="enable_nfc">This app is useless when NFC is disabled. Reader mode depends on it. Click OK to go to Settings, where you can enable NFC.</string>
+    <string name="cmd_suffix">command</string>
+    <string name="rsp_suffix">response</string>
+    <string name="parsed_msg">parsed message</string>
+    <string name="search">search</string>
 </resources>

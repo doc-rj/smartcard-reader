@@ -21,7 +21,7 @@
  * with smartcard-reader. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.docrj.smartcard.reader;
+package org.docrj.smartcard.iso7816;
 
 import java.security.AccessControlException;
 
@@ -31,6 +31,7 @@ public class ResponseApdu {
     protected int mSw2 = 0x00;
 
     protected byte[] mData = new byte[0];
+    protected byte[] mBytes = new byte[0];
 
     public ResponseApdu(byte[] respApdu) {
         if (respApdu.length < 2) {
@@ -42,7 +43,7 @@ public class ResponseApdu {
         }
         mSw1 = 0x00FF & respApdu[respApdu.length - 2];
         mSw2 = 0x00FF & respApdu[respApdu.length - 1];
-
+        mBytes = respApdu;
     }
 
     public int getSW1() {
@@ -59,6 +60,10 @@ public class ResponseApdu {
 
     public byte[] getData() {
         return mData;
+    }
+
+    public byte[] toBytes() {
+        return mBytes;        
     }
 
     public void checkLengthAndStatus(int length, int sw1sw2, String message)

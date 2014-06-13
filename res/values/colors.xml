@@ -10,4 +10,9 @@
     <color name="msg_rcv">@android:color/black</color>
     <color name="msg_okay">#FF00CC00</color>
     <color name="msg_err">@android:color/holo_red_light</color>
+    <color name="btn_light">#FFE3E3E3</color>
+    <color name="btn_dark">#FFC3C3C3</color>
 </resources>
+
+<!-- <color name="msg_okay">@android:color/holo_green_dark</color> -->
+<!-- <color name="btn_dark">@android:color/holo_orange_light</color> -->

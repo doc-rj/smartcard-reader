@@ -15,4 +15,3 @@
     android:paddingBottom="20dp"
     android:text="@string/enable_nfc" />
 
-

@@ -21,8 +21,6 @@ package org.docrj.smartcard.reader;
 
 import java.util.ArrayList;
 
-import org.docrj.smartcard.reader.ReaderXcvr.OnMessage;
-
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -67,8 +65,9 @@ import android.widget.Toast;
 
 import org.docrj.smartcard.reader.R;
 
-public class ReaderActivity extends Activity implements OnMessage,
-        ReaderCallback {
+public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
+    MessageAdapter.OnDialog, ReaderCallback {
+
     protected static final String TAG = "smartcard-reader";
 
     // update all five items below when adding/removing default apps!
@@ -90,6 +89,7 @@ public class ReaderActivity extends Activity implements OnMessage,
     private final static int DIALOG_EDIT_APP = 4;
     private final static int DIALOG_EDIT_ALL_APPS = 5;
     private final static int DIALOG_ENABLE_NFC = 6;
+    private final static int DIALOG_PARSED_MSG = 7;
 
     private Handler mHandler;
     private Editor mEditor;
@@ -117,6 +117,9 @@ public class ReaderActivity extends Activity implements OnMessage,
     private AlertDialog mEditDialog;
     private AlertDialog mEditAllDialog;
     private AlertDialog mEnableNfcDialog;
+    private AlertDialog mParsedMsgDialog;
+    private String mParsedMsgName = "";
+    private String mParsedMsgText = "";
     private int mCopyPos;
     private int mEditPos;
 
@@ -134,10 +137,12 @@ public class ReaderActivity extends Activity implements OnMessage,
         setContentView(R.layout.activity_reader);
         mMsgListView = (ListView) findViewById(R.id.listView);
         mMsgAdapter = new MessageAdapter(getLayoutInflater(),
-                savedInstanceState);
+                savedInstanceState, this);
         mMsgListView.setAdapter(mMsgAdapter);
         if (savedInstanceState != null) {
             mMsgPos = savedInstanceState.getInt("msg_pos");
+            mParsedMsgName = savedInstanceState.getString("parsed_msg_name");
+            mParsedMsgText = savedInstanceState.getString("parsed_msg_text");
         }
 
         mHandler = new Handler();
@@ -302,6 +307,9 @@ public class ReaderActivity extends Activity implements OnMessage,
         if (mEnableNfcDialog != null) {
             mEnableNfcDialog.dismiss();
         }
+        if (mParsedMsgDialog != null) {
+            mParsedMsgDialog.dismiss();
+        }
     }
 
     @Override
@@ -309,6 +317,8 @@ public class ReaderActivity extends Activity implements OnMessage,
         Log.d(TAG, "saving instance state!");
         // message i/o list
         outstate.putInt("msg_pos", mMsgListView.getLastVisiblePosition());
+        outstate.putString("parsed_msg_name", mParsedMsgName);
+        outstate.putString("parsed_msg_text", mParsedMsgText);
         if (mMsgAdapter != null) {
             mMsgAdapter.onSaveInstanceState(outstate);
         }
@@ -322,7 +332,7 @@ public class ReaderActivity extends Activity implements OnMessage,
         Dialog dialog = null;
         switch (id) {
         case DIALOG_NEW_APP: {
-            final View view = li.inflate(R.layout.new_app, null);
+            final View view = li.inflate(R.layout.dialog_new_app, null);
             builder.setView(view)
                     .setCancelable(false)
                     .setIcon(R.drawable.credit_card_add_dark)
@@ -415,7 +425,7 @@ public class ReaderActivity extends Activity implements OnMessage,
             break;
         } // case
         case DIALOG_COPY_LIST: {
-            final View view = li.inflate(R.layout.edit_apps, null);
+            final View view = li.inflate(R.layout.dialog_edit_apps, null);
             final ListView listView = (ListView) view
                     .findViewById(R.id.listView);
             listView.setOnItemClickListener(new ListView.OnItemClickListener() {
@@ -446,7 +456,7 @@ public class ReaderActivity extends Activity implements OnMessage,
             break;
         } // case
         case DIALOG_COPY_APP: {
-            final View view = li.inflate(R.layout.new_app, null);
+            final View view = li.inflate(R.layout.dialog_new_app, null);
             builder.setView(view)
                     .setCancelable(false)
                     .setIcon(R.drawable.credit_card_add_dark)
@@ -535,7 +545,7 @@ public class ReaderActivity extends Activity implements OnMessage,
             break;
         } // case
         case DIALOG_EDIT_APP: {
-            final View view = li.inflate(R.layout.new_app, null);
+            final View view = li.inflate(R.layout.dialog_new_app, null);
             builder.setView(view)
                     .setCancelable(false)
                     .setIcon(R.drawable.credit_card_edit_dark)
@@ -642,7 +652,7 @@ public class ReaderActivity extends Activity implements OnMessage,
             break;
         } // case
         case DIALOG_EDIT_ALL_APPS: {
-            final View view = li.inflate(R.layout.edit_apps, null);
+            final View view = li.inflate(R.layout.dialog_edit_apps, null);
             final ListView listView = (ListView) view
                     .findViewById(R.id.listView);
             mEditAllListView = listView;
@@ -698,7 +708,7 @@ public class ReaderActivity extends Activity implements OnMessage,
             break;
         } // case
         case DIALOG_ENABLE_NFC: {
-            final View view = li.inflate(R.layout.enable_nfc, null);
+            final View view = li.inflate(R.layout.dialog_enable_nfc, null);
             builder.setView(view)
                     .setCancelable(false)
                     .setIcon(R.drawable.ic_enable_nfc)
@@ -725,6 +735,19 @@ public class ReaderActivity extends Activity implements OnMessage,
             dialog = mEnableNfcDialog;
             break;
         } // case
+        case DIALOG_PARSED_MSG: {
+            // TODO: new icon
+            final View view = li.inflate(R.layout.dialog_parsed_msg, null);
+            builder.setView(view)
+                    .setCancelable(false)
+                    .setIcon(R.drawable.ic_action_search)
+                    .setTitle(R.string.parsed_msg)
+                    .setPositiveButton(R.string.dialog_dismiss, null);
+
+            mParsedMsgDialog = builder.create();
+            dialog = mParsedMsgDialog;
+            break;
+        }
         } // switch
         return dialog;
     }
@@ -800,6 +823,12 @@ public class ReaderActivity extends Activity implements OnMessage,
             break;
         }
         case DIALOG_ENABLE_NFC: {
+            break;
+        }
+        case DIALOG_PARSED_MSG: {
+            TextView tv = (TextView)dialog.findViewById(R.id.dialog_text);
+            tv.setText(mParsedMsgText);
+            dialog.setTitle(mParsedMsgName);
             break;
         }
         }
@@ -887,32 +916,32 @@ public class ReaderActivity extends Activity implements OnMessage,
     }
 
     @Override
-    public void onMessageSend(final String message) {
-        onMessageAndType(message, MessageAdapter.MSG_SEND);
+    public void onMessageSend(final String raw) {
+        onMessage(raw, MessageAdapter.MSG_SEND, null, null);
     }
 
     @Override
-    public void onMessageRcv(final String message) {
-        onMessageAndType(message, MessageAdapter.MSG_RCV);
+    public void onMessageRcv(final String raw, final String name, final String parsed) {
+        onMessage(raw, MessageAdapter.MSG_RCV, name, parsed);
     }
 
     @Override
     public void onOkay(final String message) {
-        onMessageAndType(message, MessageAdapter.MSG_OKAY);
+        onMessage(message, MessageAdapter.MSG_OKAY, null, null);
     }
 
     @Override
     public void onError(final String message, boolean skipNextClear) {
-        onMessageAndType(message, MessageAdapter.MSG_ERROR);
+        onMessage(message, MessageAdapter.MSG_ERROR, null, null);
         mSkipNextClear = skipNextClear;
     }
 
-    private void onMessageAndType(final String message, final int type) {
+    private void onMessage(final String text, final int type, final String name, final String parsed) {
         runOnUiThread(new Runnable() {
 
             @Override
             public void run() {
-                mMsgAdapter.addMessage(message, type);
+                mMsgAdapter.addMessage(text, type, name, parsed);
             }
         });
     }
@@ -958,5 +987,12 @@ public class ReaderActivity extends Activity implements OnMessage,
             writePrefs();
             return null;
         }
+    }
+    
+    @SuppressWarnings("deprecation")
+    public void onDialogParsedMsg(String name, String text) {
+        mParsedMsgName = name;
+        mParsedMsgText = text;
+        showDialog(DIALOG_PARSED_MSG);    
     }
 }

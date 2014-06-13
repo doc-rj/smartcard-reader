@@ -21,6 +21,8 @@ package org.docrj.smartcard.reader;
 
 import java.io.IOException;
 
+import org.docrj.smartcard.iso7816.ResponseApdu;
+import org.docrj.smartcard.iso7816.SelectApdu;
 import org.docrj.smartcard.reader.R;
 
 import android.nfc.TagLostException;
@@ -39,13 +41,8 @@ public class OtherReaderXcvr extends ReaderXcvr {
             mIsoDep.connect();
 
             Log.d(TAG, "select app: " + mAid);
-            mOnMessage.onMessageSend("00 A4 04 00 "
-                    + String.format("%02X ", mAidBytes.length) + mAid + " 00");
-            byte[] rsp = mIsoDep.transceive(buildSelectApdu(mAidBytes));
-            mOnMessage.onMessageRcv(bytesToHexAndAscii(rsp));
-            Log.d(TAG, "select app response: " + bytesToHex(rsp));
+            ResponseApdu rspApdu = sendAndRcv(new SelectApdu(mAidBytes), true);
 
-            ResponseApdu rspApdu = new ResponseApdu(rsp);
             if (rspApdu.isStatus(SW_NO_ERROR)) {
                 mOnMessage.onOkay(mContext.getString(R.string.select_app_ok,
                         rspApdu.getSW1SW2()));
@@ -53,7 +50,7 @@ public class OtherReaderXcvr extends ReaderXcvr {
                 mOnMessage.onError(
                         mContext.getString(R.string.select_app_err,
                                 rspApdu.getSW1SW2(),
-                                ApduParser.parse(false, rsp)), true);
+                                ApduParser.parse(false, rspApdu.toBytes())), true);
                 mIsoDep.close();
                 return;
             }
