@@ -60,12 +60,12 @@ public class AppAdapter extends ArrayAdapter<SmartcardApp> {
         textView.setText(mBrief ? current.toBriefString() : current.toString());
         Drawable img;
         if (current.getType() == SmartcardApp.TYPE_PAYMENT) {
-            img = mContext.getResources().getDrawable(R.drawable.bill2_dark);
+            img = mContext.getResources().getDrawable(R.drawable.credit_card2_green);
             textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null,
                     null);
         } else {
             img = mContext.getResources().getDrawable(
-                    R.drawable.credit_card2_dark);
+                    R.drawable.credit_card2_blue);
             textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null,
                     null);
         }
@@ -86,12 +86,12 @@ public class AppAdapter extends ArrayAdapter<SmartcardApp> {
         textView.setText(mBrief ? current.toBriefString() : current.toString());
         Drawable img;
         if (current.getType() == SmartcardApp.TYPE_PAYMENT) {
-            img = mContext.getResources().getDrawable(R.drawable.bill_dark);
+            img = mContext.getResources().getDrawable(R.drawable.credit_card_green);
             textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null,
                     null);
         } else {
             img = mContext.getResources().getDrawable(
-                    R.drawable.credit_card_dark);
+                    R.drawable.credit_card_blue);
             textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null,
                     null);
         }

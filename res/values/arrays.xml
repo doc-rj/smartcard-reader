@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="test_modes">
+        <item>@string/aid_route</item>
+        <item>@string/emv_read</item>
+    </string-array>
+</resources>

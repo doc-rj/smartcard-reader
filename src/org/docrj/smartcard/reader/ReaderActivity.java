@@ -53,6 +53,7 @@ import android.view.MenuItem;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -60,6 +61,7 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -70,13 +72,18 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
 
     protected static final String TAG = "smartcard-reader";
 
+    // HCE demo smartcard app
+    private final static String DEMO_NAME = "Demo";
+    // proprietary unregistered AID starts with 0xFx, length 5 - 16 bytes
+    private final static String DEMO_AID = "F0646F632D726A";
+
     // update all five items below when adding/removing default apps!
     private final static int NUM_RO_APPS = 10;
     private final static int DEFAULT_APP_POS = 0; // Demo
-    private final static String APP_NAMES = "Demo"
+    private final static String APP_NAMES = DEMO_NAME
             + "|Amex|Amex 7-Byte|Amex 8-Byte" + "|MC|MC 8-Byte"
             + "|Visa|Visa 8-Byte" + "|Ryan" + "|Discover Zip";
-    private final static String APP_AIDS = "F0646F632D726A"
+    private final static String APP_AIDS = DEMO_AID
             + "|A00000002501|A0000000250109|A000000025010988"
             + "|A0000000041010|A000000004101088"
             + "|A0000000031010|A000000003101088" + "|7465737420414944"
@@ -90,7 +97,11 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
     private final static int DIALOG_EDIT_ALL_APPS = 5;
     private final static int DIALOG_ENABLE_NFC = 6;
     private final static int DIALOG_PARSED_MSG = 7;
+    
+    public final static int TEST_MODE_AID_ROUTE = 0;
+    public final static int TEST_MODE_EMV_READ = 1;
 
+    private int mTestMode = TEST_MODE_AID_ROUTE;
     private Handler mHandler;
     private Editor mEditor;
     private MenuItem mEditMenuItem;
@@ -105,10 +116,9 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
 
     private int mSelectedAppPos = DEFAULT_APP_POS;
     private ArrayList<SmartcardApp> mApps;
-    private String mDemoAid;
     private boolean mSelectOnCreate;
-    private View mTitleView;
-    CharSequence mTitle;
+    private TextView mIntro;
+    private View mSplitter;
     private Spinner mAidSpinner;
     private ActionBar mActionBar;
     private AlertDialog mNewDialog;
@@ -128,14 +138,37 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
         super.onCreate(savedInstanceState);
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         mActionBar = getActionBar();
-        mTitleView = getLayoutInflater().inflate(R.layout.app_title, null);
-        mActionBar.setCustomView(mTitleView);
+        //View titleView = getLayoutInflater().inflate(R.layout.app_title, null);
+        //mActionBar.setCustomView(titleView);
         mActionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
                 | ActionBar.DISPLAY_SHOW_HOME);
+
+        SpinnerAdapter sAdapter = ArrayAdapter.createFromResource(this,
+                R.array.test_modes, R.layout.spinner_dropdown_item_2);
+        mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+        mActionBar.setListNavigationCallbacks(sAdapter, new ActionBar.OnNavigationListener() {
+            String[] strings = getResources().getStringArray(R.array.test_modes);
+
+            @Override
+            public boolean onNavigationItemSelected(int position, long itemId) {
+                int testMode = strings[position].equals(getString(R.string.aid_route)) ?
+                        TEST_MODE_AID_ROUTE : TEST_MODE_EMV_READ;
+                if (mTestMode != testMode) {
+                    prepareViewForTestMode(testMode);
+                    clearMessages();
+                    mTestMode = testMode;
+                }
+                return true;
+            }
+        });
+
         mActionBar.show();
 
         setContentView(R.layout.activity_reader);
-        mMsgListView = (ListView) findViewById(R.id.listView);
+        mIntro = (TextView) findViewById(R.id.intro);
+        mSplitter = findViewById(R.id.splitter);
+
+        mMsgListView = (ListView) findViewById(R.id.msgListView);
         mMsgAdapter = new MessageAdapter(getLayoutInflater(),
                 savedInstanceState, this);
         mMsgListView.setAdapter(mMsgAdapter);
@@ -149,8 +182,6 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
 
         ApduParser.init(this);
-
-        mDemoAid = getString(R.string.demo_aid);
 
         SharedPreferences ss = getSharedPreferences("prefs",
                 Context.MODE_PRIVATE);
@@ -206,6 +237,18 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
         // mSelectedAppPos saved in onPause(), restored in onResume()
     }
 
+    private void prepareViewForTestMode(int testMode) {
+        if (testMode == TEST_MODE_AID_ROUTE) {
+            mIntro.setText(R.string.intro_aid_route);
+            mAidSpinner.setVisibility(View.VISIBLE);
+            mSplitter.setVisibility(View.VISIBLE);
+        } else {
+            mIntro.setText(R.string.intro_emv_read);
+            mAidSpinner.setVisibility(View.GONE);
+            mSplitter.setVisibility(View.GONE);
+        }
+    }
+
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @SuppressWarnings("deprecation")
         @Override
@@ -246,9 +289,13 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
     @Override
     public void onResume() {
         super.onResume();
-        // restore selected pos from prefs
+        // restore test mode and selected pos from prefs
         SharedPreferences ss = getSharedPreferences("prefs",
                 Context.MODE_PRIVATE);
+        mTestMode = ss.getInt("test_mode", mTestMode);
+        mActionBar.setSelectedNavigationItem(mTestMode);
+        prepareViewForTestMode(mTestMode);
+
         mSelectedAppPos = ss.getInt("selected_aid_pos", mSelectedAppPos);
         mAidSpinner.setSelection(mSelectedAppPos);
 
@@ -335,8 +382,8 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
             final View view = li.inflate(R.layout.dialog_new_app, null);
             builder.setView(view)
                     .setCancelable(false)
-                    .setIcon(R.drawable.credit_card_add_dark)
-                    .setTitle(R.string.new_app_title)
+                    .setIcon(R.drawable.ic_action_new)
+                    .setTitle(R.string.smartcard_app)
                     .setPositiveButton(R.string.dialog_ok, null)
                     .setNegativeButton(R.string.dialog_cancel,
                             new DialogInterface.OnClickListener() {
@@ -448,7 +495,7 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
 
             builder.setView(view).setCancelable(false)
                     .setIcon(R.drawable.ic_action_copy)
-                    .setTitle(R.string.copy_list_title)
+                    .setTitle(R.string.smartcard_app)
                     .setPositiveButton(R.string.dialog_cancel, null);
 
             mCopyListDialog = builder.create();
@@ -459,8 +506,8 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
             final View view = li.inflate(R.layout.dialog_new_app, null);
             builder.setView(view)
                     .setCancelable(false)
-                    .setIcon(R.drawable.credit_card_add_dark)
-                    .setTitle(R.string.new_app_title)
+                    .setIcon(R.drawable.ic_action_new)
+                    .setTitle(R.string.smartcard_app)
                     .setPositiveButton(R.string.dialog_ok, null)
                     .setNegativeButton(R.string.dialog_cancel,
                             new DialogInterface.OnClickListener() {
@@ -529,8 +576,12 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
                             Log.d(TAG, "newApp: " + newApp);
                             synchronized (mApps) {
                                 mApps.add(newApp);
+                                if (mApps.size() == NUM_RO_APPS + 1) {
+                                    // enable edit menu item
+                                    prepareOptionsMenu();
+                                }
                             }
-
+ 
                             mAidSpinner.setAdapter(mAppAdapter);
                             mAidSpinner.setSelection(mSelectedAppPos);
                             mAppAdapter.notifyDataSetChanged();
@@ -548,8 +599,8 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
             final View view = li.inflate(R.layout.dialog_new_app, null);
             builder.setView(view)
                     .setCancelable(false)
-                    .setIcon(R.drawable.credit_card_edit_dark)
-                    .setTitle(R.string.new_app_title)
+                    .setIcon(R.drawable.ic_action_edit)
+                    .setTitle(R.string.smartcard_app)
                     .setPositiveButton(R.string.dialog_ok, null)
                     .setNegativeButton(R.string.dialog_cancel,
                             new DialogInterface.OnClickListener() {
@@ -699,8 +750,8 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
             });
 
             builder.setView(view).setCancelable(false)
-                    .setIcon(R.drawable.credit_card_edit_dark)
-                    .setTitle(R.string.edit_apps_title)
+                    .setIcon(R.drawable.ic_action_edit)
+                    .setTitle(R.string.smartcard_app)
                     .setPositiveButton(R.string.dialog_done, null);
 
             mEditAllDialog = builder.create();
@@ -736,7 +787,7 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
             break;
         } // case
         case DIALOG_PARSED_MSG: {
-            // TODO: new icon
+            // TODO: better icon?
             final View view = li.inflate(R.layout.dialog_parsed_msg, null);
             builder.setView(view)
                     .setCancelable(false)
@@ -903,11 +954,12 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
             onError(getString(R.string.wrong_tag_err), true);
         } else {
             ReaderXcvr xcvr;
+            String name = mApps.get(mSelectedAppPos).getName();
             String aid = mApps.get(mSelectedAppPos).getAid();
-            if (mDemoAid.equals(aid)) {
+            if (DEMO_NAME.equals(name) && DEMO_AID.equals(aid)) {
                 xcvr = new DemoReaderXcvr(isoDep, aid, this);
             } else if (mApps.get(mSelectedAppPos).getType() == 0) {
-                xcvr = new PaymentReaderXcvr(isoDep, aid, this);
+                xcvr = new PaymentReaderXcvr(isoDep, aid, this, mTestMode);
             } else {
                 xcvr = new OtherReaderXcvr(isoDep, aid, this);
             }
@@ -978,6 +1030,7 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
         mEditor.putString("app_aids", aids.toString());
         mEditor.putString("app_types", types.toString());
         mEditor.putInt("selected_aid_pos", mSelectedAppPos);
+        mEditor.putInt("test_mode", mTestMode);
         mEditor.commit();
     }
 

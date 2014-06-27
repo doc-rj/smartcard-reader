@@ -61,12 +61,14 @@ public class PaymentReaderXcvr extends ReaderXcvr {
 
     private static final String EMV_PPSE_AID = "325041592E5359532E4444463031";
     private final byte[] mPpseAidBytes;
-    
+
+    private int mTestMode;    
     private DDF mPpseDdf;
 
-    public PaymentReaderXcvr(IsoDep isoDep, String aid, OnMessage onMessage) {
+    public PaymentReaderXcvr(IsoDep isoDep, String aid, OnMessage onMessage, int testMode) {
         super(isoDep, aid, onMessage);
         mPpseAidBytes = Util.hexToBytes(EMV_PPSE_AID);
+        mTestMode = testMode;
     }
 
     @Override
@@ -76,10 +78,7 @@ public class PaymentReaderXcvr extends ReaderXcvr {
 
             // select ppse
             if (selectPpse()) {
-                // TODO: if route test mode, just select app,
-                // else if emv test mode, do partial transaction
-                boolean selectOnly = true;
-                if (selectOnly) {
+                if (mTestMode == ReaderActivity.TEST_MODE_AID_ROUTE) {
                     selectApp(mAid);
                 } else {
                     // process each app found in ppse select response

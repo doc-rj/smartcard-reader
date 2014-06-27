@@ -18,7 +18,7 @@
         android:gravity="left"
         android:textColor="@android:color/holo_blue_dark"
         android:textSize="@dimen/font_medium"
-        android:text="@string/activity_intro" />
+        android:text="@string/intro_aid_route" />
 
     <Spinner
         android:id="@+id/aid"
@@ -31,7 +31,7 @@
         style="@style/splitter" />
 
     <ListView
-        android:id="@+id/listView"
+        android:id="@+id/msgListView"
         android:layout_below="@+id/splitter"
 	    style="@style/list" />
 
