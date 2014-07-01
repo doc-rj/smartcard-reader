@@ -36,7 +36,7 @@ public class ReaderXcvr implements Runnable {
     protected static final String TAG = "smartcard-reader";
 
     public interface OnMessage {
-        void onMessageSend(String raw);
+        void onMessageSend(String raw, String name);
         void onMessageRcv(String raw, String name, String parsed);
         void onOkay(String message);
         void onError(String message, boolean clearOnNext);
@@ -101,18 +101,19 @@ public class ReaderXcvr implements Runnable {
     protected ResponseApdu sendAndRcv(CommandApdu cmdApdu, boolean ascii) throws IOException {
         byte[] cmdBytes = cmdApdu.toBytes();
         String cmdStr = GpoApdu.toString(cmdBytes, cmdApdu.getLc());
-        mOnMessage.onMessageSend(cmdStr);
+        mOnMessage.onMessageSend(cmdStr, cmdApdu.getCommandName());
         byte[] rsp = mIsoDep.transceive(cmdBytes);
         ResponseApdu rspApdu = new ResponseApdu(rsp);
         byte[] data = rspApdu.getData();
 
         mOnMessage.onMessageRcv(bytesToHexAndAscii(rsp, ascii), cmdApdu.getCommandName(),
             (data.length > 0) ? TLVUtil.prettyPrintAPDUResponse(data) : null);
-
+        /*
         Log.d(TAG, "response APDU: " + Util.bytesToHex(rsp));
         if (data.length > 0) {
             Log.d(TAG, TLVUtil.prettyPrintAPDUResponse(data));
         }
+        */
         return rspApdu;
     }
 

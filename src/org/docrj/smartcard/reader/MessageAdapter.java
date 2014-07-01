@@ -26,6 +26,7 @@ import org.docrj.smartcard.reader.R;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +35,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 
 public class MessageAdapter extends BaseAdapter {
+    private static final String TAG = "smartcard-reader";
 
     public interface OnDialog {
         void onDialogParsedMsg(String name, String text);
@@ -62,6 +64,8 @@ public class MessageAdapter extends BaseAdapter {
     private List<Message> mMessages = new ArrayList<Message>(100);
     private Context mContext;
     private OnDialog mOnDialog;
+    private StringBuilder mHtmlBuilder = new StringBuilder(2400);
+    //private StringBuilder mTextBuilder = new StringBuilder(2400);
 
     public MessageAdapter(LayoutInflater layoutInflater, Bundle instate, OnDialog onDialog) {
         mLayoutInflater = layoutInflater;
@@ -99,30 +103,75 @@ public class MessageAdapter extends BaseAdapter {
 
     public void clearMessages() {
         mMessages.clear();
+        mHtmlBuilder.setLength(0);
+        //mTextBuilder.setLength(0);
         notifyDataSetChanged();
     }
 
     public void addMessage(String text, int type, String name, String parsed) {
-        String prefix = "";
+        String textPrefix = "";
+        String nameSuffix = "";
         switch (type) {
         case MSG_SEND:
-            prefix = mContext.getString(R.string.out_msg_prefix);
+            textPrefix = mContext.getString(R.string.out_msg_prefix);
+            nameSuffix = mContext.getString(R.string.cmd_suffix);
             break;
         case MSG_RCV:
-            prefix = mContext.getString(R.string.in_msg_prefix);
+            textPrefix = mContext.getString(R.string.in_msg_prefix);
+            nameSuffix = mContext.getString(R.string.rsp_suffix);
             break;
         case MSG_OKAY:
-            prefix = mContext.getString(R.string.okay_msg_prefix);
+            textPrefix = mContext.getString(R.string.okay_msg_prefix);
             break;
         case MSG_ERROR:
-            prefix = mContext.getString(R.string.err_msg_prefix);
+            textPrefix = mContext.getString(R.string.err_msg_prefix);
             break;
         }
-        Message msg = new Message(prefix + text, type, (name == null) ? "" : name,
+        String newText = textPrefix + text;
+        String newName = (name == null) ? "" : name + " " + nameSuffix;
+
+        Message msg = new Message(newText, type, newName,
             (parsed == null) ? "" : parsed);
         mMessages.add(msg);
+        updateShareMsgsHtml(msg);
+        //updateShareMsgsText(msg);
         notifyDataSetChanged();
     }
+
+    private void updateShareMsgsHtml(Message msg) {
+        String name = (msg.type == MSG_SEND || msg.type == MSG_RCV) ?
+                "<b>" + msg.name + " (raw):</b><br/><br/>" : "";
+        String text = msg.text.replace("-->", "&#45;&#45;&gt;").replace("<--", "&lt;&#45;&#45;");
+        mHtmlBuilder.append("<p style= 'font-family:courier new;'>" + name + text);
+        if (!msg.parsed.isEmpty()) {
+            name = (name.isEmpty()) ? "" : name.replace("(raw)", "(parsed)");
+            String parsed = msg.parsed.replace("\n", "<br/>");
+            mHtmlBuilder.append("<br/><br/>" + name + parsed);
+        }
+        mHtmlBuilder.append("</p>");
+    }
+
+    /*
+    private void updateShareMsgsText(Message msg) {
+        mTextBuilder.append(msg.text + "\n\n");
+        if (!msg.parsed.isEmpty()) {
+            mTextBuilder.append(msg.name + ":\n\n" + msg.parsed + "\n\n");
+        }
+    }
+    */
+
+    public String getShareMsgsHtml() {
+        String html = mHtmlBuilder.toString();
+        Log.d(TAG, "length: " + html.length());
+        //return mHtmlBuilder.toString();
+        return html;
+    }
+
+    /*
+    public String getShareMsgsText() {
+        return mTextBuilder.toString();
+    }
+    */
 
     @Override
     public int getCount() {
@@ -189,21 +238,11 @@ public class MessageAdapter extends BaseAdapter {
         MessageClickListener(int position) {
             this.position = position;
         }
-        
+
         @Override
         public void onClick(View v) {
             Message msg = (Message)getItem(position);
-            String suffix = "";
-            switch (msg.type) {
-            case MSG_SEND:
-                suffix = mContext.getString(R.string.cmd_suffix);
-                break;
-            case MSG_RCV:
-                suffix = mContext.getString(R.string.rsp_suffix);
-                break;
-            }
-            String name = msg.name + " " + suffix;
-            mOnDialog.onDialogParsedMsg(name, msg.parsed);
+            mOnDialog.onDialogParsedMsg(msg.name, msg.parsed);
         }
     };
 }

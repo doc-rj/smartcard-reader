@@ -43,6 +43,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
+import android.text.Html;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
@@ -60,6 +61,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.ShareActionProvider;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
@@ -114,6 +116,7 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
     private int mMsgPos;
     boolean mSkipNextClear;
 
+    private ShareActionProvider mShareProvider;
     private int mSelectedAppPos = DEFAULT_APP_POS;
     private ArrayList<SmartcardApp> mApps;
     private boolean mSelectOnCreate;
@@ -357,6 +360,12 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
         if (mParsedMsgDialog != null) {
             mParsedMsgDialog.dismiss();
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        clearShareMsgsIntent();        
     }
 
     @Override
@@ -895,6 +904,9 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
         getMenuInflater().inflate(R.menu.main, menu);
         mEditMenuItem = menu.findItem(R.id.menu_edit_all_apps);
         prepareOptionsMenu();
+
+        MenuItem item = menu.findItem(R.id.menu_share_msgs);
+        mShareProvider = (ShareActionProvider) item.getActionProvider();
         return true;
     }
 
@@ -968,8 +980,8 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
     }
 
     @Override
-    public void onMessageSend(final String raw) {
-        onMessage(raw, MessageAdapter.MSG_SEND, null, null);
+    public void onMessageSend(final String raw, final String name) {
+        onMessage(raw, MessageAdapter.MSG_SEND, name, null);
     }
 
     @Override
@@ -989,26 +1001,57 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
     }
 
     private void onMessage(final String text, final int type, final String name, final String parsed) {
-        runOnUiThread(new Runnable() {
-
-            @Override
-            public void run() {
-                mMsgAdapter.addMessage(text, type, name, parsed);
-            }
-        });
+        if (mMsgAdapter != null) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mMsgAdapter.addMessage(text, type, name, parsed);
+                    setShareMsgsIntent();
+                }
+            });
+        }
     }
 
     private void clearMessages() {
         if (mMsgAdapter != null) {
             runOnUiThread(new Runnable() {
-
                 @Override
                 public void run() {
                     mMsgAdapter.clearMessages();
+                    clearShareMsgsIntent();
                 }
             });
         }
     }
+
+    private void setShareMsgsIntent() {
+        if (mMsgAdapter != null && mShareProvider != null) {
+            Intent sendIntent = null;
+            sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            //Log.d(TAG, mMsgAdapter.getShareMsgsHtml());
+            sendIntent.putExtra(Intent.EXTRA_TEXT, Html.fromHtml(mMsgAdapter.getShareMsgsHtml()));
+            // subject for emails
+            String subject;
+            if (mTestMode == TEST_MODE_AID_ROUTE) {
+                subject = getString(R.string.app_name) + ": " +
+                    getString(R.string.aid_route) + ": " +
+                    mApps.get(mSelectedAppPos).getName();
+            } else {
+                subject = getString(R.string.app_name) + ": " +
+                    getString(R.string.emv_read);   
+            }
+            sendIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
+            sendIntent.setType("text/html");
+            mShareProvider.setShareIntent(sendIntent);
+        }
+    }
+
+    private void clearShareMsgsIntent() {
+        if (mShareProvider != null) {
+            mShareProvider.setShareIntent(null);
+        }
+    }    
 
     private void writePrefs() {
         StringBuffer names = new StringBuffer(APP_NAMES);

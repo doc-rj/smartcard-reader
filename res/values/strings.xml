@@ -10,14 +10,15 @@
     <string name="select_success_prefix">app</string>
     <string name="hce_msg_prefix">smartcard demo msg</string>
     <string name="reader_msg_prefix">smartcard reader msg</string>
-    <string name="in_msg_prefix">&lt;--&#160;</string>
-    <string name="out_msg_prefix">--&gt;&#160;</string>
+    <string name="in_msg_prefix">&lt;&#45;&#45;&#160;</string>
+    <string name="out_msg_prefix">&#45;&#45;&gt;&#160;</string>
     <string name="okay_msg_prefix">**&#160;</string>
     <string name="err_msg_prefix">!!&#160;</string>
     <string name="select_ppse_err" formatted="false">Select ppse fail, status: 0x%X (%s)</string>
     <string name="select_app_err" formatted="false">Select app fail, status: 0x%X (%s)</string>
     <string name="select_ppse_ok">Select ppse okay, status: 0x%X</string>
     <string name="select_app_ok">Select app okay, status: 0x%X</string>
+    <string name="select_app">select app</string>
     <string name="get_data_ok">Get data okay, status: 0x%X</string>
     <string name="get_data_err">Get data fail, status: 0x%X</string>
     <string name="gpo_ok">Get processing options okay, status: 0x%X</string>
@@ -29,6 +30,8 @@
     <string name="new_app">new smartcard app</string>
     <string name="copy_app">copy smartcard app</string>
     <string name="edit_apps">edit smartcard app</string>
+    <string name="share_msgs">share messages</string>
+    <string name="share_msgs_via">share messages via&#8230;</string>
     <string name="clear_msgs">clear messages</string>
     <string name="dialog_ok">OK</string>
     <string name="dialog_dismiss">Dismiss</string>

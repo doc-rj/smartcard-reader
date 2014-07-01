@@ -40,7 +40,8 @@ public class DemoReaderXcvr extends ReaderXcvr {
             mIsoDep.connect();
             Log.d(TAG, "select AID: " + mAid);
             mOnMessage.onMessageSend("00 A4 04 00"
-                    + String.format("%02X ", mAidBytes.length) + mAid + " 00");
+                    + String.format("%02X ", mAidBytes.length) + mAid + " 00",
+                    mContext.getString(R.string.select_app));
             byte[] response = mIsoDep.transceive(buildSelectApdu(mAidBytes));
             if (new String(response).startsWith(mContext
                     .getString(R.string.select_success_prefix))) {
@@ -50,7 +51,7 @@ public class DemoReaderXcvr extends ReaderXcvr {
                             .getString(R.string.reader_msg_prefix)
                             + " "
                             + messageCounter++;
-                    mOnMessage.onMessageSend(message);
+                    mOnMessage.onMessageSend(message, mContext.getString(R.string.select_app));
                     response = mIsoDep.transceive(message.getBytes());
                     mOnMessage.onMessageRcv(new String(response), null, null);
                 }
