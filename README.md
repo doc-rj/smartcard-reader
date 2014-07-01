@@ -88,13 +88,10 @@ new reader mode is a key enabler of smartcard-reader.
 
 <img align="right" src="/docs/tn_screen_share_gmail.png">
 
-## ![Screen](/docs/tn_screen_emv_read.png)
+<img align="left" src="/docs/tn_screen_select_mc.png">
 
-## ![Screen](/docs/tn_screen_share_gmail.png)
+<img align="right" src="/docs/tn_screen_parsed_select_rsp.png">
 
-![Screen](/docs/tn_screen_select_mc.png)
+<img align="left" src="/docs/tn_screen_add_new_app.png">
 
-![Screen](/docs/tn_screen_parsed_select_rsp.png)
-
-![Screen](/docs/tn_screen_add_new_app.png)
 
