@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">smartcard reader</string>
+    <string name="save">Log to file</string>
     <string name="intro_aid_route">Tap smartcard or device to select app&#8230;</string>
     <string name="intro_emv_read">Tap smartcard or device to read payment data&#8230;\n</string>
     <string name="wrong_tag_err">Not ISO-DEP, emulate card with AID above!</string>
@@ -33,6 +34,7 @@
     <string name="share_msgs">share messages</string>
     <string name="share_msgs_via">share messages via&#8230;</string>
     <string name="clear_msgs">clear messages</string>
+    <string name="about">about</string>
     <string name="dialog_ok">OK</string>
     <string name="dialog_dismiss">Dismiss</string>
     <string name="dialog_cancel">Cancel</string>
@@ -60,4 +62,12 @@
     <string name="rsp_suffix">response</string>
     <string name="parsed_msg">parsed message</string>
     <string name="search">search</string>
+    <string name="saved_to">saved to: %s</string>
+    <string name="save_exception">could not save: IOException!</string>
+    <string name="save_not_mounted">could not save: storage not mounted!</string>
+    <string name="about_title">about %s</string>
+    <string name="about_version">version %s</string>
+    <string name="about_source">source &amp; licensing?</string>
+    <string name="about_log_header">log files:</string>
+    <string name="about_log_path">log path?</string>
 </resources>

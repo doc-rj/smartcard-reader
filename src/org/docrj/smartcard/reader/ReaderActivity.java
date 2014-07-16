@@ -32,6 +32,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.PorterDuff;
@@ -41,9 +43,12 @@ import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.provider.Settings;
 import android.text.Html;
+import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
@@ -74,6 +79,9 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
 
     protected static final String TAG = "smartcard-reader";
 
+    private final static String SOURCE_LINK =
+        "<a href=\"https://github.com/doc-rj/smartcard-reader\">source & licensing</a>";
+
     // HCE demo smartcard app
     private final static String DEMO_NAME = "Demo";
     // proprietary unregistered AID starts with 0xFx, length 5 - 16 bytes
@@ -99,7 +107,8 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
     private final static int DIALOG_EDIT_ALL_APPS = 5;
     private final static int DIALOG_ENABLE_NFC = 6;
     private final static int DIALOG_PARSED_MSG = 7;
-    
+    private final static int DIALOG_ABOUT = 8;
+
     public final static int TEST_MODE_AID_ROUTE = 0;
     public final static int TEST_MODE_EMV_READ = 1;
 
@@ -131,10 +140,14 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
     private AlertDialog mEditAllDialog;
     private AlertDialog mEnableNfcDialog;
     private AlertDialog mParsedMsgDialog;
+    private AlertDialog mAboutDialog;
     private String mParsedMsgName = "";
     private String mParsedMsgText = "";
     private int mCopyPos;
     private int mEditPos;
+    private String mVersionName = "?";
+    private String mLogPath = "?";
+    private Spanned mSourceLink = Html.fromHtml(SOURCE_LINK);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -238,6 +251,18 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
 
         mSelectOnCreate = true;
         // mSelectedAppPos saved in onPause(), restored in onResume()
+
+        try {
+            PackageManager manager = getPackageManager();
+            PackageInfo info = manager.getPackageInfo(getPackageName(), 0);
+            mVersionName = info.versionName;
+        } catch (Exception e) {
+            Log.e(TAG, "error getting version");
+        }
+        
+        String path = getExternalFilesDir(null).getPath();
+        int idx = path.lastIndexOf("/Android");
+        mLogPath = (idx == -1) ? path : "<storage>" + path.substring(idx);
     }
 
     private void prepareViewForTestMode(int testMode) {
@@ -359,6 +384,9 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
         }
         if (mParsedMsgDialog != null) {
             mParsedMsgDialog.dismiss();
+        }
+        if (mAboutDialog != null) {
+            mAboutDialog.dismiss();
         }
     }
 
@@ -808,6 +836,27 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
             dialog = mParsedMsgDialog;
             break;
         }
+        case DIALOG_ABOUT: {
+            final View view = li.inflate(R.layout.dialog_about, null);
+            TextView version = (TextView) view.findViewById(R.id.dialog_version);
+            TextView source = (TextView) view.findViewById(R.id.dialog_source);
+            TextView path = (TextView) view.findViewById(R.id.dialog_log_path);
+
+            version.setText(getString(R.string.about_version, mVersionName));
+            source.setText(mSourceLink);
+            source.setMovementMethod(LinkMovementMethod.getInstance());
+            path.setText(mLogPath);
+
+            builder.setView(view)
+                    .setCancelable(false)
+                    .setIcon(R.drawable.ic_action_about)
+                    .setTitle(getString(R.string.about_title, getString(R.string.app_name)))
+                    .setPositiveButton(R.string.dialog_dismiss, null);
+
+            mAboutDialog = builder.create();
+            dialog = mAboutDialog;
+            break;
+        }
         } // switch
         return dialog;
     }
@@ -926,6 +975,10 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+        case R.id.menu_clear_msgs:
+            clearMessages();
+            return true;
+
         case R.id.menu_new_app:
             showDialog(DIALOG_NEW_APP);
             return true;
@@ -938,8 +991,8 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
             showDialog(DIALOG_EDIT_ALL_APPS);
             return true;
 
-        case R.id.menu_clear_msgs:
-            clearMessages();
+        case R.id.menu_about:
+            showDialog(DIALOG_ABOUT);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -968,12 +1021,17 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
             ReaderXcvr xcvr;
             String name = mApps.get(mSelectedAppPos).getName();
             String aid = mApps.get(mSelectedAppPos).getAid();
-            if (DEMO_NAME.equals(name) && DEMO_AID.equals(aid)) {
-                xcvr = new DemoReaderXcvr(isoDep, aid, this);
-            } else if (mApps.get(mSelectedAppPos).getType() == 0) {
-                xcvr = new PaymentReaderXcvr(isoDep, aid, this, mTestMode);
+            if (mTestMode == TEST_MODE_AID_ROUTE) {
+                if (DEMO_NAME.equals(name) && DEMO_AID.equals(aid)) {
+                    xcvr = new DemoReaderXcvr(isoDep, aid, this);
+                } else if (mApps.get(mSelectedAppPos).getType() == SmartcardApp.TYPE_PAYMENT) {
+                    xcvr = new PaymentReaderXcvr(isoDep, aid, this, mTestMode);
+                } else {
+                    xcvr = new OtherReaderXcvr(isoDep, aid, this);
+                }
             } else {
-                xcvr = new OtherReaderXcvr(isoDep, aid, this);
+                // test mode is emv read
+                xcvr = new PaymentReaderXcvr(isoDep, aid, this, mTestMode);
             }
             new Thread(xcvr).start();
         }

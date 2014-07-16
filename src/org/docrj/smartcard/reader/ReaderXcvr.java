@@ -30,7 +30,7 @@ import org.docrj.smartcard.util.Util;
 
 import android.content.Context;
 import android.nfc.tech.IsoDep;
-import android.util.Log;
+//import android.util.Log;
 
 public class ReaderXcvr implements Runnable {
     protected static final String TAG = "smartcard-reader";

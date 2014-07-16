@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_root"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:padding="10dp" >
+
+<TextView
+    android:id="@+id/dialog_version"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fontFamily="sans-serif-condensed"
+    android:gravity="left"
+    android:singleLine="false"
+    android:textColor="@color/text_normal"
+    android:textSize="@dimen/font_normal"
+    android:paddingLeft="30dp"
+    android:paddingRight="30dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="5dp"
+    android:text="@string/about_version" />
+
+<TextView
+    android:id="@+id/dialog_source"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fontFamily="sans-serif-condensed"
+    android:gravity="left"
+    android:singleLine="false"
+    android:textColor="@color/text_normal"
+    android:textSize="@dimen/font_normal"
+    android:paddingLeft="30dp"
+    android:paddingRight="30dp"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp"
+    android:text="@string/about_source" />
+
+<TextView
+    android:id="@+id/dialog_log_header"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fontFamily="sans-serif-condensed"
+    android:gravity="left"
+    android:singleLine="false"
+    android:textColor="@color/text_normal"
+    android:textSize="@dimen/font_normal"
+    android:paddingLeft="30dp"
+    android:paddingRight="30dp"
+    android:paddingTop="5dp"
+    android:paddingBottom="0dp"
+    android:text="@string/about_log_header" />
+
+<TextView
+    android:id="@+id/dialog_log_path"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fontFamily="sans-serif-condensed"
+    android:gravity="left"
+    android:singleLine="false"
+    android:textColor="@color/text_normal"
+    android:textSize="@dimen/font_small"
+    android:paddingLeft="45dp"
+    android:paddingRight="30dp"
+    android:paddingTop="5dp"
+    android:paddingBottom="10dp"
+    android:text="@string/about_log_path" />
+
+</LinearLayout>
