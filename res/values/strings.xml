@@ -2,11 +2,12 @@
 <resources>
     <string name="app_name">smartcard reader</string>
     <string name="save">Log to file</string>
-    <string name="intro_aid_route">Tap smartcard or device to select app&#8230;</string>
-    <string name="intro_emv_read">Tap smartcard or device to read payment data&#8230;\n</string>
+    <string name="intro_aid_route">Tap smartcard to select app&#8230;</string>
+    <string name="intro_aid_route_manual">Hold against smartcard for manual select mode&#8230;</string>
+    <string name="intro_emv_read">Tap smartcard to read payment data&#8230;\n</string>
     <string name="wrong_tag_err">Not ISO-DEP, emulate card with AID above!</string>
     <string name="wrong_resp_err">Select fail, emulate card with AID above!</string>
-    <string name="tag_lost_err">Smartcard was removed.</string>
+    <string name="tag_lost_err">Smartcard was removed</string>
     <string name="select_success">app selected!</string>
     <string name="select_success_prefix">app</string>
     <string name="hce_msg_prefix">smartcard demo msg</string>
@@ -24,6 +25,7 @@
     <string name="get_data_err">Get data fail, status: 0x%X</string>
     <string name="gpo_ok">Get processing options okay, status: 0x%X</string>
     <string name="gpo_err">Get processing options fail, status: 0x%X</string>
+    <string name="gpo_aip_afl_err">GPO response did not contain AIP and AFL</string>
     <string name="read_rec_ok" formatted="false">Read record okay, sfi: %d, rec: %d, status: 0x%X</string>
     <string name="read_rec_err" formatted="false">Read record fail, sfi: %d, rec: %d, status: 0x%X</string>
     <string name="aid_route">aid route mode</string>
@@ -70,4 +72,9 @@
     <string name="about_source">source &amp; licensing?</string>
     <string name="about_log_header">log files:</string>
     <string name="about_log_path">log path?</string>
+    <string name="manual_select">M</string>
+    <string name="auto_select">A</string>
+    <string name="select">select</string>
+    <string name="manual_connected">Smartcard connected in manual select mode</string>
+    <string name="manual_disconnected">Smartcard not connected, tap and hold to connect&#8230;</string>
 </resources>

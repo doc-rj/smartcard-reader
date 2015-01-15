@@ -43,7 +43,6 @@ import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.provider.Settings;
 import android.text.Html;
@@ -63,6 +62,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -74,7 +75,7 @@ import android.widget.Toast;
 
 import org.docrj.smartcard.reader.R;
 
-public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
+public class ReaderActivity extends Activity implements ReaderXcvr.UiCallbacks,
     MessageAdapter.OnDialog, ReaderCallback {
 
     protected static final String TAG = "smartcard-reader";
@@ -88,17 +89,17 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
     private final static String DEMO_AID = "F0646F632D726A";
 
     // update all five items below when adding/removing default apps!
-    private final static int NUM_RO_APPS = 10;
+    private final static int NUM_RO_APPS = 11;
     private final static int DEFAULT_APP_POS = 0; // Demo
     private final static String APP_NAMES = DEMO_NAME
             + "|Amex|Amex 7-Byte|Amex 8-Byte" + "|MC|MC 8-Byte"
-            + "|Visa|Visa 8-Byte" + "|Ryan" + "|Discover Zip";
+            + "|Visa|Visa 8-Byte" + "|Discover Zip" + "|Test Pay|Test Other";
     private final static String APP_AIDS = DEMO_AID
             + "|A00000002501|A0000000250109|A000000025010988"
             + "|A0000000041010|A000000004101088"
-            + "|A0000000031010|A000000003101088" + "|7465737420414944"
-            + "|A0000003241010";
-    private final static String APP_TYPES = "1|0|0|0|0" + "|0|0|0|0|0";
+            + "|A0000000031010|A000000003101088"
+            + "|A0000003241010|F07465737420414944|F07465737420414944";
+    private final static String APP_TYPES = "1|0|0|0|0|0|0|0|0|0|1";
 
     private final static int DIALOG_NEW_APP = 1;
     private final static int DIALOG_COPY_LIST = 2;
@@ -116,14 +117,20 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
     private Handler mHandler;
     private Editor mEditor;
     private MenuItem mEditMenuItem;
+    private MenuItem mManualMenuItem;
+    private ImageButton mManualButton;
     private NfcAdapter mNfcAdapter;
     private ListView mMsgListView;
     private ListView mEditAllListView;
     private AppAdapter mAppAdapter;
     private AppAdapter mEditAllAdapter;
     private MessageAdapter mMsgAdapter;
+    private Button mSelectButton;
+    private View mSelectSplitter;
+
     private int mMsgPos;
-    boolean mSkipNextClear;
+    private boolean mSkipNextClear;
+    private boolean mManual;   
 
     private ShareActionProvider mShareProvider;
     private int mSelectedAppPos = DEFAULT_APP_POS;
@@ -183,12 +190,21 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
         setContentView(R.layout.activity_reader);
         mIntro = (TextView) findViewById(R.id.intro);
         mSplitter = findViewById(R.id.splitter);
+        mSelectButton = (Button) findViewById(R.id.manualSelectButton);
+        mSelectSplitter = findViewById(R.id.splitter2);
+        mSelectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onError(getString(R.string.manual_disconnected), false);
+            }
+        });
 
         mMsgListView = (ListView) findViewById(R.id.msgListView);
         mMsgAdapter = new MessageAdapter(getLayoutInflater(),
                 savedInstanceState, this);
         mMsgListView.setAdapter(mMsgAdapter);
         if (savedInstanceState != null) {
+            mManual = savedInstanceState.getBoolean("manual");
             mMsgPos = savedInstanceState.getInt("msg_pos");
             mParsedMsgName = savedInstanceState.getString("parsed_msg_name");
             mParsedMsgText = savedInstanceState.getString("parsed_msg_text");
@@ -235,7 +251,7 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
                     @Override
                     public void onItemSelected(AdapterView<?> parent,
                             View view, int pos, long id) {
-                        if (!mSelectOnCreate) {
+                        if (!mSelectOnCreate && !mManual) {
                             clearMessages();
                         }
                         mSelectOnCreate = false;
@@ -267,7 +283,7 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
 
     private void prepareViewForTestMode(int testMode) {
         if (testMode == TEST_MODE_AID_ROUTE) {
-            mIntro.setText(R.string.intro_aid_route);
+            mIntro.setText(mManual ? R.string.intro_aid_route_manual : R.string.intro_aid_route);
             mAidSpinner.setVisibility(View.VISIBLE);
             mSplitter.setVisibility(View.VISIBLE);
         } else {
@@ -295,13 +311,21 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
                         mEnableNfcDialog.dismiss();
                     }
                     if (state == NfcAdapter.STATE_ON) {
+                        //Bundle extras = new Bundle();
+                        //extras.putBoolean("bit_transparent_mode", true);
                         mNfcAdapter
                                 .enableReaderMode(
                                         ReaderActivity.this,
                                         ReaderActivity.this,
                                         NfcAdapter.FLAG_READER_NFC_A
+                                                //NfcAdapter.FLAG_READER_NFC_B
+                                                //| NfcAdapter.FLAG_READER_NFC_F
+                                                //| NfcAdapter.FLAG_READER_NFC_V
+                                                //| NfcAdapter.FLAG_READER_NFC_BARCODE
+                                                //| NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS
                                                 | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
                                         null);
+                                        //extras);
                     }
                 } else {
                     if (mEnableNfcDialog == null
@@ -399,7 +423,8 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
     @Override
     protected void onSaveInstanceState(Bundle outstate) {
         Log.d(TAG, "saving instance state!");
-        // message i/o list
+        outstate.putBoolean("manual", mManual);
+        // console message i/o list
         outstate.putInt("msg_pos", mMsgListView.getLastVisiblePosition());
         outstate.putString("parsed_msg_name", mParsedMsgName);
         outstate.putString("parsed_msg_text", mParsedMsgText);
@@ -952,6 +977,25 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         mEditMenuItem = menu.findItem(R.id.menu_edit_all_apps);
+        mManualMenuItem = menu.findItem(R.id.menu_manual);
+        LinearLayout layout = (LinearLayout) mManualMenuItem.getActionView();
+        mManualButton = (ImageButton) layout.findViewById(R.id.menu_btn);
+        mManualButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mManual = !mManual;
+                // TODO: look into deprecation
+                mManualButton.setBackgroundDrawable(mManual ?
+                    getResources().getDrawable(R.drawable.button_bg_selected_states) :
+                    getResources().getDrawable(R.drawable.button_bg_unselected_states));
+                mSelectSplitter.setVisibility(mManual ? View.VISIBLE : View.GONE);
+                mSelectButton.setVisibility(mManual ? View.VISIBLE : View.GONE);
+                mIntro.setText(getString(mManual ? R.string.intro_aid_route_manual :
+                                                   R.string.intro_aid_route));
+                clearMessages();               
+            }
+        });
+
         prepareOptionsMenu();
 
         MenuItem item = menu.findItem(R.id.menu_share_msgs);
@@ -969,6 +1013,14 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
         }
         mEditMenuItem.setIcon(editIcon);
         mEditMenuItem.setEnabled(editEnabled);
+        // look into deprecation
+        mManualButton.setBackgroundDrawable(mManual ?
+            getResources().getDrawable(R.drawable.button_bg_selected_states) :
+            getResources().getDrawable(R.drawable.button_bg_unselected_states));
+        mSelectSplitter.setVisibility(mManual ? View.VISIBLE : View.GONE);
+        mSelectButton.setVisibility(mManual ? View.VISIBLE : View.GONE);
+        mIntro.setText(getString(mManual ? R.string.intro_aid_route_manual :
+                                           R.string.intro_aid_route));
     }
 
     @SuppressWarnings("deprecation")
@@ -993,6 +1045,19 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
 
         case R.id.menu_about:
             showDialog(DIALOG_ABOUT);
+            return true;
+            
+        case R.id.menu_manual:
+            mManual = !mManual;
+            mManualMenuItem.
+                setTitle(getString(mManual ? R.string.auto_select :
+                                             R.string.manual_select));
+            mManualButton.setPressed(mManual);
+            mSelectSplitter.setVisibility(mManual ? View.VISIBLE : View.GONE);
+            mSelectButton.setVisibility(mManual ? View.VISIBLE : View.GONE);
+            mIntro.setText(getString(mManual ? R.string.intro_aid_route_manual :
+                                               R.string.intro_aid_route));
+            clearMessages();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -1024,9 +1089,15 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
             if (mTestMode == TEST_MODE_AID_ROUTE) {
                 if (DEMO_NAME.equals(name) && DEMO_AID.equals(aid)) {
                     xcvr = new DemoReaderXcvr(isoDep, aid, this);
+                } else if (mManual) {
+                    // manual select mode; for multiple selects per tap/connect
+                    // does not select ppse for payment apps unless specifically configured
+                    xcvr = new ManualReaderXcvr(isoDep, aid, this);
                 } else if (mApps.get(mSelectedAppPos).getType() == SmartcardApp.TYPE_PAYMENT) {
+                    // payment, ie. always selects ppse first
                     xcvr = new PaymentReaderXcvr(isoDep, aid, this, mTestMode);
                 } else {
+                    // other/non-payment; auto select on each tap/connect
                     xcvr = new OtherReaderXcvr(isoDep, aid, this);
                 }
             } else {
@@ -1070,7 +1141,18 @@ public class ReaderActivity extends Activity implements ReaderXcvr.OnMessage,
         }
     }
 
-    private void clearMessages() {
+    @Override
+    public void setUserSelectListener(final ReaderXcvr.UiListener callback) {
+        mSelectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                callback.onUserSelect(mApps.get(mSelectedAppPos).getAid());
+            }
+        });
+    }
+
+    @Override
+    public void clearMessages() {
         if (mMsgAdapter != null) {
             runOnUiThread(new Runnable() {
                 @Override

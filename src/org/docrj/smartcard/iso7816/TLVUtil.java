@@ -182,13 +182,12 @@ public class TLVUtil {
         byte[] lengthBytes = new byte[posBefore - posAfter];
 
         if(lengthBytes.length < 1 || lengthBytes.length > 4){
-            throw new TLVException("Number of length bytes must be from 1 to 4. Found "+lengthBytes.length);
+            throw new TLVException("Number of length bytes must be from 1 to 4. Found " + lengthBytes.length);
         }
 
         stream.read(lengthBytes, 0, lengthBytes.length);
 
         int rawLength = Util.byteArrayToInt(lengthBytes);
-
         byte[] valueBytes;
 
         Tag tag = searchTagById(tagIdBytes);
@@ -219,8 +218,10 @@ public class TLVUtil {
             stream.read(valueBytes, 0, len);
             length = len;
         } else {
-            if(stream.available() < length){
-                throw new TLVException("Length byte(s) indicated "+length+" value bytes, but only "+stream.available()+ " " +(stream.available()>1?"are":"is")+" available");
+            if (stream.available() < length) {
+                throw new TLVException("Length byte(s) indicated " + length +
+                        " value bytes, but only " + stream.available() + " " +
+                        (stream.available() > 1 ? "are" : "is") + " available");
             }
             // definite form
             valueBytes = new byte[length];

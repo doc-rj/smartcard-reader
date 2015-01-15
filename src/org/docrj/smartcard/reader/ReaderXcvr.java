@@ -26,37 +26,50 @@ import org.docrj.smartcard.iso7816.CommandApdu;
 import org.docrj.smartcard.iso7816.ResponseApdu;
 import org.docrj.smartcard.iso7816.SelectApdu;
 import org.docrj.smartcard.iso7816.TLVUtil;
+import org.docrj.smartcard.iso7816.TLVException;
 import org.docrj.smartcard.util.Util;
 
 import android.content.Context;
+import android.nfc.TagLostException;
 import android.nfc.tech.IsoDep;
 //import android.util.Log;
 
 public class ReaderXcvr implements Runnable {
     protected static final String TAG = "smartcard-reader";
 
-    public interface OnMessage {
+    public interface UiCallbacks {
+        // print console messages
         void onMessageSend(String raw, String name);
         void onMessageRcv(String raw, String name, String parsed);
         void onOkay(String message);
         void onError(String message, boolean clearOnNext);
+
+        // clear console messages
+        void clearMessages();
+
+        // ui listeners
+        void setUserSelectListener(UiListener callback);
+    }
+
+    public interface UiListener {
+        void onUserSelect(String aid);
     }
 
     public static final int SW_NO_ERROR = 0x9000;    
 
     protected IsoDep mIsoDep;
-    protected OnMessage mOnMessage;
+    protected UiCallbacks mUiCallbacks;
     protected Context mContext;
 
     protected String mAid;
     protected byte[] mAidBytes;
 
-    public ReaderXcvr(IsoDep isoDep, String aid, OnMessage onMessage) {
+    public ReaderXcvr(IsoDep isoDep, String aid, UiCallbacks uiCallbacks) {
         this.mIsoDep = isoDep;
         this.mAid = aid;
         this.mAidBytes = Util.hexToBytes(aid);
-        this.mOnMessage = onMessage;
-        this.mContext = (Context) onMessage;
+        this.mUiCallbacks = uiCallbacks;
+        this.mContext = (Context) uiCallbacks;
     }
 
     protected static String bytesToHexAndAscii(byte[] data, boolean ascii) {
@@ -98,16 +111,32 @@ public class ReaderXcvr implements Runnable {
     }
 
     // send command APDU, get response APDU, and display to user   
-    protected ResponseApdu sendAndRcv(CommandApdu cmdApdu, boolean ascii) throws IOException {
+    protected ResponseApdu sendAndRcv(CommandApdu cmdApdu, boolean ascii)
+            throws TagLostException, IOException {
         byte[] cmdBytes = cmdApdu.toBytes();
         String cmdStr = GpoApdu.toString(cmdBytes, cmdApdu.getLc());
-        mOnMessage.onMessageSend(cmdStr, cmdApdu.getCommandName());
+        mUiCallbacks.onMessageSend(cmdStr, cmdApdu.getCommandName());
         byte[] rsp = mIsoDep.transceive(cmdBytes);
         ResponseApdu rspApdu = new ResponseApdu(rsp);
         byte[] data = rspApdu.getData();
 
-        mOnMessage.onMessageRcv(bytesToHexAndAscii(rsp, ascii), cmdApdu.getCommandName(),
-            (data.length > 0) ? TLVUtil.prettyPrintAPDUResponse(data) : null);
+        String parsed = null;
+        String errMsg = "no error";
+        try {
+            if (data.length > 0) {
+                parsed = TLVUtil.prettyPrintAPDUResponse(data);
+            }
+        } catch (TLVException e) {
+            parsed = null;
+            errMsg = e.getMessage();
+        }
+
+        mUiCallbacks.onMessageRcv(bytesToHexAndAscii(rsp, ascii), cmdApdu.getCommandName(), parsed);
+
+        if (data.length > 0 && parsed == null) {
+            mUiCallbacks.onError(errMsg, false);
+        }
+
         /*
         Log.d(TAG, "response APDU: " + Util.bytesToHex(rsp));
         if (data.length > 0) {

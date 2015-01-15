@@ -33,6 +33,24 @@
     <ListView
         android:id="@+id/msgListView"
         android:layout_below="@+id/splitter"
+        android:layout_above="@+id/splitter2"
 	    style="@style/list" />
+
+    <View
+        android:id="@+id/splitter2"
+        android:layout_above="@+id/manualSelectButton"
+        style="@style/splitter"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/manualSelectButton"
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:fontFamily="sans-serif-condensed"
+        android:text="@string/select"
+        android:background="@drawable/button_bg_selected_states"
+        android:visibility="gone" />
 
 </RelativeLayout>

@@ -26,6 +26,7 @@ import org.docrj.smartcard.iso7816.ReadRecordApdu;
 import org.docrj.smartcard.iso7816.ResponseApdu;
 import org.docrj.smartcard.iso7816.SelectApdu;
 import org.docrj.smartcard.iso7816.TLVUtil;
+import org.docrj.smartcard.iso7816.TLVException;
 import org.docrj.smartcard.reader.R;
 
 import org.docrj.smartcard.emv.AppPriorityIndicator;
@@ -65,7 +66,7 @@ public class PaymentReaderXcvr extends ReaderXcvr {
     private int mTestMode;    
     private DDF mPpseDdf;
 
-    public PaymentReaderXcvr(IsoDep isoDep, String aid, OnMessage onMessage, int testMode) {
+    public PaymentReaderXcvr(IsoDep isoDep, String aid, UiCallbacks onMessage, int testMode) {
         super(isoDep, aid, onMessage);
         mPpseAidBytes = Util.hexToBytes(EMV_PPSE_AID);
         mTestMode = testMode;
@@ -80,7 +81,7 @@ public class PaymentReaderXcvr extends ReaderXcvr {
             if (selectPpse()) {
                 if (mTestMode == ReaderActivity.TEST_MODE_AID_ROUTE) {
                     selectApp(mAid);
-                } else {
+                } else if (mPpseDdf != null) {
                     // process each app found in ppse select response
                     for (EMVApp app : mPpseDdf.getEMVApps()) {
                         if (selectApp(app)) {
@@ -93,30 +94,38 @@ public class PaymentReaderXcvr extends ReaderXcvr {
             }
             mIsoDep.close();
         } catch (TagLostException e) {
-            mOnMessage
+            mUiCallbacks
                     .onError(mContext.getString(R.string.tag_lost_err), false);
         } catch (IOException e) {
-            mOnMessage.onError(e.getMessage(), false);
+            mUiCallbacks.onError(e.getMessage(), false);
+        } catch (TLVException e) {
+            mUiCallbacks.onError(e.getMessage(), false);
         }
     }
 
-    private boolean selectPpse() throws IOException {
+    private boolean selectPpse() throws TagLostException, IOException {
         Log.d(TAG, "select PPSE");
         CommandApdu selectPpseApdu = new SelectApdu(mPpseAidBytes);
         selectPpseApdu.setCommandName("select ppse");
         ResponseApdu rspApdu = sendAndRcv(selectPpseApdu, true);
 
         if (rspApdu.isStatus(SW_NO_ERROR)) {
-            mOnMessage.onOkay(mContext.getString(R.string.select_ppse_ok,
+            mUiCallbacks.onOkay(mContext.getString(R.string.select_ppse_ok,
                     rspApdu.getSW1SW2()));
         } else {
-            mOnMessage.onError(
+            mUiCallbacks.onError(
                     mContext.getString(R.string.select_ppse_err,
                             rspApdu.getSW1SW2(),
                             ApduParser.parse(false, rspApdu.toBytes())), true);
             return false;
         }
-        mPpseDdf = parseFCIDDF(rspApdu.getData());
+        try {
+            mPpseDdf = parseFCIDDF(rspApdu.getData());
+        } catch (TLVException e) {
+            mPpseDdf = null;
+            mUiCallbacks.onError(e.getMessage(), false);
+            return true;
+        }
         return true;
     }
 
@@ -128,22 +137,26 @@ public class PaymentReaderXcvr extends ReaderXcvr {
         return selectApp(aid, null);
     }
 
-    private boolean selectApp(String aid, EMVApp app) throws IOException {
+    private boolean selectApp(String aid, EMVApp app) throws TagLostException, IOException {
         Log.d(TAG, "select app: " + aid);
         byte[] aidBytes = Util.hexToBytes(aid);
         ResponseApdu rspApdu = sendAndRcv(new SelectApdu(aidBytes), true);
         
         if (rspApdu.isStatus(SW_NO_ERROR)) {
-            mOnMessage.onOkay(mContext.getString(R.string.select_app_ok,
+            mUiCallbacks.onOkay(mContext.getString(R.string.select_app_ok,
                     rspApdu.getSW1SW2()));
             if (app != null) {
-                parseFCIADF(rspApdu.getData(), app);
+                try {
+                    parseFCIADF(rspApdu.getData(), app);
+                } catch (Exception e) {
+                    mUiCallbacks.onError(e.getMessage(), false);
+                }
             }
         } else {
             if (rspApdu.getSW1SW2() == SW_SELECTED_FILE_INVALIDATED) {
                 Log.d(TAG, "Application blocked!");
             }
-            mOnMessage.onError(
+            mUiCallbacks.onError(
                     mContext.getString(R.string.select_app_err,
                             rspApdu.getSW1SW2(),
                             ApduParser.parse(false, rspApdu.toBytes())), true);
@@ -157,18 +170,22 @@ public class PaymentReaderXcvr extends ReaderXcvr {
         ResponseApdu rspApdu = sendAndRcv(GpoApdu.getGpoApdu(app.getPdol(), app), false);
 
         if (rspApdu.isStatus(SW_NO_ERROR)) {
-            mOnMessage.onOkay(mContext.getString(R.string.gpo_ok, rspApdu.getSW1SW2()));
-            //The format of the response message is given in EMV 4.2 book 3, section 6.5.8. 
-            parseProcessingOpts(rspApdu.getData(), app);
+            mUiCallbacks.onOkay(mContext.getString(R.string.gpo_ok, rspApdu.getSW1SW2()));
+            try {
+                // format of the response message is given in EMV 4.2 book 3, section 6.5.8. 
+                parseProcessingOpts(rspApdu.getData(), app);
+            } catch (Exception e) {
+                mUiCallbacks.onError(e.getMessage(), false);
+            }
 
             if (app.getAppInterchangeProfile() == null || app.getAppFileLocator() == null) {
-                // TODO: display message!
                 //throw new SmartcardException("GPO response did not contain AIP and AFL");
                 Log.d(TAG, "GPO response did not contain AIP and AFL");
+                mUiCallbacks.onError(mContext.getString(R.string.gpo_aip_afl_err), false);
                 return false;
             }
         } else {
-            mOnMessage.onError(
+            mUiCallbacks.onError(
                     mContext.getString(R.string.gpo_err,
                             rspApdu.getSW1SW2(),
                             ApduParser.parse(false, rspApdu.toBytes())), true);
@@ -188,7 +205,7 @@ public class PaymentReaderXcvr extends ReaderXcvr {
                 ResponseApdu rspApdu = sendAndRcv(new ReadRecordApdu(record, sfi), true);
 
                 if (rspApdu.isStatus(SW_NO_ERROR)) {
-                    mOnMessage.onOkay(mContext.getString(R.string.read_rec_ok,
+                    mUiCallbacks.onOkay(mContext.getString(R.string.read_rec_ok,
                         sfi, record, rspApdu.getSW1SW2()));
                     //parseAppRecord(rspApdu.getData(), app);
                     //boolean isInvolvedInOfflineDataAuth =
@@ -198,7 +215,7 @@ public class PaymentReaderXcvr extends ReaderXcvr {
                 } else {
                     // any SW1 SW2 other than '9000' passed to the application layer as a result
                     // of reading any record shall cause the transaction to be terminated [spec]
-                    mOnMessage.onError(
+                    mUiCallbacks.onError(
                             mContext.getString(R.string.read_rec_err,
                                     sfi, record,
                                     rspApdu.getSW1SW2(),
@@ -369,7 +386,7 @@ public class PaymentReaderXcvr extends ReaderXcvr {
 
         } else {
             checkForProprietaryTagOrAddToUnhandled(app, tlv);
-            throw new SmartcardException("Error parsing ADF. Expected FCI Template. Data: " +
+            throw new SmartcardException("Error parsing ADF, expected FCI template. data: " +
                 Util.byteArrayToHexString(data));
         }
     }
@@ -405,7 +422,8 @@ public class PaymentReaderXcvr extends ReaderXcvr {
             app.setAppInterchangeProfile(aip);
 
             if (valueBytesBis.available() % 4 != 0) {
-                throw new SmartcardException("Error parsing Processing Options: Invalid AFL length: " + valueBytesBis.available());
+                throw new SmartcardException("Error parsing Processing Options: Invalid AFL length: " +
+                    valueBytesBis.available());
             }
 
             byte[] aflBytes = new byte[valueBytesBis.available()];

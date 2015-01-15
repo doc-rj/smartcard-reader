@@ -31,8 +31,8 @@ import android.util.Log;
 
 public class OtherReaderXcvr extends ReaderXcvr {
 
-    public OtherReaderXcvr(IsoDep isoDep, String aid, OnMessage onMessage) {
-        super(isoDep, aid, onMessage);
+    public OtherReaderXcvr(IsoDep isoDep, String aid, UiCallbacks uiCallbacks) {
+        super(isoDep, aid, uiCallbacks);
     }
 
     @Override
@@ -44,22 +44,20 @@ public class OtherReaderXcvr extends ReaderXcvr {
             ResponseApdu rspApdu = sendAndRcv(new SelectApdu(mAidBytes), true);
 
             if (rspApdu.isStatus(SW_NO_ERROR)) {
-                mOnMessage.onOkay(mContext.getString(R.string.select_app_ok,
+                mUiCallbacks.onOkay(mContext.getString(R.string.select_app_ok,
                         rspApdu.getSW1SW2()));
             } else {
-                mOnMessage.onError(
+                mUiCallbacks.onError(
                         mContext.getString(R.string.select_app_err,
                                 rspApdu.getSW1SW2(),
                                 ApduParser.parse(false, rspApdu.toBytes())), true);
-                mIsoDep.close();
-                return;
             }
             mIsoDep.close();
         } catch (TagLostException e) {
-            mOnMessage
+            mUiCallbacks
                     .onError(mContext.getString(R.string.tag_lost_err), false);
         } catch (IOException e) {
-            mOnMessage.onError(e.getMessage(), false);
+            mUiCallbacks.onError(e.getMessage(), false);
         }
     }
 }

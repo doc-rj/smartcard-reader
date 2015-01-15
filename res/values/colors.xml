@@ -12,6 +12,7 @@
     <color name="msg_err">@android:color/holo_red_light</color>
     <color name="btn_light">#FFE3E3E3</color>
     <color name="btn_dark">#FFC3C3C3</color>
+    <color name="btn_holo_gray">#FFCCCCCC</color>
 </resources>
 
 <!-- <color name="msg_okay">@android:color/holo_green_dark</color> -->
