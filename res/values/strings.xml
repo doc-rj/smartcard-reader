@@ -3,7 +3,7 @@
     <string name="app_name">smartcard reader</string>
     <string name="save">Log to file</string>
     <string name="intro_aid_route">Tap smartcard to select app&#8230;</string>
-    <string name="intro_aid_route_manual">Hold against smartcard for manual select mode&#8230;</string>
+    <string name="intro_aid_route_manual">Hold against smartcard for manual select&#8230;</string>
     <string name="intro_emv_read">Tap smartcard to read payment data&#8230;\n</string>
     <string name="wrong_tag_err">Not ISO-DEP, emulate card with AID above!</string>
     <string name="wrong_resp_err">Select fail, emulate card with AID above!</string>
@@ -75,6 +75,6 @@
     <string name="manual_select">M</string>
     <string name="auto_select">A</string>
     <string name="select">select</string>
-    <string name="manual_connected">Smartcard connected in manual select mode</string>
+    <string name="manual_connected">Smartcard connected for manual select</string>
     <string name="manual_disconnected">Smartcard not connected, tap and hold to connect&#8230;</string>
 </resources>
