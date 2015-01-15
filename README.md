@@ -94,4 +94,4 @@ new reader mode is a key enabler of smartcard-reader.
 
 <img align="left" src="/docs/tn_screen_add_new_app.png">
 
-<img align="left" src="/docs/tn_screen_manual_select.png">
+<img align="right" src="/docs/tn_screen_manual_select.png">
