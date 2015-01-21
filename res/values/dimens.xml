@@ -6,8 +6,9 @@
     <dimen name="font_small">14sp</dimen>
     <dimen name="font_medium">16sp</dimen>
     <dimen name="font_normal">18sp</dimen>
-    <dimen name="height_splitter">1.5dp</dimen>
-    <dimen name="margin_splitter">4dp</dimen>
+    <dimen name="height_separator">1.5dp</dimen>
+    <dimen name="height_thin_separator">0.8dp</dimen>
+    <dimen name="margin_separator">4dp</dimen>
     <dimen name="margin_window">8dp</dimen>
     <dimen name="margin_input">16dp</dimen>
     <dimen name="width_button">96dp</dimen>

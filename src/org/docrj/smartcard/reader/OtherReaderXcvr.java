@@ -50,14 +50,14 @@ public class OtherReaderXcvr extends ReaderXcvr {
                 mUiCallbacks.onError(
                         mContext.getString(R.string.select_app_err,
                                 rspApdu.getSW1SW2(),
-                                ApduParser.parse(false, rspApdu.toBytes())), true);
+                                ApduParser.parse(false, rspApdu.toBytes())));
             }
             mIsoDep.close();
         } catch (TagLostException e) {
             mUiCallbacks
-                    .onError(mContext.getString(R.string.tag_lost_err), false);
+                    .onError(mContext.getString(R.string.tag_lost_err));
         } catch (IOException e) {
-            mUiCallbacks.onError(e.getMessage(), false);
+            mUiCallbacks.onError(e.getMessage());
         }
     }
 }

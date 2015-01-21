@@ -95,11 +95,11 @@ public class PaymentReaderXcvr extends ReaderXcvr {
             mIsoDep.close();
         } catch (TagLostException e) {
             mUiCallbacks
-                    .onError(mContext.getString(R.string.tag_lost_err), false);
+                    .onError(mContext.getString(R.string.tag_lost_err));
         } catch (IOException e) {
-            mUiCallbacks.onError(e.getMessage(), false);
+            mUiCallbacks.onError(e.getMessage());
         } catch (TLVException e) {
-            mUiCallbacks.onError(e.getMessage(), false);
+            mUiCallbacks.onError(e.getMessage());
         }
     }
 
@@ -116,14 +116,14 @@ public class PaymentReaderXcvr extends ReaderXcvr {
             mUiCallbacks.onError(
                     mContext.getString(R.string.select_ppse_err,
                             rspApdu.getSW1SW2(),
-                            ApduParser.parse(false, rspApdu.toBytes())), true);
+                            ApduParser.parse(false, rspApdu.toBytes())));
             return false;
         }
         try {
             mPpseDdf = parseFCIDDF(rspApdu.getData());
         } catch (TLVException e) {
             mPpseDdf = null;
-            mUiCallbacks.onError(e.getMessage(), false);
+            mUiCallbacks.onError(e.getMessage());
             return true;
         }
         return true;
@@ -149,7 +149,7 @@ public class PaymentReaderXcvr extends ReaderXcvr {
                 try {
                     parseFCIADF(rspApdu.getData(), app);
                 } catch (Exception e) {
-                    mUiCallbacks.onError(e.getMessage(), false);
+                    mUiCallbacks.onError(e.getMessage());
                 }
             }
         } else {
@@ -159,7 +159,7 @@ public class PaymentReaderXcvr extends ReaderXcvr {
             mUiCallbacks.onError(
                     mContext.getString(R.string.select_app_err,
                             rspApdu.getSW1SW2(),
-                            ApduParser.parse(false, rspApdu.toBytes())), true);
+                            ApduParser.parse(false, rspApdu.toBytes())));
             return false;
         }        
         return true;
@@ -175,20 +175,20 @@ public class PaymentReaderXcvr extends ReaderXcvr {
                 // format of the response message is given in EMV 4.2 book 3, section 6.5.8. 
                 parseProcessingOpts(rspApdu.getData(), app);
             } catch (Exception e) {
-                mUiCallbacks.onError(e.getMessage(), false);
+                mUiCallbacks.onError(e.getMessage());
             }
 
             if (app.getAppInterchangeProfile() == null || app.getAppFileLocator() == null) {
                 //throw new SmartcardException("GPO response did not contain AIP and AFL");
                 Log.d(TAG, "GPO response did not contain AIP and AFL");
-                mUiCallbacks.onError(mContext.getString(R.string.gpo_aip_afl_err), false);
+                mUiCallbacks.onError(mContext.getString(R.string.gpo_aip_afl_err));
                 return false;
             }
         } else {
             mUiCallbacks.onError(
                     mContext.getString(R.string.gpo_err,
                             rspApdu.getSW1SW2(),
-                            ApduParser.parse(false, rspApdu.toBytes())), true);
+                            ApduParser.parse(false, rspApdu.toBytes())));
             return false;
         }
         return true;
@@ -219,7 +219,7 @@ public class PaymentReaderXcvr extends ReaderXcvr {
                             mContext.getString(R.string.read_rec_err,
                                     sfi, record,
                                     rspApdu.getSW1SW2(),
-                                    ApduParser.parse(false, rspApdu.toBytes())), true);
+                                    ApduParser.parse(false, rspApdu.toBytes())));
                     return false;
                 }
             }

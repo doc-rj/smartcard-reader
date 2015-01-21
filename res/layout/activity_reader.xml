@@ -26,20 +26,20 @@
         style="@style/spinner" />
 
     <View
-        android:id="@+id/splitter" 
+        android:id="@+id/separator" 
         android:layout_below="@+id/aid"
-        style="@style/splitter" />
+        style="@style/separator" />
 
     <ListView
         android:id="@+id/msgListView"
-        android:layout_below="@+id/splitter"
-        android:layout_above="@+id/splitter2"
+        android:layout_below="@+id/separator"
+        android:layout_above="@+id/separator2"
 	    style="@style/list" />
 
     <View
-        android:id="@+id/splitter2"
+        android:id="@+id/separator2"
         android:layout_above="@+id/manualSelectButton"
-        style="@style/splitter"
+        style="@style/separator"
         android:visibility="gone" />
 
     <Button
@@ -50,7 +50,7 @@
         android:layout_centerHorizontal="true"
         android:fontFamily="sans-serif-condensed"
         android:text="@string/select"
-        android:background="@drawable/button_bg_selected_states"
+        android:background="@drawable/button_bg_connected_states"
+        android:hapticFeedbackEnabled="true"
         android:visibility="gone" />
-
 </RelativeLayout>

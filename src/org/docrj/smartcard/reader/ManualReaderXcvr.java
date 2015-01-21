@@ -41,9 +41,8 @@ public class ManualReaderXcvr extends OtherReaderXcvr implements ReaderXcvr.UiLi
     @Override
     public void run() {
         try {
-            mUiCallbacks.clearMessages();
-
             mIsoDep.connect();
+            mUiCallbacks.clearMessages();
             mUiCallbacks.onOkay(mContext.getString(R.string.manual_connected));
 
             mUiCallbacks.setUserSelectListener(this);
@@ -56,10 +55,11 @@ public class ManualReaderXcvr extends OtherReaderXcvr implements ReaderXcvr.UiLi
                 // should not happen
                 Log.e(TAG, "interrupted exception!");
             }
+            mUiCallbacks.onFinish();
         } catch (TagLostException e) {
-            mUiCallbacks.onError(mContext.getString(R.string.tag_lost_err), false);
+            mUiCallbacks.onError(mContext.getString(R.string.tag_lost_err));
         } catch (IOException e) {
-            mUiCallbacks.onError(e.getMessage(), false);
+            mUiCallbacks.onError(e.getMessage());
         } finally {
             try {
                 mIsoDep.close();
@@ -79,12 +79,12 @@ public class ManualReaderXcvr extends OtherReaderXcvr implements ReaderXcvr.UiLi
                 Log.d(TAG, "select app: " + mAid);
                 rspApdu = sendAndRcv(new SelectApdu(mAidBytes), true);
             } catch (TagLostException e) {
-                mUiCallbacks.onError(mContext.getString(R.string.tag_lost_err), false);
+                mUiCallbacks.onError(mContext.getString(R.string.tag_lost_err));
             } catch (IOException e) {
-                mUiCallbacks.onError(e.getMessage(), false);
+                mUiCallbacks.onError(e.getMessage());
             }
         } else {
-            mUiCallbacks.onError(mContext.getString(R.string.tag_lost_err), false);
+            mUiCallbacks.onError(mContext.getString(R.string.tag_lost_err));
         } 
 
         if (rspApdu == null) {
@@ -103,7 +103,7 @@ public class ManualReaderXcvr extends OtherReaderXcvr implements ReaderXcvr.UiLi
                 mUiCallbacks.onError(
                     mContext.getString(R.string.select_app_err,
                         rspApdu.getSW1SW2(),
-                        ApduParser.parse(false, rspApdu.toBytes())), true);
+                        ApduParser.parse(false, rspApdu.toBytes())));
             }
         }
     }

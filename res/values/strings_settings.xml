@@ -1,0 +1,43 @@
+<resources>
+
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Settings -->
+
+    <string name="hdr_pref_general">General</string>
+    <string name="ttl_pref_auto_clear">auto clear</string>
+    <string name="smy_pref_auto_clear">Clear console messages on every tap and every manual select?</string>    
+    <string name="ttl_pref_show_sep">show separators</string>
+    <string name="smy_pref_show_sep">Show separators between selects (when auto clear is off, or manual select)?</string> 
+    <string name="ttl_pref_tap_feedback">tap feedback</string>
+
+    <string-array name="names_pref_tap_feedback">
+        <item>none</item>
+        <item>vibrate</item>
+        <item>audio</item>
+    </string-array>
+
+    <string-array name="vals_pref_tap_feedback">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string name="ttl_pref_select_haptic">manual select feedback</string>
+    <string name="smy_pref_select_haptic">Enable haptics on manual select button?</string>
+
+    <string name="hdr_pref_about">About</string>
+    <string name="ttl_pref_app_version">application version</string>
+    <string name="ttl_pref_source">source &amp; licensing</string>
+    <string name="ttl_pref_log_path">log path</string>
+
+    <!-- Example General settings -->
+    <string name="pref_title_social_recommendations">Enable social recommendations</string>
+    <string name="pref_description_social_recommendations">Recommendations for people to contact based on your message history</string>
+    <string name="pref_title_display_name">Display name</string>
+    <string name="pref_default_display_name">John Smith</string>
+
+    <string name="pref_title_system_sync_settings">System sync settings</string>
+    <string name="pref_ringtone_silent">Silent</string>
+
+</resources>

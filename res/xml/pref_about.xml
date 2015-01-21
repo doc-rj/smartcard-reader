@@ -1,0 +1,20 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <Preference
+        android:key="pref_log_path"
+        android:title="@string/ttl_pref_log_path"
+        android:summary="@string/unknown"
+        android:layout="@layout/preference" />
+
+    <Preference
+        android:key="pref_app_version"
+        android:title="@string/ttl_pref_app_version"
+        android:summary="@string/unknown"
+        android:layout="@layout/preference" />
+
+    <Preference
+        android:key="pref_source"
+        android:title="@string/ttl_pref_source"
+        android:layout="@layout/preference_url" />
+
+</PreferenceScreen>

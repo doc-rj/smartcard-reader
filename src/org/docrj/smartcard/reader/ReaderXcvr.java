@@ -38,17 +38,21 @@ public class ReaderXcvr implements Runnable {
     protected static final String TAG = "smartcard-reader";
 
     public interface UiCallbacks {
-        // print console messages
+        // display console messages
         void onMessageSend(String raw, String name);
         void onMessageRcv(String raw, String name, String parsed);
         void onOkay(String message);
-        void onError(String message, boolean clearOnNext);
+        void onError(String message);
+        void onSeparator();
 
         // clear console messages
         void clearMessages();
 
         // ui listeners
         void setUserSelectListener(UiListener callback);
+        
+        // cleanup, if needed
+        void onFinish();
     }
 
     public interface UiListener {
@@ -134,7 +138,7 @@ public class ReaderXcvr implements Runnable {
         mUiCallbacks.onMessageRcv(bytesToHexAndAscii(rsp, ascii), cmdApdu.getCommandName(), parsed);
 
         if (data.length > 0 && parsed == null) {
-            mUiCallbacks.onError(errMsg, false);
+            mUiCallbacks.onError(errMsg);
         }
 
         /*

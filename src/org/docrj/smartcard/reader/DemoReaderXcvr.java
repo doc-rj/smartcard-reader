@@ -57,14 +57,13 @@ public class DemoReaderXcvr extends ReaderXcvr {
                 }
                 mIsoDep.close();
             } else {
-                mUiCallbacks.onError(mContext.getString(R.string.wrong_resp_err),
-                        true);
+                mUiCallbacks.onError(mContext.getString(R.string.wrong_resp_err));
             }
         } catch (TagLostException e) {
             mUiCallbacks
-                    .onError(mContext.getString(R.string.tag_lost_err), false);
+                    .onError(mContext.getString(R.string.tag_lost_err));
         } catch (IOException e) {
-            mUiCallbacks.onError(e.getMessage(), false);
+            mUiCallbacks.onError(e.getMessage());
         }
     }
 }

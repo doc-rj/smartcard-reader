@@ -17,7 +17,7 @@
     android:textSize="@dimen/font_small"
     android:text="@string/manual_select"
     android:contentDescription="@string/manual_select"
-    android:src="@drawable/ic_action_replay">
+    android:src="@drawable/ic_action_replay"
+    android:hapticFeedbackEnabled="true" >
 </ImageButton>
 </LinearLayout>
-

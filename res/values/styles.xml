@@ -45,11 +45,19 @@
         <item name="android:ellipsize">marquee</item>
     </style>
 
-    <style name="splitter">
+    <style name="separator">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">@dimen/height_splitter</item>
-        <item name="android:background">@color/bg_splitter</item>
-        <item name="android:layout_marginTop">@dimen/margin_splitter</item>
+        <item name="android:layout_height">@dimen/height_separator</item>
+        <item name="android:background">@color/bg_separator</item>
+        <item name="android:layout_marginTop">@dimen/margin_separator</item>
+        <item name="android:layout_marginBottom">@dimen/margin_window</item>
+    </style>
+
+    <style name="thin_separator">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/height_thin_separator</item>
+        <item name="android:background">@color/bg_separator</item>
+        <item name="android:layout_marginTop">@dimen/margin_separator</item>
         <item name="android:layout_marginBottom">@dimen/margin_window</item>
     </style>
 

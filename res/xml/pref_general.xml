@@ -1,0 +1,39 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <CheckBoxPreference
+        android:key="pref_auto_clear"
+        android:defaultValue="true"
+        android:persistent="true"
+        android:summary="@string/smy_pref_auto_clear"
+        android:title="@string/ttl_pref_auto_clear"
+        android:layout="@layout/preference" />
+
+    <CheckBoxPreference
+        android:key="pref_show_separators"
+        android:defaultValue="true"
+        android:persistent="true"
+        android:summary="@string/smy_pref_show_sep"
+        android:title="@string/ttl_pref_show_sep"
+        android:layout="@layout/preference" />
+
+    <!-- hide buttons to simplify UI; users can touch outside dialog to dismiss -->
+    <!-- ListPreference's summary should be set to its value by the activity code -->
+    <ListPreference
+        android:key="pref_tap_feedback"
+        android:entries="@array/names_pref_tap_feedback"
+        android:entryValues="@array/vals_pref_tap_feedback"
+        android:defaultValue="1"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/ttl_pref_tap_feedback"
+        android:layout="@layout/preference" />
+
+    <CheckBoxPreference
+        android:key="pref_select_haptic"
+        android:defaultValue="true"
+        android:persistent="true"
+        android:summary="@string/smy_pref_select_haptic"
+        android:title="@string/ttl_pref_select_haptic"
+        android:layout="@layout/preference" />
+
+</PreferenceScreen>

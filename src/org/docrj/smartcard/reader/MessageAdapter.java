@@ -41,10 +41,11 @@ public class MessageAdapter extends BaseAdapter {
         void onDialogParsedMsg(String name, String text);
     }
 
+    public static final int MSG_ERROR = -1;
+    public static final int MSG_OKAY = 0;
     public static final int MSG_SEND = 1;
     public static final int MSG_RCV = 2;
-    public static final int MSG_OKAY = 0;
-    public static final int MSG_ERROR = -1;
+    public static final int MSG_BREAK = 3;
 
     private class Message {
         private String text;
@@ -57,6 +58,10 @@ public class MessageAdapter extends BaseAdapter {
             this.type = type;
             this.name = name;
             this.parsed = parsed;
+        }
+
+        Message(int type) {
+            this.type = type;
         }
     };
 
@@ -138,6 +143,13 @@ public class MessageAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
+    public void addSeparator() {
+        Message msg = new Message(MSG_BREAK);
+        mMessages.add(msg);
+        // TODO: update share?
+        notifyDataSetChanged();
+    }
+
     private void updateShareMsgsHtml(Message msg) {
         String name = (msg.type == MSG_SEND || msg.type == MSG_RCV) ?
                 "<b>" + msg.name + " (raw):</b><br/><br/>" : "";
@@ -198,8 +210,24 @@ public class MessageAdapter extends BaseAdapter {
                 .findViewById(R.id.list_item_btn);
         ImageView img = (ImageView) convertView
                 .findViewById(R.id.list_item_img);
+        View separator = convertView
+                .findViewById(R.id.separator);
+
         Message msg = (Message)getItem(position);
+
+        // handling for separator/break
+        if (msg.type == MSG_BREAK) {
+            btn.setVisibility(View.GONE);
+            img.setVisibility(View.GONE);
+            separator.setVisibility(View.VISIBLE);
+            return convertView;
+        }
+
         btn.setText(msg.text);
+        btn.setVisibility(View.VISIBLE);
+        // img visibility handled below
+        separator.setVisibility(View.GONE);
+
         // handling based on presence of parsed message contents
         if (msg.parsed.isEmpty()) {
             btn.setEnabled(false);
