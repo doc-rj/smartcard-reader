@@ -1,0 +1,3 @@
+rootProject.name = 'smartcard-reader'
+
+include ':app'

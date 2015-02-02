@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<shape xmlns:android="http://schemas.android.com/apk/res/android" 
+     android:shape="rectangle" >
+    <gradient 
+         android:startColor="@color/btn_holo_gray"
+         android:endColor="@color/btn_holo_gray"
+         android:angle="270" />
+    <corners
+         android:bottomRightRadius="7dp" 
+         android:bottomLeftRadius="7dp" 
+         android:topLeftRadius="7dp" 
+         android:topRightRadius="7dp" /> 
+    <stroke
+         android:width="5px"
+         android:color="@color/btn_holo_gray" />
+    <stroke
+         android:width="2px"
+         android:color="@color/bg_window" />
+</shape>
+
+         <!-- android:startColor="@android:color/holo_blue_light"
+         android:endColor="@android:color/holo_blue_light" -->

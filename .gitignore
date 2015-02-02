@@ -1,5 +1,15 @@
-.settings
-bin
-gen
-target
+# IntelliJ IDEA
+.idea
 
+# Gradle
+.gradle
+gradlew.bat
+build
+local.properties
+reports
+
+# Windows
+Thumbs.db
+
+# Mac OS
+.DS_Store
