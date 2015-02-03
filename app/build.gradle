@@ -6,13 +6,20 @@ android {
 
     defaultConfig {
         applicationId "org.docrj.smartcard.reader"
+
+        versionCode 8
+        versionName "0.8"
+
         minSdkVersion 19
         targetSdkVersion 21
     }
 
     buildTypes {
+        // debug and release property defaults are described here:
+        //   http://tools.android.com/tech-docs/new-build-system/user-guide
         release {
-            minifyEnabled false
+            minifyEnabled true
+            //shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
@@ -20,4 +27,5 @@ android {
 
 dependencies {
     compile 'com.android.support:support-v4:21.0.3'
+    // androidTestCompile, debugCompile, releaseCompile here
 }
