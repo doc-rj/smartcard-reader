@@ -49,6 +49,7 @@ public class SmartcardApp {
         if (app != null) {
             mName = app.getName();
             mAid = app.getAid();
+            mAidBytes = app.getAidBytes();
             mType = app.getType();
         }
     }

@@ -19,6 +19,7 @@
 
 package org.docrj.smartcard.reader;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 import android.app.ActionBar;
@@ -79,6 +80,9 @@ import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import org.docrj.smartcard.reader.R;
 
 
@@ -87,9 +91,6 @@ public class ReaderActivity extends Activity implements ReaderXcvr.UiCallbacks,
 
     protected static final String TAG = "smartcard-reader";
 
-    private final static String SOURCE_LINK =
-        "<a href=\"https://github.com/doc-rj/smartcard-reader\">source & licensing</a>";
-
     // HCE demo smartcard app
     private final static String DEMO_NAME = "Demo";
     // proprietary unregistered AID starts with 0xFx, length 5 - 16 bytes
@@ -97,16 +98,23 @@ public class ReaderActivity extends Activity implements ReaderXcvr.UiCallbacks,
 
     // update all five items below when adding/removing default apps!
     private final static int NUM_RO_APPS = 11;
-    private final static int DEFAULT_APP_POS = 0; // Demo
-    private final static String APP_NAMES = DEMO_NAME
-            + "|Amex|Amex 7-Byte|Amex 8-Byte" + "|MC|MC 8-Byte"
-            + "|Visa|Visa 8-Byte" + "|Discover Zip" + "|Test Pay|Test Other";
-    private final static String APP_AIDS = DEMO_AID
-            + "|A00000002501|A0000000250109|A000000025010988"
-            + "|A0000000041010|A000000004101088"
-            + "|A0000000031010|A000000003101088"
-            + "|A0000003241010|F07465737420414944|F07465737420414944";
-    private final static String APP_TYPES = "1|0|0|0|0|0|0|0|0|0|1";
+    private final static int DEFAULT_APP_POS = 0; // demo
+    private final static String[] APP_NAMES = {
+        DEMO_NAME,
+        "Amex", "Amex 7-Byte", "Amex 8-Byte",
+        "MC", "MC 8-Byte", "Visa", "Visa 8-Byte",
+        "Discover Zip", "Test Pay", "Test Other"
+    };
+    private final static String[] APP_AIDS = {
+        DEMO_AID,
+        "A00000002501", "A0000000250109", "A000000025010988",
+        "A0000000041010", "A000000004101088", "A0000000031010", "A000000003101088",
+        "A0000003241010", "F07465737420414944", "F07465737420414944"
+    };
+    // all are payment type except demo and "test other"
+    private final static int[] APP_TYPES = {
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+    };
 
     // dialogs
     private final static int DIALOG_NEW_APP = 1;
@@ -176,8 +184,6 @@ public class ReaderActivity extends Activity implements ReaderXcvr.UiCallbacks,
     private String mParsedMsgText = "";
     private int mCopyPos;
     private int mEditPos;
-    private String mVersionName = "?";
-    private Spanned mSourceLink = Html.fromHtml(SOURCE_LINK);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -249,33 +255,27 @@ public class ReaderActivity extends Activity implements ReaderXcvr.UiCallbacks,
 
         ApduParser.init(this);
 
+        // persistent "shared preferences" store
         SharedPreferences ss = getSharedPreferences("prefs",
                 Context.MODE_PRIVATE);
         mEditor = ss.edit();
-        String appNames = ss.getString("app_names", null);
 
+        String json = ss.getString("apps", null);
         // if shared prefs is empty, synchronously write defaults
-        if (appNames == null) {
+        if (json == null) {
+            // initialize default smartcard apps
+            mApps = new ArrayList<SmartcardApp>();
+            for (int i = 0; i < APP_NAMES.length; i++) {
+                mApps.add(new SmartcardApp(APP_NAMES[i], APP_AIDS[i], APP_TYPES[i]));
+            }
+            // write to shared prefs, serializing list of SmartcardApp
             writePrefs();
-            appNames = ss.getString("app_names", null);
+            json = ss.getString("apps", null);
         }
-
-        String appAids = ss.getString("app_aids", null);
-        String[] names = appNames.split("\\|");
-        String[] aids = appAids.split("\\|");
-
-        String appTypes = ss.getString("app_types", null);
-        String[] typeStrs = appTypes.split("\\|");
-
-        int[] types = new int[typeStrs.length];
-        for (int i = 0; i < typeStrs.length; i++) {
-            types[i] = Integer.valueOf(typeStrs[i]);
-        }
-
-        mApps = new ArrayList<SmartcardApp>();
-        for (int i = 0; i < names.length; i++) {
-            mApps.add(new SmartcardApp(names[i], aids[i], types[i]));
-        }
+        // deserialize list of SmartcardApp
+        Gson gson = new Gson();
+        Type collectionType = new TypeToken<ArrayList<SmartcardApp>>() {}.getType();
+        mApps = gson.fromJson(json, collectionType);
 
         mAidSpinner = (Spinner) findViewById(R.id.aid);
         mAppAdapter = new AppAdapter(this, mApps, savedInstanceState, false);
@@ -302,15 +302,7 @@ public class ReaderActivity extends Activity implements ReaderXcvr.UiCallbacks,
         mSelectOnCreate = true;
         // mSelectedAppPos saved in onPause(), restored in onResume()
 
-        try {
-            PackageManager manager = getPackageManager();
-            PackageInfo info = manager.getPackageInfo(getPackageName(), 0);
-            mVersionName = info.versionName;
-        } catch (Exception e) {
-            Log.e(TAG, "error getting version");
-        }
-
-        // initialize settings and settings listener
+        // persistent settings and settings listener
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         prefs.registerOnSharedPreferenceChangeListener(this);
 
@@ -1311,24 +1303,11 @@ public class ReaderActivity extends Activity implements ReaderXcvr.UiCallbacks,
     }    
 
     private void writePrefs() {
-        StringBuffer names = new StringBuffer(APP_NAMES);
-        StringBuffer aids = new StringBuffer(APP_AIDS);
-        StringBuffer types = new StringBuffer(APP_TYPES);
+        // serialize list of SmartcardApp
+        Gson gson = new Gson();
+        String json = gson.toJson(mApps);
+        mEditor.putString("apps", json);
 
-        if (mApps != null) {
-            synchronized (mApps) {
-                for (int i = NUM_RO_APPS; i < mApps.size(); i++) {
-                    SmartcardApp app = mApps.get(i);
-                    names.append("|" + app.getName());
-                    aids.append("|" + app.getAid());
-                    types.append("|" + app.getType());
-                }
-            }
-        }
-
-        mEditor.putString("app_names", names.toString());
-        mEditor.putString("app_aids", aids.toString());
-        mEditor.putString("app_types", types.toString());
         mEditor.putInt("selected_aid_pos", mSelectedAppPos);
         mEditor.putInt("test_mode", mTestMode);
         mEditor.putBoolean("manual", mManual);
