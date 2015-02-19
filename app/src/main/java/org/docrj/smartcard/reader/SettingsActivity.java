@@ -2,6 +2,7 @@ package org.docrj.smartcard.reader;
 
 import android.annotation.TargetApi;
 import android.app.ActionBar;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -41,6 +42,9 @@ import java.util.List;
  * API Guide</a> for more information on developing a Settings UI.
  */
 public class SettingsActivity extends PreferenceActivity {
+
+    private static final String TAG = AidRouteActivity.TAG;
+
     /**
      * Determines whether to always show the simplified settings UI, where
      * settings are presented in a single list. When false, settings are shown
@@ -99,11 +103,12 @@ public class SettingsActivity extends PreferenceActivity {
             //
             // TODO: if Settings has multiple levels, Up should navigate up
             // that hierarchy.
-            Intent i = NavUtils.getParentActivityIntent(this);
+            //Intent i = NavUtils.getParentActivityIntent(this);
             // don't create a second reader activity instance;
             // re-create (save and restore state) existing instance
-            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            NavUtils.navigateUpTo(this, i);
+            //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            //NavUtils.navigateUpTo(this, i);
+            onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);

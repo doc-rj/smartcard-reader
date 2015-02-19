@@ -27,7 +27,6 @@ import org.docrj.smartcard.iso7816.ResponseApdu;
 import org.docrj.smartcard.iso7816.SelectApdu;
 import org.docrj.smartcard.iso7816.TLVUtil;
 import org.docrj.smartcard.iso7816.TLVException;
-import org.docrj.smartcard.reader.R;
 
 import org.docrj.smartcard.emv.AppPriorityIndicator;
 import org.docrj.smartcard.emv.DDF;
@@ -79,7 +78,7 @@ public class PaymentReaderXcvr extends ReaderXcvr {
 
             // select ppse
             if (selectPpse()) {
-                if (mTestMode == ReaderActivity.TEST_MODE_AID_ROUTE) {
+                if (mTestMode == LaunchActivity.TEST_MODE_AID_ROUTE) {
                     selectApp(mAid);
                 } else if (mPpseDdf != null) {
                     // process each app found in ppse select response

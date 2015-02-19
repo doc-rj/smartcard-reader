@@ -79,4 +79,8 @@
     <string name="manual_connected">Smartcard connected for manual select</string>
     <string name="manual_disconnected">Smartcard not connected, tap and hold to connect&#8230;</string>
     <string name="unknown">unknown</string>
+    <string name="title_activity_launch">LaunchActivity</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
 </resources>

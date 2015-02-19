@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="35dp"
+    android:layout_width="55dp"
     android:layout_height="35dp"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:layout_marginLeft="2dp"
     android:layout_marginRight="6dp" >
 <ImageButton
     android:id="@+id/menu_btn"
-    android:layout_width="match_parent"
+    android:layout_gravity="right"
+    android:layout_width="50dp"
     android:layout_height="match_parent"
     android:background="@drawable/button_bg_unselected_states"
     android:padding="12dp"
