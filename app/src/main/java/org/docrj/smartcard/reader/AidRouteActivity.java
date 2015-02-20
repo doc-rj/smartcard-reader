@@ -131,8 +131,8 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
     static final int TAP_FEEDBACK_AUDIO = 2;
 
     // test modes
-    private static final int TEST_MODE_AID_ROUTE = LaunchActivity.TEST_MODE_AID_ROUTE;
-    private static final int TEST_MODE_EMV_READ = LaunchActivity.TEST_MODE_EMV_READ;
+    private static final int TEST_MODE_AID_ROUTE = Launcher.TEST_MODE_AID_ROUTE;
+    private static final int TEST_MODE_EMV_READ = Launcher.TEST_MODE_EMV_READ;
 
     private Handler mHandler;
     private Editor mEditor;
@@ -197,9 +197,7 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
                 int testMode = strings[position].equals(getString(R.string.aid_route)) ?
                         TEST_MODE_AID_ROUTE : TEST_MODE_EMV_READ;
                 if (testMode != TEST_MODE_AID_ROUTE) {
-                    Intent i = new Intent(AidRouteActivity.this, EmvReadActivity.class);
-                    i.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    startActivity(i);
+                    new Launcher(AidRouteActivity.this).launch(testMode, false);
                     // finish activity so it does not remain on back stack
                     finish();
                     overridePendingTransition(0, 0);

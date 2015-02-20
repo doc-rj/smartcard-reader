@@ -78,7 +78,7 @@ public class PaymentReaderXcvr extends ReaderXcvr {
 
             // select ppse
             if (selectPpse()) {
-                if (mTestMode == LaunchActivity.TEST_MODE_AID_ROUTE) {
+                if (mTestMode == Launcher.TEST_MODE_AID_ROUTE) {
                     selectApp(mAid);
                 } else if (mPpseDdf != null) {
                     // process each app found in ppse select response

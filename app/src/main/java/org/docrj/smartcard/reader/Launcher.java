@@ -19,22 +19,39 @@
 
 package org.docrj.smartcard.reader;
 
-import android.app.Activity;
+
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.os.Bundle;
+import android.content.Intent;
 
 
-public class LaunchActivity extends Activity {
+public class Launcher {
+    // test modes
+    static final int TEST_MODE_AID_ROUTE = 0;
+    static final int TEST_MODE_EMV_READ = 1;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    final Context mContext;
 
-        SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
-        int testMode = ss.getInt("test_mode", Launcher.TEST_MODE_AID_ROUTE);
-        new Launcher(this).launch(testMode, true);
-        // finish activity so it does not remain on back stack
-        finish();
+    public Launcher(Context context) {
+        mContext = context;
+    }
+
+    void launch(int testMode, boolean animation) {
+        Class<?> cls;
+        switch(testMode) {
+            case TEST_MODE_AID_ROUTE:
+                cls = AidRouteActivity.class;
+                break;
+            case TEST_MODE_EMV_READ:
+                cls = EmvReadActivity.class;
+                break;
+            default:
+                cls = AidRouteActivity.class;
+                break;
+        }
+        Intent i = new Intent(mContext, cls);
+        if (!animation) {
+            i.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        }
+        mContext.startActivity(i);
     }
 }
