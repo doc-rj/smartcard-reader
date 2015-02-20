@@ -23,16 +23,12 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.media.AudioManager;
 import android.media.SoundPool;
-import android.nfc.NfcAdapter;
 import android.nfc.NfcAdapter.ReaderCallback;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
@@ -41,8 +37,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
-import android.provider.Settings;
-import android.text.Html;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -55,23 +49,17 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.ShareActionProvider;
 import android.widget.SpinnerAdapter;
-import android.widget.TextView;
 import android.widget.Toast;
 
 
 public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
-    MessageAdapter.OnDialog, ReaderCallback, SharedPreferences.OnSharedPreferenceChangeListener {
+    ReaderCallback, SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private static final String TAG = AidRouteActivity.TAG;
-
-    private static final int NUM_RO_APPS = AidRouteActivity.NUM_RO_APPS;
+    private static final String TAG = LaunchActivity.TAG;
 
     // dialogs
     private static final int DIALOG_ENABLE_NFC = AidRouteActivity.DIALOG_ENABLE_NFC;
     private static final int DIALOG_PARSED_MSG = AidRouteActivity.DIALOG_PARSED_MSG;
-
-    // reader mode flags
-    private static final int READER_FLAGS = AidRouteActivity.READER_FLAGS;
 
     // tap feedback values
     private static final int TAP_FEEDBACK_NONE = AidRouteActivity.TAP_FEEDBACK_NONE;
@@ -84,11 +72,9 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
 
     private Handler mHandler;
     private Editor mEditor;
-    private NfcAdapter mNfcAdapter;
-    private ListView mMsgListView;
-    private MessageAdapter mMsgAdapter;
+    private NfcManager mNfcManager;
+    private Console mConsole;
 
-    private int mMsgPos;
     private boolean mAutoClear;
     private boolean mShowMsgSeparators;
     private int mTapFeedback;
@@ -96,12 +82,7 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
     private int mTapSound;
     private SoundPool mSoundPool;
     private Vibrator mVibrator;
-    private ShareActionProvider mShareProvider;
     private ActionBar mActionBar;
-    private AlertDialog mEnableNfcDialog;
-    private AlertDialog mParsedMsgDialog;
-    private String mParsedMsgName = "";
-    private String mParsedMsgText = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,20 +118,11 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
 
         setContentView(R.layout.activity_emv_read_layout);
 
-        // restore transient console messages (ie. on portrait/landscape change)
-        mMsgListView = (ListView) findViewById(R.id.msgListView);
-        mMsgAdapter = new MessageAdapter(getLayoutInflater(),
-                savedInstanceState, this);
-        mMsgListView.setAdapter(mMsgAdapter);
-        if (savedInstanceState != null) {
-            mMsgPos = savedInstanceState.getInt("msg_pos");
-            // restore console parsed message dialog
-            mParsedMsgName = savedInstanceState.getString("parsed_msg_name");
-            mParsedMsgText = savedInstanceState.getString("parsed_msg_text");
-        }
+        ListView listView = (ListView) findViewById(R.id.msgListView);
+        mConsole = new Console(this, savedInstanceState, listView);
 
         mHandler = new Handler();
-        mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        mNfcManager = new NfcManager(this, this);
 
         ApduParser.init(this);
 
@@ -170,9 +142,6 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
         mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
     }
 
-    private void prepareViewForMode() {
-    }
-
     @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
         if (key.equals("pref_auto_clear")){
@@ -186,114 +155,54 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
         }
     }
 
-    private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
-        @SuppressWarnings("deprecation")
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (action == null)
-                return;
-            if (action.equals(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED)) {
-                int state = intent.getIntExtra(NfcAdapter.EXTRA_ADAPTER_STATE,
-                        NfcAdapter.STATE_ON);
-                if (state == NfcAdapter.STATE_ON
-                        || state == NfcAdapter.STATE_TURNING_ON) {
-                    Log.d(TAG, "state: " + state + " , dialog: "
-                            + mEnableNfcDialog);
-                    if (mEnableNfcDialog != null) {
-                        mEnableNfcDialog.dismiss();
-                    }
-                    if (state == NfcAdapter.STATE_ON) {
-                        mNfcAdapter
-                                .enableReaderMode(
-                                        EmvReadActivity.this,
-                                        EmvReadActivity.this,
-                                        READER_FLAGS,
-                                        null);
-                    }
-                } else {
-                    if (mEnableNfcDialog == null
-                            || !mEnableNfcDialog.isShowing()) {
-                        showDialog(DIALOG_ENABLE_NFC);
-                    }
-                }
-            }
-        }
-    };
-
     @SuppressWarnings("deprecation")
     @Override
     public void onResume() {
         super.onResume();
         mActionBar.setSelectedNavigationItem(TEST_MODE_EMV_READ);
 
-        // restore mode and selected pos from prefs
-        SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
-        prepareViewForMode();
-
         // this delay is a bit hacky; would be better to extend ListView
         // and override onLayout()
         mHandler.postDelayed(new Runnable() {
             public void run() {
-                mMsgListView.smoothScrollToPosition(mMsgPos);
+                mConsole.smoothScrollToPosition();
             }
         }, 50L);
 
-        // register broadcast receiver
-        IntentFilter filter = new IntentFilter(
-                NfcAdapter.ACTION_ADAPTER_STATE_CHANGED);
-        registerReceiver(mBroadcastReceiver, filter);
-
-        // prompt to enable NFC if disabled
-        if (!mNfcAdapter.isEnabled()) {
-            showDialog(DIALOG_ENABLE_NFC);
-        }
-
-        initSoundPool();        
-        
-        // listen for type A tags/smartcards, skipping ndef check
-        mNfcAdapter.enableReaderMode(this, this, READER_FLAGS, null);
+        mNfcManager.onResume();
+        initSoundPool();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        // save selected pos to prefs
         writePrefs();
-        unregisterReceiver(mBroadcastReceiver);
         releaseSoundPool();
-        mNfcAdapter.disableReaderMode(this);
+        mNfcManager.onPause();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (mEnableNfcDialog != null) {
-            mEnableNfcDialog.dismiss();
-        }
-        if (mParsedMsgDialog != null) {
-            mParsedMsgDialog.dismiss();
-        }
+        // dismiss enable NFC dialog
+        mNfcManager.onStop();
+        // dismiss parsed message dialog
+        mConsole.onStop();
     }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        clearShareMsgsIntent();
+        mConsole.clearShareIntent();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outstate) {
         Log.d(TAG, "saving instance state!");
-        // console message i/o list
-        outstate.putInt("msg_pos", mMsgListView.getLastVisiblePosition());
-        outstate.putString("parsed_msg_name", mParsedMsgName);
-        outstate.putString("parsed_msg_text", mParsedMsgText);
-        if (mMsgAdapter != null) {
-            mMsgAdapter.onSaveInstanceState(outstate);
-        }
+        mConsole.onSaveInstanceState(outstate);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected Dialog onCreateDialog(int id) {
         AlertDialog.Builder builder = new AlertDialog.Builder(
@@ -302,48 +211,18 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
         Dialog dialog = null;
         switch (id) {
         case DIALOG_ENABLE_NFC: {
-            final View view = li.inflate(R.layout.dialog_enable_nfc, null);
-            builder.setView(view)
-                    .setCancelable(false)
-                    .setIcon(R.drawable.ic_enable_nfc)
-                    .setTitle(R.string.nfc_disabled)
-                    .setPositiveButton(R.string.dialog_ok,
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog,
-                                        int id) {
-                                    // take user to wireless settings
-                                    startActivity(new Intent(
-                                            Settings.ACTION_WIRELESS_SETTINGS));
-                                }
-                            })
-                    .setNegativeButton(R.string.dialog_quit,
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog,
-                                        int id) {
-                                    dialog.cancel();
-                                    finish();
-                                }
-                            });
-
-            mEnableNfcDialog = builder.create();
-            dialog = mEnableNfcDialog;
+            dialog = mNfcManager.onCreateDialog(id, builder, li);
             break;
         } // case
         case DIALOG_PARSED_MSG: {
-            final View view = li.inflate(R.layout.dialog_parsed_msg, null);
-            builder.setView(view)
-                    .setCancelable(true)
-                    .setIcon(R.drawable.ic_action_search)
-                    .setTitle(R.string.parsed_msg);
-
-            mParsedMsgDialog = builder.create();
-            dialog = mParsedMsgDialog;
+            dialog = mConsole.onCreateDialog(id, builder, li);
             break;
         }
         } // switch
         return dialog;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected void onPrepareDialog(int id, Dialog dialog) {
         switch (id) {
@@ -351,9 +230,7 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
             break;
         }
         case DIALOG_PARSED_MSG: {
-            TextView tv = (TextView)dialog.findViewById(R.id.dialog_text);
-            tv.setText(mParsedMsgText);
-            dialog.setTitle(mParsedMsgName);
+            mConsole.onPrepareDialog(id, dialog);
             break;
         }
         }
@@ -367,17 +244,9 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_emv_read_menu, menu);
-        // get customized menu items before calling prepare
-        prepareOptionsMenu();
-
         MenuItem item = menu.findItem(R.id.menu_share_msgs);
-        mShareProvider = (ShareActionProvider) item.getActionProvider();
-        // TODO: use this when android is fixed (broken in 4.4)
-        //mShareProvider.setShareHistoryFileName(null);
+        mConsole.setShareProvider((ShareActionProvider) item.getActionProvider());
         return true;
-    }
-
-    private void prepareOptionsMenu() {
     }
 
     @SuppressWarnings("deprecation")
@@ -451,22 +320,22 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
 
     @Override
     public void onMessageSend(final String raw, final String name) {
-        onMessage(raw, MessageAdapter.MSG_SEND, name, null);
+        mConsole.write(raw, MessageAdapter.MSG_SEND, name, null);
     }
 
     @Override
     public void onMessageRcv(final String raw, final String name, final String parsed) {
-        onMessage(raw, MessageAdapter.MSG_RCV, name, parsed);
+        mConsole.write(raw, MessageAdapter.MSG_RCV, name, parsed);
     }
 
     @Override
     public void onOkay(final String message) {
-        onMessage(message, MessageAdapter.MSG_OKAY, null, null);
+        mConsole.write(message, MessageAdapter.MSG_OKAY, null, null);
     }
 
     @Override
     public void onError(final String message) {
-        onMessage(message, MessageAdapter.MSG_ERROR, null, null);
+        mConsole.write(message, MessageAdapter.MSG_ERROR, null, null);
     }
 
     @Override
@@ -474,29 +343,9 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
         addMessageSeparator();
     }
 
-    private void onMessage(final String text, final int type, final String name, final String parsed) {
-        if (mMsgAdapter != null) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mMsgAdapter.addMessage(text, type, name, parsed);
-                    setShareMsgsIntent();
-                }
-            });
-        }
-    }
-
     @Override
     public void clearMessages() {
-        if (mMsgAdapter != null) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mMsgAdapter.clearMessages();
-                    clearShareMsgsIntent();
-                }
-            });
-        }
+        mConsole.clear();
     }
 
     @Override
@@ -509,35 +358,8 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
     }
 
     private void addMessageSeparator() {
-        if (mShowMsgSeparators && mMsgAdapter != null && mMsgAdapter.getCount() > 0) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mMsgAdapter.addSeparator();
-                }
-            });
-        }        
-    }    
-
-    private void setShareMsgsIntent() {
-        if (mMsgAdapter != null && mShareProvider != null) {
-            Intent sendIntent = null;
-            sendIntent = new Intent();
-            sendIntent.setAction(Intent.ACTION_SEND);
-            //Log.d(TAG, mMsgAdapter.getShareMsgsHtml());
-            sendIntent.putExtra(Intent.EXTRA_TEXT, Html.fromHtml(mMsgAdapter.getShareMsgsHtml()));
-            // subject for emails
-            String subject = getString(R.string.app_name) + ": " +
-                    getString(R.string.emv_read);
-            sendIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
-            sendIntent.setType("text/html");
-            mShareProvider.setShareIntent(sendIntent);
-        }
-    }
-
-    private void clearShareMsgsIntent() {
-        if (mShareProvider != null) {
-            mShareProvider.setShareIntent(null);
+        if (mShowMsgSeparators) {
+            mConsole.writeSeparator();
         }
     }
 
@@ -552,12 +374,5 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
             writePrefs();
             return null;
         }
-    }
-    
-    @SuppressWarnings("deprecation")
-    public void onDialogParsedMsg(String name, String text) {
-        mParsedMsgName = name;
-        mParsedMsgText = text;
-        showDialog(DIALOG_PARSED_MSG);    
     }
 }

@@ -62,7 +62,7 @@ import java.util.List;
  */
 public class SettingsActivity extends PreferenceActivity {
 
-    private static final String TAG = AidRouteActivity.TAG;
+    private static final String TAG = LaunchActivity.TAG;
 
     /**
      * Determines whether to always show the simplified settings UI, where

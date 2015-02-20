@@ -27,6 +27,8 @@ import android.os.Bundle;
 
 public class LaunchActivity extends Activity {
 
+    static final String TAG = "smartcard-reader";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
