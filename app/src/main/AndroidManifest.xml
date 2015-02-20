@@ -46,11 +46,13 @@
         </activity>
         <activity
             android:name=".SettingsActivity"
-            android:label="@string/settings"
+            android:label="@string/settings" >
+            <!--
             android:parentActivityName=".AidRouteActivity" >
-            <!-- <meta-data
+            <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".AidRouteActivity" /> -->
+                android:value=".AidRouteActivity" />
+            -->
         </activity>
     </application>
 
