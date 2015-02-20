@@ -38,18 +38,14 @@ import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.Window;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.ShareActionProvider;
 import android.widget.SpinnerAdapter;
-import android.widget.Toast;
 
 
 public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
@@ -236,11 +232,6 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
         }
     }
 
-    private void dismissKeyboard(View focus) {
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_emv_read_menu, menu);
@@ -263,13 +254,6 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    private void showToast(String text) {
-        Toast toast = Toast.makeText(EmvReadActivity.this, text,
-                Toast.LENGTH_SHORT);
-        toast.setGravity(Gravity.CENTER_VERTICAL, 0, -100);
-        toast.show();
     }
 
     private void initSoundPool() {
