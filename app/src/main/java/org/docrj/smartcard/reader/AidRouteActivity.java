@@ -27,7 +27,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -53,18 +52,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.ShareActionProvider;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
@@ -80,39 +73,35 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
 
     private static final String TAG = LaunchActivity.TAG;
 
-    // HCE demo smartcard app
-    static final String DEMO_NAME = "Demo";
-    // proprietary unregistered AID starts with 0xFx, length 5 - 16 bytes
-    static final String DEMO_AID = "F0646F632D726A";
-
-    // update all five items below when adding/removing default apps!
-    static final int NUM_RO_APPS = 11;
-    static final int DEFAULT_APP_POS = 0; // demo
+    // update all six items below when adding/removing default apps!
+    static final int NUM_RO_APPS = 12;
+    static final int DEFAULT_APP_POS = 0;
     static final String[] APP_NAMES = {
-        DEMO_NAME,
-        "Amex", "Amex 7-Byte", "Amex 8-Byte",
-        "MC", "MC 8-Byte", "Visa", "Visa 8-Byte",
-        "Discover Zip", "Test Pay", "Test Other"
+        "Amex", "Amex 5-Byte", "Amex 7-Byte", // American Express ExpressPay
+        "Amex 8-Byte",
+        "Discover",                           // Discover Zip
+        "MasterCard", "MasterCard U.S.",      // MasterCard PayPass
+        "Visa", "Visa Credit", "Visa Debit",  // Visa PayWave
+        "Test Pay", "Test Other"
     };
     static final String[] APP_AIDS = {
-        DEMO_AID,
-        "A00000002501", "A0000000250109", "A000000025010988",
-        "A0000000041010", "A000000004101088", "A0000000031010", "A000000003101088",
-        "A0000003241010", "F07465737420414944", "F07465737420414944"
+        "A00000002501", "A000000025", "A0000000250107",
+        "A000000025010701",
+        "A0000003241010",
+        "A0000000041010", "A0000000042203",
+        "A0000000031010", "A000000003101001", "A000000003101002",
+        "F07465737420414944", "F07465737420414944"
     };
-    // all are payment type except demo and "test other"
+    // all are payment type except "Test Other"
     static final int[] APP_TYPES = {
-        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+    };
+    static final int[] APP_READ_ONLY = {
+        1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0
     };
 
     // dialogs
-    static final int DIALOG_NEW_APP = 1;
-    static final int DIALOG_COPY_LIST = 2;
-    static final int DIALOG_COPY_APP = 3;
-    static final int DIALOG_EDIT_APP = 4;
-    static final int DIALOG_EDIT_ALL_APPS = 5;
-    static final int DIALOG_ENABLE_NFC = 6;
-    static final int DIALOG_PARSED_MSG = 7;
+    static final int DIALOG_ENABLE_NFC = 0;
 
     // tap feedback values
     static final int TAP_FEEDBACK_NONE = 0;
@@ -125,14 +114,11 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
 
     private Handler mHandler;
     private Editor mEditor;
-    private MenuItem mEditMenuItem;
     private ImageButton mManualButton;
     private NfcManager mNfcManager;
     private Console mConsole;
 
-    private ListView mEditAllListView;
     private AppAdapter mAppAdapter;
-    private AppAdapter mEditAllAdapter;
     private Button mSelectButton;
     private View mSelectSeparator;
 
@@ -147,40 +133,29 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
     private Vibrator mVibrator;
     private int mSelectedAppPos = DEFAULT_APP_POS;
     private ArrayList<SmartcardApp> mApps;
-    private boolean mSelectOnCreate;
+    private boolean mSelectInInit;
     private TextView mIntro;
     private Spinner mAidSpinner;
-    private ActionBar mActionBar;
-    private AlertDialog mNewDialog;
-    private AlertDialog mCopyListDialog;
-    private AlertDialog mCopyDialog;
-    private AlertDialog mEditDialog;
-    private AlertDialog mEditAllDialog;
-    private int mCopyPos;
-    private int mEditPos;
 
+    @SuppressWarnings("deprecation")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
-        mActionBar = getActionBar();
-        //View titleView = getLayoutInflater().inflate(R.layout.app_title, null);
-        //mActionBar.setCustomView(titleView);
-        mActionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
-                | ActionBar.DISPLAY_SHOW_HOME);
 
+        final ActionBar actionBar = getActionBar();
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
+                | ActionBar.DISPLAY_SHOW_HOME);
         SpinnerAdapter sAdapter = ArrayAdapter.createFromResource(this,
                 R.array.test_modes, R.layout.spinner_dropdown_item_2);
-        mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-        mActionBar.setListNavigationCallbacks(sAdapter, new ActionBar.OnNavigationListener() {
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+        actionBar.setListNavigationCallbacks(sAdapter, new ActionBar.OnNavigationListener() {
             String[] strings = getResources().getStringArray(R.array.test_modes);
 
             @Override
             public boolean onNavigationItemSelected(int position, long itemId) {
-                int testMode = strings[position].equals(getString(R.string.aid_route)) ?
-                        TEST_MODE_AID_ROUTE : TEST_MODE_EMV_READ;
-                if (testMode != TEST_MODE_AID_ROUTE) {
-                    new Launcher(AidRouteActivity.this).launch(testMode, false);
+                String testMode = strings[position];
+                if (!testMode.equals(getString(R.string.aid_route))) {
+                    new Launcher(AidRouteActivity.this).launch(testMode, false, false);
                     // finish activity so it does not remain on back stack
                     finish();
                     overridePendingTransition(0, 0);
@@ -189,9 +164,7 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
             }
         });
 
-        mActionBar.show();
-
-        setContentView(R.layout.activity_aid_route_layout);
+        setContentView(R.layout.activity_aid_route);
         mIntro = (TextView) findViewById(R.id.intro);
         mSelectButton = (Button) findViewById(R.id.manualSelectButton);
         mSelectSeparator = findViewById(R.id.separator2);
@@ -213,46 +186,45 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
         });
 
         ListView listView = (ListView) findViewById(R.id.msgListView);
-        mConsole = new Console(this, savedInstanceState, listView);
-
+        mConsole = new Console(this, savedInstanceState, TEST_MODE_AID_ROUTE, listView);
         mHandler = new Handler();
         mNfcManager = new NfcManager(this, this);
 
         ApduParser.init(this);
 
-        // persistent "shared preferences" store
+        // persistent data in shared prefs
         SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
         mEditor = ss.edit();
 
-        String json = ss.getString("apps", null);
         // if shared prefs is empty, synchronously write defaults
+        String json = ss.getString("apps", null);
         if (json == null) {
             // initialize default smartcard apps
             mApps = new ArrayList<SmartcardApp>();
             for (int i = 0; i < APP_NAMES.length; i++) {
-                mApps.add(new SmartcardApp(APP_NAMES[i], APP_AIDS[i], APP_TYPES[i]));
+                SmartcardApp app = new SmartcardApp(APP_NAMES[i], APP_AIDS[i], APP_TYPES[i]);
+                // a few smartcard apps cannot be edited or deleted
+                if (APP_READ_ONLY[i] == 1) {
+                    app.setReadOnly(true);
+                }
+                mApps.add(app);
             }
-            // write to shared prefs, serializing list of SmartcardApp
+            // write to shared prefs
             writePrefs();
-            json = ss.getString("apps", null);
         }
-        // deserialize list of SmartcardApp
-        Gson gson = new Gson();
-        Type collectionType = new TypeToken<ArrayList<SmartcardApp>>() {}.getType();
-        mApps = gson.fromJson(json, collectionType);
 
+        // do not clear messages for initial selection
+        mSelectInInit = true;
         mAidSpinner = (Spinner) findViewById(R.id.aid);
-        mAppAdapter = new AppAdapter(this, mApps, savedInstanceState, false);
-        mAidSpinner.setAdapter(mAppAdapter);
         mAidSpinner
                 .setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent,
                             View view, int pos, long id) {
-                        if (!mSelectOnCreate && !mManual) {
+                        if (!mSelectInInit && !mManual) {
                             clearMessages();
                         }
-                        mSelectOnCreate = false;
+                        mSelectInInit = false;
                         mSelectedAppPos = pos;
                         Log.d(TAG, "App: " + mApps.get(pos).getName()
                                 + ", AID: " + mApps.get(pos).getAid());
@@ -262,9 +234,6 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
                     public void onNothingSelected(AdapterView<?> parent) {
                     }
                 });
-
-        mSelectOnCreate = true;
-        // mSelectedAppPos saved in onPause(), restored in onResume()
 
         // persistent settings and settings listener
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -304,15 +273,28 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
     @Override
     public void onResume() {
         super.onResume();
-        mActionBar.setSelectedNavigationItem(TEST_MODE_AID_ROUTE);
 
-        // restore mode and selected pos from prefs
+        final ActionBar actionBar = getActionBar();
+        actionBar.setSelectedNavigationItem(TEST_MODE_AID_ROUTE);
+
+        // restore persistent data
         SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
+        String json = ss.getString("apps", null);
+        // deserialize list of SmartcardApp
+        Gson gson = new Gson();
+        Type collectionType = new TypeToken<ArrayList<SmartcardApp>>() {}.getType();
+        mApps = gson.fromJson(json, collectionType);
+        mSelectedAppPos = ss.getInt("selected_app_pos", mSelectedAppPos);
+
+        // do not clear messages for this selection on resume;
+        // setAdapter and setSelection result in onItemSelected callback
+        mSelectInInit = true;
+        mAppAdapter = new AppAdapter(this, mApps, false);
+        mAidSpinner.setAdapter(mAppAdapter);
+        mAidSpinner.setSelection(mSelectedAppPos);
+
         mManual = ss.getBoolean("manual", mManual);
         prepareViewForMode();
-
-        mSelectedAppPos = ss.getInt("selected_aid_pos", mSelectedAppPos);
-        mAidSpinner.setSelection(mSelectedAppPos);
 
         // this delay is a bit hacky; would be better to extend ListView
         // and override onLayout()
@@ -337,25 +319,8 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
     @Override
     public void onStop() {
         super.onStop();
-        if (mNewDialog != null) {
-            mNewDialog.dismiss();
-        }
-        if (mCopyDialog != null) {
-            mCopyDialog.dismiss();
-        }
-        if (mCopyListDialog != null) {
-            mCopyListDialog.dismiss();
-        }
-        if (mEditDialog != null) {
-            mEditDialog.dismiss();
-        }
-        if (mEditAllDialog != null) {
-            mEditAllDialog.dismiss();
-        }
         // dismiss enable NFC dialog
         mNfcManager.onStop();
-        // dismiss parsed message dialog
-        mConsole.onStop();
     }
 
     @Override
@@ -378,488 +343,16 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
         final LayoutInflater li = getLayoutInflater();
         Dialog dialog = null;
         switch (id) {
-        case DIALOG_NEW_APP: {
-            final View view = li.inflate(R.layout.dialog_new_app, null);
-            builder.setView(view)
-                    .setCancelable(false)
-                    .setIcon(R.drawable.ic_action_new)
-                    .setTitle(R.string.smartcard_app)
-                    .setPositiveButton(R.string.dialog_ok, null)
-                    .setNegativeButton(R.string.dialog_cancel,
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog,
-                                        int id) {
-                                    dialog.cancel();
-                                }
-                            });
-
-            mNewDialog = builder.create();
-            dialog = mNewDialog;
-            dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-                @Override
-                public void onShow(DialogInterface di) {
-                    Button b = mNewDialog
-                            .getButton(AlertDialog.BUTTON_POSITIVE);
-                    b.setOnClickListener(new View.OnClickListener() {
-                        public void onClick(View v) {
-                            EditText appName = (EditText) view
-                                    .findViewById(R.id.app_name);
-                            EditText appAid = (EditText) view
-                                    .findViewById(R.id.app_aid);
-
-                            // validate name and aid
-                            String name = appName.getText().toString();
-                            String aid = appAid.getText().toString();
-                            if (name.isEmpty()) {
-                                showToast(getString(R.string.empty_name));
-                                return;
-                            }
-                            if (aid.length() < 10 || aid.length() > 32
-                                    || aid.length() % 2 != 0) {
-                                showToast(getString(R.string.invalid_aid));
-                                return;
-                            }
-                            // ensure name is unique (aid can be dup)
-                            for (SmartcardApp app : mApps) {
-                                if (app.getName().equals(name)) {
-                                    showToast(getString(R.string.name_exists,
-                                            name));
-                                    return;
-                                }
-                            }
-                            // app type radio group
-                            RadioGroup appTypeGrp = (RadioGroup) view
-                                    .findViewById(R.id.radio_grp_type);
-                            int selectedId = appTypeGrp
-                                    .getCheckedRadioButtonId();
-                            RadioButton radioBtn = (RadioButton) view
-                                    .findViewById(selectedId);
-                            int type = radioBtn.getText().toString()
-                                    .equals(getString(R.string.radio_payment)) ? SmartcardApp.TYPE_PAYMENT
-                                    : SmartcardApp.TYPE_OTHER;
-
-                            // current app checkbox
-                            CheckBox cbCurrent = (CheckBox) view
-                                    .findViewById(R.id.make_current);
-                            if (cbCurrent.isChecked()) {
-                                mSelectedAppPos = mApps.size();
-                            }
-
-                            // update apps list
-                            SmartcardApp newApp = new SmartcardApp(appName
-                                    .getText().toString(), appAid.getText()
-                                    .toString(), type);
-                            Log.d(TAG, "newApp: " + newApp);
-                            synchronized (mApps) {
-                                mApps.add(newApp);
-                                if (mApps.size() == NUM_RO_APPS + 1) {
-                                    // enable edit menu item
-                                    prepareOptionsMenu();
-                                }
-                            }
-
-                            mAidSpinner.setAdapter(mAppAdapter);
-                            mAidSpinner.setSelection(mSelectedAppPos);
-                            mAppAdapter.notifyDataSetChanged();
-
-                            // write apps to shared prefs
-                            new writePrefsTask().execute();
-                            mNewDialog.dismiss();
-                        }
-                    });
-                }
-            });
-            break;
-        } // case
-        case DIALOG_COPY_LIST: {
-            final View view = li.inflate(R.layout.dialog_edit_apps, null);
-            final ListView listView = (ListView) view
-                    .findViewById(R.id.listView);
-            listView.setOnItemClickListener(new ListView.OnItemClickListener() {
-                @SuppressWarnings("deprecation")
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view,
-                        int pos, long id) {
-                    mCopyPos = pos;
-                    showDialog(DIALOG_COPY_APP);
-                    mCopyListDialog.dismiss();
-                }
-            });
-            listView.setOnItemLongClickListener(new ListView.OnItemLongClickListener() {
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent,
-                        View view, int pos, long id) {
-                    return true;
-                }
-            });
-
-            builder.setView(view).setCancelable(false)
-                    .setIcon(R.drawable.ic_action_copy)
-                    .setTitle(R.string.smartcard_app)
-                    .setPositiveButton(R.string.dialog_cancel, null);
-
-            mCopyListDialog = builder.create();
-            dialog = mCopyListDialog;
-            break;
-        } // case
-        case DIALOG_COPY_APP: {
-            final View view = li.inflate(R.layout.dialog_new_app, null);
-            builder.setView(view)
-                    .setCancelable(false)
-                    .setIcon(R.drawable.ic_action_new)
-                    .setTitle(R.string.smartcard_app)
-                    .setPositiveButton(R.string.dialog_ok, null)
-                    .setNegativeButton(R.string.dialog_cancel,
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog,
-                                        int id) {
-                                    dialog.cancel();
-                                }
-                            });
-
-            mCopyDialog = builder.create();
-            dialog = mCopyDialog;
-            dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-                @Override
-                public void onShow(DialogInterface di) {
-                    Button b = mCopyDialog
-                            .getButton(AlertDialog.BUTTON_POSITIVE);
-                    b.setOnClickListener(new View.OnClickListener() {
-                        public void onClick(View v) {
-                            EditText appName = (EditText) view
-                                    .findViewById(R.id.app_name);
-                            EditText appAid = (EditText) view
-                                    .findViewById(R.id.app_aid);
-
-                            // validate name and aid
-                            String name = appName.getText().toString();
-                            String aid = appAid.getText().toString();
-                            if (name.isEmpty()) {
-                                showToast(getString(R.string.empty_name));
-                                return;
-                            }
-                            if (aid.length() < 10 || aid.length() > 32
-                                    || aid.length() % 2 != 0) {
-                                showToast(getString(R.string.invalid_aid));
-                                return;
-                            }
-                            // ensure name is unique (aid can be dup)
-                            for (SmartcardApp app : mApps) {
-                                if (app.getName().equals(name)) {
-                                    showToast(getString(R.string.name_exists,
-                                            name));
-                                    return;
-                                }
-                            }
-                            // app type radio group
-                            RadioGroup appTypeGrp = (RadioGroup) view
-                                    .findViewById(R.id.radio_grp_type);
-                            int selectedId = appTypeGrp
-                                    .getCheckedRadioButtonId();
-                            RadioButton radioBtn = (RadioButton) view
-                                    .findViewById(selectedId);
-                            int type = radioBtn.getText().toString()
-                                    .equals(getString(R.string.radio_payment)) ? SmartcardApp.TYPE_PAYMENT
-                                    : SmartcardApp.TYPE_OTHER;
-
-                            // current app checkbox
-                            CheckBox cbCurrent = (CheckBox) view
-                                    .findViewById(R.id.make_current);
-                            if (cbCurrent.isChecked()) {
-                                mSelectedAppPos = mApps.size();
-                            }
-
-                            // update apps list
-                            SmartcardApp newApp = new SmartcardApp(appName
-                                    .getText().toString(), appAid.getText()
-                                    .toString(), type);
-                            Log.d(TAG, "newApp: " + newApp);
-                            synchronized (mApps) {
-                                mApps.add(newApp);
-                                if (mApps.size() == NUM_RO_APPS + 1) {
-                                    // enable edit menu item
-                                    prepareOptionsMenu();
-                                }
-                            }
- 
-                            mAidSpinner.setAdapter(mAppAdapter);
-                            mAidSpinner.setSelection(mSelectedAppPos);
-                            mAppAdapter.notifyDataSetChanged();
-
-                            // write apps to shared prefs
-                            new writePrefsTask().execute();
-                            mCopyDialog.dismiss();
-                        }
-                    });
-                }
-            });
-            break;
-        } // case
-        case DIALOG_EDIT_APP: {
-            final View view = li.inflate(R.layout.dialog_new_app, null);
-            builder.setView(view)
-                    .setCancelable(false)
-                    .setIcon(R.drawable.ic_action_edit)
-                    .setTitle(R.string.smartcard_app)
-                    .setPositiveButton(R.string.dialog_ok, null)
-                    .setNegativeButton(R.string.dialog_cancel,
-                            new DialogInterface.OnClickListener() {
-                                @SuppressWarnings("deprecation")
-                                public void onClick(DialogInterface dialog,
-                                        int id) {
-                                    dismissKeyboard(mEditDialog
-                                            .getCurrentFocus());
-                                    showDialog(DIALOG_EDIT_ALL_APPS);
-                                    dialog.cancel();
-                                }
-                            });
-
-            mEditDialog = builder.create();
-            dialog = mEditDialog;
-
-            dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-                @Override
-                public void onShow(DialogInterface di) {
-                    Button b = mEditDialog
-                            .getButton(AlertDialog.BUTTON_POSITIVE);
-                    b.setOnClickListener(new View.OnClickListener() {
-                        @SuppressWarnings("deprecation")
-                        public void onClick(View v) {
-                            EditText appName = (EditText) view
-                                    .findViewById(R.id.app_name);
-                            EditText appAid = (EditText) view
-                                    .findViewById(R.id.app_aid);
-
-                            // validate name and aid
-                            String name = appName.getText().toString();
-                            String aid = appAid.getText().toString();
-                            if (name.isEmpty()) {
-                                showToast(getString(R.string.empty_name));
-                                return;
-                            }
-                            if (aid.length() < 10 || aid.length() > 32
-                                    || aid.length() % 2 != 0) {
-                                showToast(getString(R.string.invalid_aid));
-                                return;
-                            }
-                            // ensure name is unique
-                            for (int i = 0; i < mApps.size(); i++) {
-                                // skip the app being edited
-                                if (i == mEditPos)
-                                    continue;
-                                SmartcardApp app = mApps.get(i);
-                                if (app.getName().equals(name)) {
-                                    showToast(getString(R.string.name_exists,
-                                            name));
-                                    return;
-                                }
-                            }
-                            // app type radio group
-                            RadioGroup appTypeGrp = (RadioGroup) view
-                                    .findViewById(R.id.radio_grp_type);
-                            int selectedId = appTypeGrp
-                                    .getCheckedRadioButtonId();
-                            RadioButton radioBtn = (RadioButton) view
-                                    .findViewById(selectedId);
-                            int type = radioBtn.getText().toString()
-                                    .equals(getString(R.string.radio_payment)) ? SmartcardApp.TYPE_PAYMENT
-                                    : SmartcardApp.TYPE_OTHER;
-
-                            // current app checkbox
-                            CheckBox cbCurrent = (CheckBox) view
-                                    .findViewById(R.id.make_current);
-                            if (cbCurrent.isChecked()) {
-                                mSelectedAppPos = mEditPos;
-                            }
-
-                            // update apps list
-                            SmartcardApp app;
-                            synchronized (mApps) {
-                                app = mApps.get(mEditPos);
-                                app.setName(name);
-                                app.setAid(aid);
-                                app.setType(type);
-                            }
-                            Log.d(TAG, "app: " + app);
-
-                            mAidSpinner.setSelection(mSelectedAppPos);
-                            mAppAdapter.notifyDataSetChanged();
-
-                            SmartcardApp subApp = mEditAllAdapter
-                                    .getItem(mEditPos - NUM_RO_APPS);
-                            subApp.copy(app);
-                            mEditAllAdapter.notifyDataSetChanged();
-                            mEditAllListView.setAdapter(mEditAllAdapter);
-
-                            // write shared prefs in another thread
-                            new writePrefsTask().execute();
-                            dismissKeyboard(mEditDialog.getCurrentFocus());
-                            showDialog(DIALOG_EDIT_ALL_APPS);
-                            mEditDialog.dismiss();
-                        }
-                    });
-                }
-            });
-            break;
-        } // case
-        case DIALOG_EDIT_ALL_APPS: {
-            final View view = li.inflate(R.layout.dialog_edit_apps, null);
-            final ListView listView = (ListView) view
-                    .findViewById(R.id.listView);
-            mEditAllListView = listView;
-            listView.setOnItemClickListener(new ListView.OnItemClickListener() {
-                @SuppressWarnings("deprecation")
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view,
-                        int pos, long id) {
-                    mEditPos = NUM_RO_APPS + pos;
-                    showDialog(DIALOG_EDIT_APP);
-                    mEditAllDialog.dismiss();
-                }
-            });
-            listView.setOnItemLongClickListener(new ListView.OnItemLongClickListener() {
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent,
-                        View view, int pos, long id) {
-                    // TODO: confirmation dialog or discard icon?
-                    mApps.remove(NUM_RO_APPS + pos);
-                    if (mSelectedAppPos == NUM_RO_APPS + pos) {
-                        mSelectedAppPos = 0;
-                    } else if (mSelectedAppPos > NUM_RO_APPS + pos) {
-                        mSelectedAppPos--;
-                    }
-
-                    mAidSpinner.setAdapter(mAppAdapter);
-                    mAidSpinner.setSelection(mSelectedAppPos);
-                    mAppAdapter.notifyDataSetChanged();
-
-                    SmartcardApp app = mEditAllAdapter.getItem(pos);
-                    mEditAllAdapter.remove(app);
-                    mEditAllAdapter.notifyDataSetChanged();
-                    listView.setAdapter(mEditAllAdapter);
-
-                    new writePrefsTask().execute();
-                    if (mApps.size() == NUM_RO_APPS) {
-                        parent.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-                        mEditAllDialog.dismiss();
-                        // disable edit menu item
-                        prepareOptionsMenu();
-                    }
-                    return true;
-                }
-            });
-
-            builder.setView(view).setCancelable(false)
-                    .setIcon(R.drawable.ic_action_edit)
-                    .setTitle(R.string.smartcard_app)
-                    .setPositiveButton(R.string.dialog_done, null);
-
-            mEditAllDialog = builder.create();
-            dialog = mEditAllDialog;
-            break;
-        } // case
-        case DIALOG_ENABLE_NFC: {
-            dialog = mNfcManager.onCreateDialog(id, builder, li);
-            break;
-        } // case
-        case DIALOG_PARSED_MSG: {
-            dialog = mConsole.onCreateDialog(id, builder, li);
-            break;
+            case DIALOG_ENABLE_NFC:
+                dialog = mNfcManager.onCreateDialog(id, builder, li);
+                break;
         }
-        } // switch
         return dialog;
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    protected void onPrepareDialog(int id, Dialog dialog) {
-        switch (id) {
-        case DIALOG_NEW_APP: {
-            EditText name = (EditText) dialog.findViewById(R.id.app_name);
-            EditText aid = (EditText) dialog.findViewById(R.id.app_aid);
-            RadioGroup type = (RadioGroup) dialog
-                    .findViewById(R.id.radio_grp_type);
-            CheckBox current = (CheckBox) dialog
-                    .findViewById(R.id.make_current);
-
-            name.setText("");
-            name.requestFocus();
-            aid.setText("");
-            type.check(R.id.radio_payment);
-            current.setChecked(false);
-            break;
-        }
-        case DIALOG_COPY_LIST: {
-            ListView listView = (ListView) dialog.findViewById(R.id.listView);
-            TextView textView = (TextView) dialog.findViewById(R.id.text1);
-
-            textView.setText(R.string.tap_to_copy);
-            AppAdapter copyListAdapter = new AppAdapter(this, mApps, null, true);
-            listView.setAdapter(copyListAdapter);
-            break;
-        }
-        case DIALOG_COPY_APP: {
-            EditText name = (EditText) dialog.findViewById(R.id.app_name);
-            EditText aid = (EditText) dialog.findViewById(R.id.app_aid);
-            RadioGroup type = (RadioGroup) dialog
-                    .findViewById(R.id.radio_grp_type);
-            CheckBox current = (CheckBox) dialog
-                    .findViewById(R.id.make_current);
-
-            SmartcardApp app = mApps.get(mCopyPos);
-            name.setText(app.getName());
-            name.requestFocus();
-            aid.setText(app.getAid());
-            type.check((app.getType() == SmartcardApp.TYPE_OTHER) ? R.id.radio_other
-                    : R.id.radio_payment);
-            current.setChecked(false);
-            break;
-        }
-        case DIALOG_EDIT_APP: {
-            EditText name = (EditText) dialog.findViewById(R.id.app_name);
-            EditText aid = (EditText) dialog.findViewById(R.id.app_aid);
-            RadioGroup type = (RadioGroup) dialog
-                    .findViewById(R.id.radio_grp_type);
-            CheckBox current = (CheckBox) dialog
-                    .findViewById(R.id.make_current);
-
-            SmartcardApp app = mApps.get(mEditPos);
-            name.setText(app.getName());
-            name.requestFocus();
-            aid.setText(app.getAid());
-            type.check((app.getType() == SmartcardApp.TYPE_OTHER) ? R.id.radio_other
-                    : R.id.radio_payment);
-            current.setChecked(mEditPos == mSelectedAppPos);
-            current.setEnabled(mEditPos != mSelectedAppPos);
-            break;
-        }
-        case DIALOG_EDIT_ALL_APPS: {
-            ListView listView = (ListView) dialog.findViewById(R.id.listView);
-            ArrayList<SmartcardApp> sl = new ArrayList<SmartcardApp>(
-                    mApps.subList(NUM_RO_APPS, mApps.size()));
-            mEditAllAdapter = new AppAdapter(this, sl, null, true);
-            listView.setAdapter(mEditAllAdapter);
-            break;
-        }
-        case DIALOG_ENABLE_NFC: {
-            break;
-        }
-        case DIALOG_PARSED_MSG: {
-            mConsole.onPrepareDialog(id, dialog);
-            break;
-        }
-        }
-    }
-
-    private void dismissKeyboard(View focus) {
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_aid_route_menu, menu);
-        mEditMenuItem = menu.findItem(R.id.menu_edit_all_apps);
+        getMenuInflater().inflate(R.menu.activity_aid_route, menu);
         MenuItem manualMenuItem = menu.findItem(R.id.menu_manual);
         LinearLayout layout = (LinearLayout) manualMenuItem.getActionView();
         mManualButton = (ImageButton) layout.findViewById(R.id.menu_btn);
@@ -885,15 +378,15 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
     }
 
     private void prepareOptionsMenu() {
-        boolean editEnabled = mApps.size() > NUM_RO_APPS;
-        Drawable editIcon = getResources().getDrawable(
-                R.drawable.ic_action_edit);
-        if (!editEnabled) {
-            editIcon.mutate().setColorFilter(Color.LTGRAY,
-                    PorterDuff.Mode.SRC_IN);
-        }
-        mEditMenuItem.setIcon(editIcon);
-        mEditMenuItem.setEnabled(editEnabled);
+        //boolean editEnabled = mApps.size() > NUM_RO_APPS;
+        //Drawable editIcon = getResources().getDrawable(
+        //        R.drawable.ic_action_edit);
+        //if (!editEnabled) {
+        //    editIcon.mutate().setColorFilter(Color.LTGRAY,
+        //            PorterDuff.Mode.SRC_IN);
+        //}
+        //mEditMenuItem.setIcon(editIcon);
+        //mEditMenuItem.setEnabled(editEnabled);
 
         mManualButton.setBackground(mManual ?
             getResources().getDrawable(R.drawable.button_bg_selected_states) :
@@ -904,33 +397,23 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.menu_manual:
+                // handled by android:actionLayout="@layout/menu_button"
+                // see onCreateOptionsMenu()
+                return true;
 
-        case R.id.menu_manual:
-            // handled by android:actionLayout="@layout/menu_button"
-            // see onCreateOptionsMenu()
-            return true;
-        
-        case R.id.menu_clear_msgs:
-            clearMessages();
-            return true;
+            case R.id.menu_clear_msgs:
+                clearMessages();
+                return true;
 
-        case R.id.menu_new_app:
-            showDialog(DIALOG_NEW_APP);
-            return true;
+            case R.id.menu_apps:
+                startActivity(new Intent(this, AppsListActivity.class));
+                return true;
 
-        case R.id.menu_copy_app:
-            showDialog(DIALOG_COPY_LIST);
-            return true;
-
-        case R.id.menu_edit_all_apps:
-            showDialog(DIALOG_EDIT_ALL_APPS);
-            return true;
-
-        case R.id.menu_settings:
-            startActivity(new Intent(this, SettingsActivity.class));
-            return true;
+            case R.id.menu_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -986,9 +469,7 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
             String name = mApps.get(mSelectedAppPos).getName();
             String aid = mApps.get(mSelectedAppPos).getAid();
 
-            if (DEMO_NAME.equals(name) && DEMO_AID.equals(aid)) {
-                xcvr = new DemoReaderXcvr(isoDep, aid, this);
-            } else if (mManual) {
+            if (mManual) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -1105,9 +586,11 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
         String json = gson.toJson(mApps);
         mEditor.putString("apps", json);
 
-        mEditor.putInt("selected_aid_pos", mSelectedAppPos);
-        mEditor.putInt("test_mode", TEST_MODE_AID_ROUTE);
+        mEditor.putInt("selected_app_pos", mSelectedAppPos);
         mEditor.putBoolean("manual", mManual);
+
+        mEditor.putInt("test_mode", TEST_MODE_AID_ROUTE);
+
         mEditor.commit();
     }
 

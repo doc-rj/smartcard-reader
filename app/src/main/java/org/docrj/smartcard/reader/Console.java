@@ -21,55 +21,44 @@ package org.docrj.smartcard.reader;
 
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Html;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.ListView;
 import android.widget.ShareActionProvider;
-import android.widget.TextView;
 
-public class Console implements MessageAdapter.OnDialog {
+public class Console implements MessageAdapter.UiCallbacks {
 
     private static final String TAG = LaunchActivity.TAG;
 
-    // dialog
-    private static final int DIALOG_PARSED_MSG = AidRouteActivity.DIALOG_PARSED_MSG;
-
     private Activity mActivity;
+    private int mTestMode;
     private ListView mListView;
     private MessageAdapter mMsgAdapter;
     private int mMsgPos;
 
-    private AlertDialog mParsedMsgDialog;
-    private String mParsedMsgName = "";
-    private String mParsedMsgText = "";
-
     private ShareActionProvider mShareProvider;
 
-    public Console(Activity activity, Bundle inState, ListView listView) {
+    public Console(Activity activity, Bundle inState, int testMode, ListView listView) {
         mActivity = activity;
+        mTestMode = testMode;
         mListView = listView;
         mMsgAdapter = new MessageAdapter(activity.getLayoutInflater(),
                 inState, this);
         listView.setAdapter(mMsgAdapter);
+
         // restore console messages on orientation change
         if (inState != null) {
             mMsgPos = inState.getInt("msg_pos");
-            // restore console parsed message dialog
-            mParsedMsgName = inState.getString("parsed_msg_name");
-            mParsedMsgText = inState.getString("parsed_msg_text");
         }
     }
 
-    @SuppressWarnings("deprecation")
-    public void onDialogParsedMsg(String name, String text) {
-        mParsedMsgName = name;
-        mParsedMsgText = text;
-        mActivity.showDialog(DIALOG_PARSED_MSG);
+    public void onViewParsedMsg(Bundle b) {
+        Intent i = new Intent(mActivity, MsgParseActivity.class);
+        b.putString("activity", mActivity.getTitle().toString());
+        b.putInt("test_mode", mTestMode);
+        i.putExtra("parsed_msg", b);
+        mActivity.startActivity(i);
     }
 
     public void setShareProvider(ShareActionProvider sp) {
@@ -78,16 +67,8 @@ public class Console implements MessageAdapter.OnDialog {
         //mShareProvider.setShareHistoryFileName(null);
     }
 
-    public void onStop() {
-        if (mParsedMsgDialog != null) {
-            mParsedMsgDialog.dismiss();
-        }
-    }
-
     public void onSaveInstanceState(Bundle outstate) {
         outstate.putInt("msg_pos", mListView.getLastVisiblePosition());
-        outstate.putString("parsed_msg_name", mParsedMsgName);
-        outstate.putString("parsed_msg_text", mParsedMsgText);
         if (mMsgAdapter != null) {
             mMsgAdapter.onSaveInstanceState(outstate);
         }
@@ -132,27 +113,9 @@ public class Console implements MessageAdapter.OnDialog {
         mListView.smoothScrollToPosition(mMsgPos);
     }
 
-    public Dialog onCreateDialog(int id, AlertDialog.Builder builder, LayoutInflater li) {
-        final View view = li.inflate(R.layout.dialog_parsed_msg, null);
-        builder.setView(view)
-                .setCancelable(true)
-                .setIcon(R.drawable.ic_action_search)
-                .setTitle(R.string.parsed_msg);
-
-        mParsedMsgDialog = builder.create();
-        return mParsedMsgDialog;
-    }
-
-    public void onPrepareDialog(int id, Dialog dialog) {
-        TextView tv = (TextView)dialog.findViewById(R.id.dialog_text);
-        tv.setText(mParsedMsgText);
-        dialog.setTitle(mParsedMsgName);
-    }
-
     private void setShareIntent() {
         if (mMsgAdapter != null && mShareProvider != null) {
-            Intent sendIntent = null;
-            sendIntent = new Intent();
+            Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);
             //Log.d(TAG, mMsgAdapter.getShareMsgsHtml());
             sendIntent.putExtra(Intent.EXTRA_TEXT, Html.fromHtml(mMsgAdapter.getShareMsgsHtml()));

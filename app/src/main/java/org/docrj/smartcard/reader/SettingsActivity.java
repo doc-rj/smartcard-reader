@@ -21,7 +21,6 @@ package org.docrj.smartcard.reader;
 
 import android.annotation.TargetApi;
 import android.app.ActionBar;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -40,12 +39,11 @@ import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
-import android.text.Html;
-import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
-import android.support.v4.app.NavUtils;
+import android.view.View;
+import android.widget.TextView;
 
 import java.util.List;
 
@@ -97,16 +95,14 @@ public class SettingsActivity extends PreferenceActivity {
         mLogPath = (idx == -1) ? path : "<storage>" + path.substring(idx);
     }
 
-    /**
-     * Set up the {@link android.app.ActionBar}, if the API is available.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void setupActionBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            // show up button and title in the action bar
-            getActionBar().setDisplayHomeAsUpEnabled(true);
-            getActionBar().setDisplayShowTitleEnabled(true);
-        }
+        final ActionBar actionBar = getActionBar();
+        View titleView = getLayoutInflater().inflate(R.layout.app_title, null);
+        TextView titleText = (TextView) titleView.findViewById(R.id.title);
+        titleText.setText(getString(R.string.settings));
+        actionBar.setCustomView(titleView);
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
+                | ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_HOME_AS_UP);
     }
 
     @Override

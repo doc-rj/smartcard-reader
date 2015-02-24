@@ -26,11 +26,6 @@ the appropriate responses from another NFC-paired device -- the device under tes
 smartcard-reader can also be used to check which smartcard apps are present on
 or off host.
 
-When paired with a second device that has the smartcard-demo app installed (which
-uses HCE to emulate a smartcard on the host processor), Demo mode can be used to
-demonstrate HCE connectivity and HCE (over ISO-DEP) as an alternative to Android
-Beam, which depends on NFC P2P mode (and SNEP over LLCP over NFC-DEP).
-
 Read more about "application selection" and AIDs [here](http://en.wikipedia.org/wiki/EMV#Application_selection).
 
 And, [here](http://www.cardwerk.com/smartcards/smartcard_standard_ISO7816-4.aspx)
@@ -85,16 +80,15 @@ new reader mode is a key enabler of smartcard-reader.
 #### Screenshots
 
 <img align="left" src="/docs/tn_screen_emv_read.png">
-
 <img align="right" src="/docs/tn_screen_share_gmail.png">
 
-<img align="left" src="/docs/tn_screen_select_mc.png">
-
-<img align="right" src="/docs/tn_screen_parsed_select_rsp.png">
-
-<img align="left" src="/docs/tn_screen_add_new_app.png">
-
+<img align="left" src="/docs/tn_screen_aid_route.png">
 <img align="right" src="/docs/tn_screen_manual_select.png">
 
-<img align="left" src="/docs/tn_screen_settings.png">
+<img align="left" src="/docs/tn_screen_parsed_msg.png">
+<img align="right" src="/docs/tn_screen_apps_list.png">
 
+<img align="left" src="/docs/tn_screen_app_view.png">
+<img align="right" src="/docs/tn_screen_new_app.png">
+
+<img align="left" src="/docs/tn_screen_settings.png">

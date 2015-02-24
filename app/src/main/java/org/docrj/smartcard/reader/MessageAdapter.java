@@ -19,10 +19,10 @@
 
 package org.docrj.smartcard.reader;
 
+import org.docrj.smartcard.reader.R;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.docrj.smartcard.reader.R;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -37,8 +37,8 @@ import android.widget.ImageView;
 public class MessageAdapter extends BaseAdapter {
     private static final String TAG = "smartcard-reader";
 
-    public interface OnDialog {
-        void onDialogParsedMsg(String name, String text);
+    public interface UiCallbacks {
+        void onViewParsedMsg(Bundle parsedMsg);
     }
 
     public static final int MSG_ERROR = -1;
@@ -68,14 +68,14 @@ public class MessageAdapter extends BaseAdapter {
     private LayoutInflater mLayoutInflater;
     private List<Message> mMessages = new ArrayList<Message>(100);
     private Context mContext;
-    private OnDialog mOnDialog;
+    private UiCallbacks mUiCallbacks;
     private StringBuilder mHtmlBuilder = new StringBuilder(2400);
     //private StringBuilder mTextBuilder = new StringBuilder(2400);
 
-    public MessageAdapter(LayoutInflater layoutInflater, Bundle instate, OnDialog onDialog) {
+    public MessageAdapter(LayoutInflater layoutInflater, Bundle instate, UiCallbacks uiCallbacks) {
         mLayoutInflater = layoutInflater;
         mContext = layoutInflater.getContext();
-        mOnDialog = onDialog;
+        mUiCallbacks = uiCallbacks;
         if (instate != null) {
             // restore state
             ArrayList<String> text = instate.getStringArrayList("msg_text");
@@ -148,6 +148,19 @@ public class MessageAdapter extends BaseAdapter {
         mMessages.add(msg);
         // TODO: update share?
         notifyDataSetChanged();
+    }
+
+    private static String parsedToHtml(Message msg) {
+        StringBuilder sb = new StringBuilder(1200);
+        sb.append("<p style= 'font-family:courier new;'>");
+        if (!msg.parsed.isEmpty()) {
+            String name = (msg.type == MSG_SEND || msg.type == MSG_RCV) ?
+                    "<b>" + msg.name + ":</b><br/><br/>" : "";
+            String parsed = msg.parsed.replace("\n", "<br/>");
+            sb.append(name + parsed);
+        }
+        sb.append("</p>");
+        return sb.toString();
     }
 
     private void updateShareMsgsHtml(Message msg) {
@@ -270,7 +283,11 @@ public class MessageAdapter extends BaseAdapter {
         @Override
         public void onClick(View v) {
             Message msg = (Message)getItem(position);
-            mOnDialog.onDialogParsedMsg(msg.name, msg.parsed);
+            Bundle b = new Bundle();
+            b.putString("name", msg.name);
+            b.putString("text", msg.parsed);
+            b.putString("html", parsedToHtml(msg));
+            mUiCallbacks.onViewParsedMsg(b);
         }
     };
 }

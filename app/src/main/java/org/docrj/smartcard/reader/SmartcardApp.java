@@ -30,6 +30,7 @@ public class SmartcardApp {
     private String mAid;
     private byte[] mAidBytes;
     private int mType;
+    private boolean mReadOnly;
 
     public SmartcardApp() {
     }
@@ -39,10 +40,7 @@ public class SmartcardApp {
         mAid = aid;
         mAidBytes = Util.hexToBytes(aid);
         mType = type;
-    }
-
-    public SmartcardApp clone() {
-        return new SmartcardApp(mName, mAid, mType);
+        mReadOnly = false;
     }
 
     public void copy(SmartcardApp app) {
@@ -51,6 +49,7 @@ public class SmartcardApp {
             mAid = app.getAid();
             mAidBytes = app.getAidBytes();
             mType = app.getType();
+            mReadOnly = false;
         }
     }
 
@@ -64,6 +63,10 @@ public class SmartcardApp {
 
     public void setType(int type) {
         mType = type;
+    }
+
+    public void setReadOnly(boolean readOnly) {
+        mReadOnly = readOnly;
     }
 
     public String getName() {
@@ -82,8 +85,23 @@ public class SmartcardApp {
         return mType;
     }
 
+    public boolean isReadOnly() {
+        return mReadOnly;
+    }
+
     public String toBriefString() {
         return mName;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!obj.getClass().equals(SmartcardApp.class)) {
+            return false;
+        }
+        SmartcardApp app = (SmartcardApp) obj;
+        return (mName.equals(app.getName()) &&
+            mAid.equals(app.getAid()) &&
+            mType == app.getType());
     }
 
     @Override

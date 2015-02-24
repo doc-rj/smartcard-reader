@@ -21,7 +21,6 @@ package org.docrj.smartcard.reader;
 
 import java.io.IOException;
 
-import org.docrj.smartcard.emv.GpoApdu;
 import org.docrj.smartcard.iso7816.CommandApdu;
 import org.docrj.smartcard.iso7816.ResponseApdu;
 import org.docrj.smartcard.iso7816.SelectApdu;
@@ -32,7 +31,7 @@ import org.docrj.smartcard.util.Util;
 import android.content.Context;
 import android.nfc.TagLostException;
 import android.nfc.tech.IsoDep;
-//import android.util.Log;
+import android.util.Log;
 
 public class ReaderXcvr implements Runnable {
     protected static final String TAG = "smartcard-reader";
@@ -118,7 +117,7 @@ public class ReaderXcvr implements Runnable {
     protected ResponseApdu sendAndRcv(CommandApdu cmdApdu, boolean ascii)
             throws TagLostException, IOException {
         byte[] cmdBytes = cmdApdu.toBytes();
-        String cmdStr = GpoApdu.toString(cmdBytes, cmdApdu.getLc());
+        String cmdStr = CommandApdu.toString(cmdBytes, cmdApdu.getLc());
         mUiCallbacks.onMessageSend(cmdStr, cmdApdu.getCommandName());
         byte[] rsp = mIsoDep.transceive(cmdBytes);
         ResponseApdu rspApdu = new ResponseApdu(rsp);

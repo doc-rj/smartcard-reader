@@ -55,7 +55,6 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
 
     // dialogs
     private static final int DIALOG_ENABLE_NFC = AidRouteActivity.DIALOG_ENABLE_NFC;
-    private static final int DIALOG_PARSED_MSG = AidRouteActivity.DIALOG_PARSED_MSG;
 
     // tap feedback values
     private static final int TAP_FEEDBACK_NONE = AidRouteActivity.TAP_FEEDBACK_NONE;
@@ -78,30 +77,25 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
     private int mTapSound;
     private SoundPool mSoundPool;
     private Vibrator mVibrator;
-    private ActionBar mActionBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
-        mActionBar = getActionBar();
-        //View titleView = getLayoutInflater().inflate(R.layout.app_title, null);
-        //mActionBar.setCustomView(titleView);
-        mActionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
-                | ActionBar.DISPLAY_SHOW_HOME);
 
+        final ActionBar actionBar = getActionBar();
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
+                | ActionBar.DISPLAY_SHOW_HOME);
         SpinnerAdapter sAdapter = ArrayAdapter.createFromResource(this,
                 R.array.test_modes, R.layout.spinner_dropdown_item_2);
-        mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-        mActionBar.setListNavigationCallbacks(sAdapter, new ActionBar.OnNavigationListener() {
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+        actionBar.setSelectedNavigationItem(TEST_MODE_EMV_READ);
+        actionBar.setListNavigationCallbacks(sAdapter, new ActionBar.OnNavigationListener() {
             String[] strings = getResources().getStringArray(R.array.test_modes);
-
             @Override
             public boolean onNavigationItemSelected(int position, long itemId) {
-                int testMode = strings[position].equals(getString(R.string.aid_route)) ?
-                        TEST_MODE_AID_ROUTE : TEST_MODE_EMV_READ;
-                if (testMode != TEST_MODE_EMV_READ) {
-                    new Launcher(EmvReadActivity.this).launch(testMode, false);
+                String testMode = strings[position];
+                if (!testMode.equals(getString(R.string.emv_read))) {
+                    new Launcher(EmvReadActivity.this).launch(testMode, false, false);
                     // finish activity so it does not remain on back stack
                     finish();
                     overridePendingTransition(0, 0);
@@ -110,19 +104,16 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
             }
         });
 
-        mActionBar.show();
-
-        setContentView(R.layout.activity_emv_read_layout);
-
+        setContentView(R.layout.activity_emv_read);
         ListView listView = (ListView) findViewById(R.id.msgListView);
-        mConsole = new Console(this, savedInstanceState, listView);
 
+        mConsole = new Console(this, savedInstanceState, TEST_MODE_EMV_READ, listView);
         mHandler = new Handler();
         mNfcManager = new NfcManager(this, this);
 
         ApduParser.init(this);
 
-        // persistent "shared preferences" store
+        // persistent "shared preferences"
         SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
         mEditor = ss.edit();
 
@@ -155,7 +146,9 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
     @Override
     public void onResume() {
         super.onResume();
-        mActionBar.setSelectedNavigationItem(TEST_MODE_EMV_READ);
+
+        final ActionBar actionBar = getActionBar();
+        actionBar.setSelectedNavigationItem(TEST_MODE_EMV_READ);
 
         // this delay is a bit hacky; would be better to extend ListView
         // and override onLayout()
@@ -182,8 +175,6 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
         super.onStop();
         // dismiss enable NFC dialog
         mNfcManager.onStop();
-        // dismiss parsed message dialog
-        mConsole.onStop();
     }
 
     @Override
@@ -206,35 +197,17 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
         final LayoutInflater li = getLayoutInflater();
         Dialog dialog = null;
         switch (id) {
-        case DIALOG_ENABLE_NFC: {
-            dialog = mNfcManager.onCreateDialog(id, builder, li);
-            break;
-        } // case
-        case DIALOG_PARSED_MSG: {
-            dialog = mConsole.onCreateDialog(id, builder, li);
-            break;
+            case DIALOG_ENABLE_NFC: {
+                dialog = mNfcManager.onCreateDialog(id, builder, li);
+                break;
+            }
         }
-        } // switch
         return dialog;
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    protected void onPrepareDialog(int id, Dialog dialog) {
-        switch (id) {
-        case DIALOG_ENABLE_NFC: {
-            break;
-        }
-        case DIALOG_PARSED_MSG: {
-            mConsole.onPrepareDialog(id, dialog);
-            break;
-        }
-        }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_emv_read_menu, menu);
+        getMenuInflater().inflate(R.menu.activity_emv_read, menu);
         MenuItem item = menu.findItem(R.id.menu_share_msgs);
         mConsole.setShareProvider((ShareActionProvider) item.getActionProvider());
         return true;
@@ -246,6 +219,10 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
         switch (item.getItemId()) {
         case R.id.menu_clear_msgs:
             clearMessages();
+            return true;
+
+        case R.id.menu_apps:
+            startActivity(new Intent(this, AppsListActivity.class));
             return true;
 
         case R.id.menu_settings:
@@ -282,7 +259,7 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
             mVibrator.vibrate(pattern, -1);
         }        
     }
-    
+
     @Override
     public void onTagDiscovered(Tag tag) {
         doTapFeedback();

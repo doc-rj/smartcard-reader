@@ -2,6 +2,7 @@
 <resources>
     <string-array name="test_modes">
         <item>@string/aid_route</item>
+        <!-- <item>@string/batch_route</item> -->
         <item>@string/emv_read</item>
     </string-array>
 </resources>

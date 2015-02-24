@@ -21,6 +21,7 @@
             android:theme="@android:style/Theme.NoDisplay" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -36,25 +37,43 @@
         </activity>
         <activity
             android:name=".FileShareActivity"
-            android:label="@string/save"
+            android:label="@string/log_to_file"
             android:theme="@android:style/Theme.NoDisplay" >
             <intent-filter android:priority="999" >
                 <action android:name="android.intent.action.SEND" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:mimeType="text/html" />
             </intent-filter>
         </activity>
         <activity
             android:name=".SettingsActivity"
             android:label="@string/settings" >
-            <!--
-            android:parentActivityName=".AidRouteActivity" >
+        </activity>
+        <activity
+            android:name=".AppsListActivity"
+            android:label="@string/title_activity_apps_list"
+            android:launchMode="singleTop" >
+        </activity>
+        <activity
+            android:name=".AppViewActivity"
+            android:label="@string/title_activity_app_view"
+            android:launchMode="singleTop"
+            android:parentActivityName=".AppsListActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".AidRouteActivity" />
-            -->
+                android:value=".AppsListActivity" />
+        </activity>
+        <activity
+            android:name=".AppEditActivity"
+            android:label="@string/title_activity_app_edit"
+            android:launchMode="singleTop" >
+        </activity>
+        <activity
+            android:name=".MsgParseActivity"
+            android:label="@string/title_activity_msg_parse" >
         </activity>
     </application>
 
 </manifest>
-

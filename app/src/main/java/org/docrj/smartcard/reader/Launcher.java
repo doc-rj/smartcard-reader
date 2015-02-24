@@ -27,6 +27,7 @@ import android.content.Intent;
 public class Launcher {
     // test modes
     static final int TEST_MODE_AID_ROUTE = 0;
+    //static final int TEST_MODE_BATCH_ROUTE = 1;
     static final int TEST_MODE_EMV_READ = 1;
 
     final Context mContext;
@@ -35,7 +36,7 @@ public class Launcher {
         mContext = context;
     }
 
-    void launch(int testMode, boolean animation) {
+    void launch(int testMode, boolean newTask, boolean animation) {
         Class<?> cls;
         switch(testMode) {
             case TEST_MODE_AID_ROUTE:
@@ -49,9 +50,29 @@ public class Launcher {
                 break;
         }
         Intent i = new Intent(mContext, cls);
+        // TODO:
+        if (newTask) {
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        }
         if (!animation) {
             i.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         }
         mContext.startActivity(i);
+    }
+
+    void launch(String testMode, boolean newTask, boolean animation) {
+        launch(testModeToInt(testMode), newTask, animation);
+    }
+
+    public int testModeToInt(String testMode) {
+        if (mContext.getString(R.string.aid_route).equals(testMode)) {
+            return TEST_MODE_AID_ROUTE;
+        //} else if (mContext.getString(R.string.batch_route).equals(testMode)) {
+        //    return TEST_MODE_BATCH_ROUTE;
+        } else if (mContext.getString(R.string.emv_read).equals(testMode)) {
+            return TEST_MODE_EMV_READ;
+        } else {
+            return TEST_MODE_AID_ROUTE;
+        }
     }
 }

@@ -36,16 +36,12 @@ public class AppAdapter extends ArrayAdapter<SmartcardApp> {
     List<SmartcardApp> mApps;
     boolean mBrief;
 
-    public AppAdapter(Activity context, List<SmartcardApp> apps,
-            Bundle instate, boolean brief) {
+    public AppAdapter(Activity context, List<SmartcardApp> apps, boolean brief) {
         super(context, R.layout.spinner_item_1, apps);
         mContext = context;
         mApps = apps;
         mBrief = brief;
     }
-
-    // public void onSaveInstanceState(Bundle outstate) {
-    // }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
