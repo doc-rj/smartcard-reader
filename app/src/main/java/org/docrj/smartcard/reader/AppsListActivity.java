@@ -1,12 +1,13 @@
 package org.docrj.smartcard.reader;
 
-import android.app.ActionBar;
+import android.support.v7.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,7 +23,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 
-public class AppsListActivity extends Activity {
+public class AppsListActivity extends ActionBarActivity {
 
     private static final String TAG = LaunchActivity.TAG;
 
@@ -40,20 +41,19 @@ public class AppsListActivity extends Activity {
     private ListView mAppListView;
     private SharedPreferences.Editor mEditor;
     private ArrayList<SmartcardApp> mApps;
-    private AppAdapter mAppAdapter;
     private int mSelectedAppPos = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        final ActionBar actionBar = getActionBar();
+        final ActionBar actionBar = getSupportActionBar();
         View titleView = getLayoutInflater().inflate(R.layout.app_title, null);
         TextView titleText = (TextView) titleView.findViewById(R.id.title);
         titleText.setText(getString(R.string.smartcard_apps));
         actionBar.setCustomView(titleView);
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
-                | ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_HOME_AS_UP);
+                /*| ActionBar.DISPLAY_SHOW_HOME*/ | ActionBar.DISPLAY_HOME_AS_UP);
 
         setContentView(R.layout.activity_apps_list);
 
@@ -94,9 +94,9 @@ public class AppsListActivity extends Activity {
             mApps = gson.fromJson(json, collectionType);
         }
 
-        mAppAdapter = new AppAdapter(this, mApps, false);
-        mAppListView.setAdapter(mAppAdapter);
-        mAppAdapter.notifyDataSetChanged();
+        AppAdapter appAdapter = new AppAdapter(this, mApps, false);
+        mAppListView.setAdapter(appAdapter);
+        appAdapter.notifyDataSetChanged();
     }
 
     @Override

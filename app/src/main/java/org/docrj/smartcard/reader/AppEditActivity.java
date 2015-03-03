@@ -1,12 +1,11 @@
 package org.docrj.smartcard.reader;
 
-import android.app.ActionBar;
-import android.app.Activity;
+import android.support.v7.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,7 +23,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 
-public class AppEditActivity extends Activity {
+public class AppEditActivity extends ActionBarActivity {
 
     private static final String TAG = LaunchActivity.TAG;
 
@@ -100,11 +99,12 @@ public class AppEditActivity extends Activity {
     }
 
     private void prepareActionBar() {
+        final ActionBar actionBar = getSupportActionBar();
         // inflate custom action bar view for cancel/save
-        final LayoutInflater inflater = (LayoutInflater) getActionBar().getThemedContext()
+        final LayoutInflater inflater = (LayoutInflater) actionBar.getThemedContext()
                 .getSystemService(LAYOUT_INFLATER_SERVICE);
         final View customActionBarView = inflater.inflate(
-                R.layout.actionbar_custom_view_done_cancel, null);
+                R.layout.actionbar_save_cancel, null);
         customActionBarView.findViewById(R.id.actionbar_cancel).setOnClickListener(
                 new View.OnClickListener() {
                     @Override
@@ -122,8 +122,7 @@ public class AppEditActivity extends Activity {
                     }
                 });
 
-        // Show the custom action bar view and hide the normal Home icon and title.
-        final ActionBar actionBar = getActionBar();
+        // Show the custom action bar view and hide the normal Home icon and title
         actionBar.setDisplayOptions(
                 ActionBar.DISPLAY_SHOW_CUSTOM,
                 ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_SHOW_HOME

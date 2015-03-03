@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:layout_width="match_parent" 
+    android:layout_height="wrap_content" >    
+
+<View
+    android:id="@+id/separator"
+    style="@style/thin_separator" />
+
+<Button
+    android:id="@+id/list_item_btn"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:elevation="2dp"
+    android:padding="3dp"
+    android:minHeight="0dp"
+    android:minWidth="0dp"
+    android:fontFamily="sans-serif-condensed"
+    android:gravity="left"
+    android:singleLine="false"
+    android:textColor="@color/text_normal"
+    android:textSize="@dimen/font_small"
+    android:background="@drawable/parsed_msg_bg_states"
+    android:textAllCaps="false" >
+</Button>
+
+<ImageView
+    android:contentDescription="@string/search"
+    android:id="@+id/list_item_img"
+    android:layout_width="20dp"
+    android:layout_height="20dp"
+    android:elevation="4dp"
+    android:src="@drawable/ic_search_gray"
+    android:layout_alignParentRight="true"
+    android:layout_alignParentBottom="true" >
+</ImageView>
+</RelativeLayout>
+

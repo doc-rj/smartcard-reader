@@ -78,7 +78,7 @@
     <string name="about_source">source &amp; licensing?</string>
     <string name="about_log_header">log files:</string>
     <string name="about_log_path">log path?</string>
-    <string name="manual_select">M</string>
+    <string name="manual_select">manual select</string>
     <string name="auto_select">A</string>
     <string name="manual_connected">Smartcard connected for manual select</string>
     <string name="manual_disconnected">Smartcard not connected, tap and hold to connect&#8230;</string>
@@ -96,4 +96,7 @@
     <string name="title_activity_msg_parse">MsgParseActivity</string>
 
     <string name="hello_world">Hello world!</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

@@ -19,7 +19,8 @@
 
 package org.docrj.smartcard.reader;
 
-import android.app.ActionBar;
+import android.support.v7.app.ActionBar;
+import android.support.v7.widget.ShareActionProvider;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -37,18 +38,20 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.ShareActionProvider;
 import android.widget.SpinnerAdapter;
 
+import com.afollestad.materialdialogs.AlertDialogWrapper;
 
-public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
+
+public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiCallbacks,
     ReaderCallback, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = LaunchActivity.TAG;
@@ -78,15 +81,15 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
     private SoundPool mSoundPool;
     private Vibrator mVibrator;
 
+    @SuppressWarnings("deprecation")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        final ActionBar actionBar = getActionBar();
-        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
-                | ActionBar.DISPLAY_SHOW_HOME);
+        final ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         SpinnerAdapter sAdapter = ArrayAdapter.createFromResource(this,
-                R.array.test_modes, R.layout.spinner_dropdown_item_2);
+                R.array.test_modes, R.layout.spinner_dropdown_action_bar);
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
         actionBar.setSelectedNavigationItem(TEST_MODE_EMV_READ);
         actionBar.setListNavigationCallbacks(sAdapter, new ActionBar.OnNavigationListener() {
@@ -147,7 +150,7 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
     public void onResume() {
         super.onResume();
 
-        final ActionBar actionBar = getActionBar();
+        final ActionBar actionBar = getSupportActionBar();
         actionBar.setSelectedNavigationItem(TEST_MODE_EMV_READ);
 
         // this delay is a bit hacky; would be better to extend ListView
@@ -192,8 +195,9 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
     @SuppressWarnings("deprecation")
     @Override
     protected Dialog onCreateDialog(int id) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(
-                EmvReadActivity.this, R.style.dialog);
+        //AlertDialog.Builder builder = new AlertDialog.Builder(
+        //        EmvReadActivity.this, R.style.dialog);
+        AlertDialogWrapper.Builder builder = new AlertDialogWrapper.Builder(this);
         final LayoutInflater li = getLayoutInflater();
         Dialog dialog = null;
         switch (id) {
@@ -209,7 +213,7 @@ public class EmvReadActivity extends Activity implements ReaderXcvr.UiCallbacks,
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_emv_read, menu);
         MenuItem item = menu.findItem(R.id.menu_share_msgs);
-        mConsole.setShareProvider((ShareActionProvider) item.getActionProvider());
+        mConsole.setShareProvider((ShareActionProvider) MenuItemCompat.getActionProvider(item));
         return true;
     }
 

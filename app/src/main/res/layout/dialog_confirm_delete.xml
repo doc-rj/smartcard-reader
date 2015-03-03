@@ -2,16 +2,5 @@
 
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/dialog_text"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:fontFamily="sans-serif-condensed"
-    android:gravity="left"
-    android:singleLine="false"
-    android:textColor="@color/text_normal"
-    android:textSize="@dimen/font_normal"
-    android:paddingLeft="30dp"
-    android:paddingRight="30dp"
-    android:paddingTop="20dp"
-    android:paddingBottom="20dp"
-    android:text="@string/confirm_delete" />
-
+    android:text="@string/confirm_delete"
+    style="@style/dialog_text" />

@@ -1,20 +1,21 @@
 package org.docrj.smartcard.reader;
 
-import android.app.ActionBar;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.ShareActionProvider;
+import android.support.v7.widget.ShareActionProvider;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 
-public class MsgParseActivity extends Activity {
+public class MsgParseActivity extends ActionBarActivity {
 
     String mHtml;
     String mActivityName;
@@ -33,11 +34,11 @@ public class MsgParseActivity extends Activity {
         mActivityName = b.getString("activity");
         mTestMode = b.getInt("test_mode");
 
-        final ActionBar actionBar = getActionBar();
+        final ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
-                | ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_HOME_AS_UP);
+                /*| ActionBar.DISPLAY_SHOW_HOME*/ | ActionBar.DISPLAY_HOME_AS_UP);
         SpinnerAdapter sAdapter = ArrayAdapter.createFromResource(this,
-                R.array.test_modes, R.layout.spinner_dropdown_item_2);
+                R.array.test_modes, R.layout.spinner_dropdown_action_bar);
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
         actionBar.setListNavigationCallbacks(sAdapter, new ActionBar.OnNavigationListener() {
             String[] strings = getResources().getStringArray(R.array.test_modes);
@@ -66,7 +67,7 @@ public class MsgParseActivity extends Activity {
     @Override
     public void onResume() {
         super.onResume();
-        final ActionBar actionBar = getActionBar();
+        final ActionBar actionBar = getSupportActionBar();
         actionBar.setSelectedNavigationItem(mTestMode);
     }
 
@@ -74,7 +75,7 @@ public class MsgParseActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_msg_parse, menu);
         MenuItem item = menu.findItem(R.id.menu_share_msgs);
-        ShareActionProvider sp = (ShareActionProvider) item.getActionProvider();
+        ShareActionProvider sp = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
         Intent sendIntent = new Intent();
         sendIntent.setAction(Intent.ACTION_SEND);
         sendIntent.putExtra(Intent.EXTRA_TEXT, Html.fromHtml(mHtml));

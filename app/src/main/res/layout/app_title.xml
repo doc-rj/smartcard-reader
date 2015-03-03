@@ -11,6 +11,7 @@
             android:fontFamily="sans-serif-condensed"
             android:layout_centerVertical="true"
             android:layout_marginLeft="10dp"
+            android:textColor="@color/actionbar_text"
             android:textSize="20sp"
             android:maxLines="1"
             android:ellipsize="end"

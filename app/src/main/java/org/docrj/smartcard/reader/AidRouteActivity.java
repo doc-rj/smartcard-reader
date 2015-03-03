@@ -22,19 +22,12 @@ package org.docrj.smartcard.reader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.graphics.Color;
-import android.graphics.drawable.AnimationDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.StateListDrawable;
-import android.graphics.PorterDuff;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.nfc.NfcAdapter.ReaderCallback;
@@ -45,30 +38,35 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
+import android.view.animation.AnimationUtils;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.animation.Animation;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.ShareActionProvider;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.AlertDialogWrapper;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 
-public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks,
+public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.UiCallbacks,
     ReaderCallback, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = LaunchActivity.TAG;
@@ -114,11 +112,9 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
 
     private Handler mHandler;
     private Editor mEditor;
-    private ImageButton mManualButton;
     private NfcManager mNfcManager;
     private Console mConsole;
 
-    private AppAdapter mAppAdapter;
     private Button mSelectButton;
     private View mSelectSeparator;
 
@@ -142,11 +138,10 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        final ActionBar actionBar = getActionBar();
-        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
-                | ActionBar.DISPLAY_SHOW_HOME);
+        final ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         SpinnerAdapter sAdapter = ArrayAdapter.createFromResource(this,
-                R.array.test_modes, R.layout.spinner_dropdown_item_2);
+                R.array.test_modes, R.layout.spinner_dropdown_action_bar);
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
         actionBar.setListNavigationCallbacks(sAdapter, new ActionBar.OnNavigationListener() {
             String[] strings = getResources().getStringArray(R.array.test_modes);
@@ -250,8 +245,8 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
 
     private void prepareViewForMode() {
         mIntro.setText(mManual ? R.string.intro_aid_route_manual : R.string.intro_aid_route);
-        mSelectSeparator.setVisibility(mManual ? View.VISIBLE : View.GONE);
-        mSelectButton.setVisibility(mManual ? View.VISIBLE : View.GONE);
+        mSelectSeparator.setVisibility(mManual ? View.VISIBLE : View.INVISIBLE);
+        mSelectButton.setVisibility(mManual ? View.VISIBLE : View.INVISIBLE);
     }
 
     @Override
@@ -274,7 +269,7 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
     public void onResume() {
         super.onResume();
 
-        final ActionBar actionBar = getActionBar();
+        final ActionBar actionBar = getSupportActionBar();
         actionBar.setSelectedNavigationItem(TEST_MODE_AID_ROUTE);
 
         // restore persistent data
@@ -289,8 +284,8 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
         // do not clear messages for this selection on resume;
         // setAdapter and setSelection result in onItemSelected callback
         mSelectInInit = true;
-        mAppAdapter = new AppAdapter(this, mApps, false);
-        mAidSpinner.setAdapter(mAppAdapter);
+        AppAdapter appAdapter = new AppAdapter(this, mApps, false);
+        mAidSpinner.setAdapter(appAdapter);
         mAidSpinner.setSelection(mSelectedAppPos);
 
         mManual = ss.getBoolean("manual", mManual);
@@ -338,8 +333,9 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
     @SuppressWarnings("deprecation")
     @Override
     protected Dialog onCreateDialog(int id) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(
-                AidRouteActivity.this, R.style.dialog);
+        //AlertDialog.Builder builder = new AlertDialog.Builder(
+        //        AidRouteActivity.this, R.style.dialog);
+        AlertDialogWrapper.Builder builder = new AlertDialogWrapper.Builder(this);
         final LayoutInflater li = getLayoutInflater();
         Dialog dialog = null;
         switch (id) {
@@ -350,47 +346,22 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
         return dialog;
     }
 
+    MenuItem mManualMenuItem;
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_aid_route, menu);
-        MenuItem manualMenuItem = menu.findItem(R.id.menu_manual);
-        LinearLayout layout = (LinearLayout) manualMenuItem.getActionView();
-        mManualButton = (ImageButton) layout.findViewById(R.id.menu_btn);
-        mManualButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mManual = !mManual;
-
-                mManualButton.setBackground(mManual ?
-                    getResources().getDrawable(R.drawable.button_bg_selected_states) :
-                    getResources().getDrawable(R.drawable.button_bg_unselected_states));
-
-                prepareViewForMode();
-                clearMessages();
-            }
-        });
+        mManualMenuItem = menu.findItem(R.id.menu_manual);
 
         prepareOptionsMenu();
 
         MenuItem item = menu.findItem(R.id.menu_share_msgs);
-        mConsole.setShareProvider((ShareActionProvider) item.getActionProvider());
+        mConsole.setShareProvider((ShareActionProvider) MenuItemCompat.getActionProvider(item));
         return true;
     }
 
     private void prepareOptionsMenu() {
-        //boolean editEnabled = mApps.size() > NUM_RO_APPS;
-        //Drawable editIcon = getResources().getDrawable(
-        //        R.drawable.ic_action_edit);
-        //if (!editEnabled) {
-        //    editIcon.mutate().setColorFilter(Color.LTGRAY,
-        //            PorterDuff.Mode.SRC_IN);
-        //}
-        //mEditMenuItem.setIcon(editIcon);
-        //mEditMenuItem.setEnabled(editEnabled);
-
-        mManualButton.setBackground(mManual ?
-            getResources().getDrawable(R.drawable.button_bg_selected_states) :
-            getResources().getDrawable(R.drawable.button_bg_unselected_states));
+        mManualMenuItem.setChecked(mManual);
     }
 
     @SuppressWarnings("deprecation")
@@ -398,8 +369,15 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_manual:
-                // handled by android:actionLayout="@layout/menu_button"
-                // see onCreateOptionsMenu()
+                boolean shouldCheck = !mManualMenuItem.isChecked();
+                mManualMenuItem.setChecked(shouldCheck);
+                mManual = shouldCheck;
+                prepareViewForMode();
+                if (mManual) {
+                    Animation shake = AnimationUtils.loadAnimation(AidRouteActivity.this, R.anim.shake);
+                    mSelectButton.startAnimation(shake);
+                }
+                clearMessages();
                 return true;
 
             case R.id.menu_clear_msgs:
@@ -473,13 +451,8 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        StateListDrawable bg = (StateListDrawable) mSelectButton.getBackground();
-                        Drawable currentBg = bg.getCurrent();
-                        if (currentBg instanceof AnimationDrawable) {
-                            AnimationDrawable btnAnim = (AnimationDrawable) currentBg;
-                            btnAnim.stop();
-                            btnAnim.start();
-                        }
+                        Animation shake = AnimationUtils.loadAnimation(AidRouteActivity.this, R.anim.shake);
+                        mSelectButton.startAnimation(shake);
                     }
                 });
 
@@ -558,20 +531,6 @@ public class AidRouteActivity extends Activity implements ReaderXcvr.UiCallbacks
     @Override
     public void onFinish() {
         // nothing yet! animation cleanup worked better elsewhere
-    }
-
-    private void stopSelectButtonAnim() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                StateListDrawable bg = (StateListDrawable) mSelectButton.getBackground();
-                Drawable currentBg = bg.getCurrent();
-                if (currentBg instanceof AnimationDrawable) {
-                    AnimationDrawable btnAnim = (AnimationDrawable) currentBg;
-                    btnAnim.stop();
-                }
-            }
-        });        
     }
 
     private void addMessageSeparator() {

@@ -19,8 +19,6 @@
 
 package org.docrj.smartcard.reader;
 
-import org.docrj.smartcard.reader.R;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -216,7 +214,7 @@ public class MessageAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
-            convertView = mLayoutInflater.inflate(R.layout.list_item_2, parent,
+            convertView = mLayoutInflater.inflate(R.layout.parsed_msg, parent,
                     false);
         }
         Button btn = (Button) convertView
@@ -248,7 +246,7 @@ public class MessageAdapter extends BaseAdapter {
             img.setVisibility(View.GONE);
         } else {
             btn.setEnabled(true);
-            btn.setBackgroundResource(R.drawable.button_bg_states);
+            btn.setBackgroundResource(R.drawable.parsed_msg_bg_states);
             img.setVisibility(View.VISIBLE);
             btn.setOnClickListener(new MessageClickListener(position));
         }

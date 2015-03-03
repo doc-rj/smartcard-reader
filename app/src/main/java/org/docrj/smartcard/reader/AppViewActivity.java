@@ -1,6 +1,6 @@
 package org.docrj.smartcard.reader;
 
-import android.app.ActionBar;
+import android.support.v7.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
+import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,6 +19,7 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.AlertDialogWrapper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -25,7 +27,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 
-public class AppViewActivity extends Activity {
+public class AppViewActivity extends ActionBarActivity {
 
     private static final String TAG = LaunchActivity.TAG;
 
@@ -59,13 +61,13 @@ public class AppViewActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        final ActionBar actionBar = getActionBar();
+        final ActionBar actionBar = getSupportActionBar();
         View titleView = getLayoutInflater().inflate(R.layout.app_title, null);
         TextView titleText = (TextView) titleView.findViewById(R.id.title);
         titleText.setText(getString(R.string.smartcard_app));
         actionBar.setCustomView(titleView);
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
-                | ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_HOME_AS_UP);
+                /*| ActionBar.DISPLAY_SHOW_HOME*/ | ActionBar.DISPLAY_HOME_AS_UP);
 
         setContentView(R.layout.activity_app_view);
 
@@ -220,17 +222,19 @@ public class AppViewActivity extends Activity {
     @SuppressWarnings("deprecation")
     @Override
     protected Dialog onCreateDialog(int id) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(
-                this, R.style.dialog);
+        //AlertDialog.Builder builder = new AlertDialog.Builder(
+        //        this, R.style.dialog);
+        AlertDialogWrapper.Builder builder = new AlertDialogWrapper.Builder(this);
         final LayoutInflater li = getLayoutInflater();
         Dialog dialog = null;
         switch (id) {
             case DIALOG_CONFIRM_DELETE:
-                final View view = li.inflate(R.layout.dialog_confirm_delete, null);
-                builder.setView(view)
+                //final View view = li.inflate(R.layout.dialog_confirm_delete, null);
+                builder//.setView(view)
                         .setCancelable(true)
-                        .setIcon(R.drawable.ic_action_discard)
+                        .setIcon(R.drawable.ic_action_delete_gray)
                         .setTitle(mName.getText())
+                        .setMessage(R.string.confirm_delete)
                         .setPositiveButton(R.string.dialog_ok,
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog,

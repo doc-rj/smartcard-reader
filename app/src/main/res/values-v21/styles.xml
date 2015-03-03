@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--<style name="app_base_theme" parent="@android:style/Theme.Material.Light.DarkActionBar" />-->
+    <style name="app_base_theme" parent="Theme.AppCompat.Light.DarkActionBar" />
+
+    <style name="app_theme" parent="app_base_theme">
+        <item name="android:windowBackground">@color/bg_window</item>
+        <item name="android:actionBarStyle">@style/action_bar</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:colorPrimary">@color/primary</item>
+        <item name="android:colorPrimaryDark">@color/primary_dark</item>
+        <item name="android:colorAccent">@color/accent</item>
+        <item name="android:textColorPrimary">@color/primary_text</item>
+        <item name="android:textColorSecondary">@color/secondary_text</item>
+        <item name="actionBarStyle">@style/action_bar</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorAccent">@color/accent</item>
+    </style>
+
+    <!-- leave display options disabled here to allow smooth font control -->
+    <!--<style name="action_bar" parent="@android:style/Widget.Material.ActionBar.Solid">-->
+    <style name="action_bar" parent="Widget.AppCompat.ActionBar.Solid">
+        <item name="android:displayOptions"></item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:titleTextStyle">@style/title_text_actionbar</item>
+        <item name="android:spinnerItemStyle">@style/spinner_item_actionbar</item>
+        <item name="titleTextStyle">@style/title_text_actionbar</item>
+    </style>
+
+    <style name="title_text_actionbar" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textColor">@color/actionbar_text</item>
+    </style>
+
+    <style name="spinner_item_actionbar" parent="@android:style/Widget.Material.Light.Spinner">
+        <item name="android:textColor">@color/actionbar_text</item>
+    </style>
+
+    <style name="spinner_dropdown_item_actionbar" parent="@android:style/Widget.Material.Light.DropDownItem.Spinner">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">40dp</item> -->
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textSize">@dimen/font_normal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingLeft">10dp</item>
+        <item name="android:paddingRight">10dp</item>
+        <item name="android:textColor">@color/actionbar_text</item>
+    </style>
+
+    <style name="spinner_item">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/primary_text</item>
+        <item name="android:textSize">@dimen/font_normal</item>
+        <item name="android:paddingLeft">5dp</item>
+        <item name="android:ellipsize">marquee</item>
+    </style>
+
+    <!--<style name="spinner_dropdown_item" parent="@android:style/Widget.Material.Light.DropDownItem.Spinner">-->
+    <style name="spinner_dropdown_item">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">40dp</item> -->
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/primary_text</item>
+        <item name="android:textSize">@dimen/font_normal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingLeft">10dp</item>
+        <item name="android:paddingRight">10dp</item>
+    </style>
+
+    <style name="button" parent="@android:style/Widget.Material.Button">
+        <item name="android:stateListAnimator">@drawable/button_state_list_anim</item>
+        <item name="android:textColor">@color/actionbar_text</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">@dimen/font_normal</item>
+    </style>
+</resources>

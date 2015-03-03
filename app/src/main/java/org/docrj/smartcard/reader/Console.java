@@ -25,7 +25,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Html;
 import android.widget.ListView;
-import android.widget.ShareActionProvider;
+import android.support.v7.widget.ShareActionProvider;
 
 public class Console implements MessageAdapter.UiCallbacks {
 
@@ -63,8 +63,6 @@ public class Console implements MessageAdapter.UiCallbacks {
 
     public void setShareProvider(ShareActionProvider sp) {
         mShareProvider = sp;
-        // TODO: use this when android is fixed (broken in 4.4)
-        //mShareProvider.setShareHistoryFileName(null);
     }
 
     public void onSaveInstanceState(Bundle outstate) {

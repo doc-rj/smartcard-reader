@@ -23,7 +23,6 @@ import java.util.List;
 
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +36,7 @@ public class AppAdapter extends ArrayAdapter<SmartcardApp> {
     boolean mBrief;
 
     public AppAdapter(Activity context, List<SmartcardApp> apps, boolean brief) {
-        super(context, R.layout.spinner_item_1, apps);
+        super(context, R.layout.spinner_apps_list, apps);
         mContext = context;
         mApps = apps;
         mBrief = brief;
@@ -48,7 +47,7 @@ public class AppAdapter extends ArrayAdapter<SmartcardApp> {
         View item = convertView;
         if (item == null) {
             LayoutInflater inflater = mContext.getLayoutInflater();
-            item = inflater.inflate(R.layout.spinner_item_1, parent, false);
+            item = inflater.inflate(R.layout.spinner_apps_list, parent, false);
         }
 
         SmartcardApp current = mApps.get(position);
@@ -73,7 +72,7 @@ public class AppAdapter extends ArrayAdapter<SmartcardApp> {
         View row = convertView;
         if (row == null) {
             LayoutInflater inflater = mContext.getLayoutInflater();
-            row = inflater.inflate(R.layout.spinner_dropdown_item_1, parent,
+            row = inflater.inflate(R.layout.spinner_dropdown_apps_list, parent,
                     false);
         }
 

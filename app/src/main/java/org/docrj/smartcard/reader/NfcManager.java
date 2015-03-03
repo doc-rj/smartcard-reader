@@ -34,6 +34,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 
+import com.afollestad.materialdialogs.AlertDialogWrapper;
+import com.afollestad.materialdialogs.MaterialDialog;
+
 public class NfcManager {
 
     private static final String TAG = LaunchActivity.TAG;
@@ -82,12 +85,13 @@ public class NfcManager {
         }
     }
 
-    public Dialog onCreateDialog(int id, AlertDialog.Builder builder, LayoutInflater li) {
-        final View view = li.inflate(R.layout.dialog_enable_nfc, null);
-        builder.setView(view)
+    public Dialog onCreateDialog(int id, /*AlertDialog.Builder*/ AlertDialogWrapper.Builder builder, LayoutInflater li) {
+        //final View view = li.inflate( R.layout.dialog_enable_nfc, null);
+        builder//.setView(view)
                 .setCancelable(false)
-                .setIcon(R.drawable.ic_enable_nfc)
+                .setIcon(R.drawable.ic_action_nfc_gray)
                 .setTitle(R.string.nfc_disabled)
+                .setMessage(R.string.enable_nfc)
                 .setPositiveButton(R.string.dialog_ok,
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog,
