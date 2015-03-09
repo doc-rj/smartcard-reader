@@ -12,12 +12,6 @@
         <item name="actionMenuTextColor">@color/actionbar_text</item>
     </style>
 
-    <style name="popup_theme" parent="@android:style/Widget.ListPopupWindow">
-        <item name="android:background">@color/primary_dark</item>
-        <item name="background">@color/primary_dark</item>
-        <item name="android:textColor">@color/actionbar_text</item>
-    </style>
-
     <style name="action_bar" parent="Widget.AppCompat.ActionBar">
         <!-- leave display options disabled here to allow smooth font control -->
         <item name="android:displayOptions"></item>
