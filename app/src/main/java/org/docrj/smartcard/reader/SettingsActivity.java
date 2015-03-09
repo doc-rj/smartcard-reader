@@ -19,87 +19,51 @@
 
 package org.docrj.smartcard.reader;
 
-import android.annotation.TargetApi;
-import android.support.v7.app.ActionBar;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.res.Configuration;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.ListPreference;
-import android.preference.Preference;
-import android.preference.Preference.OnPreferenceClickListener;
-import android.preference.PreferenceActivity;
-import android.preference.PreferenceCategory;
-import android.preference.PreferenceFragment;
-import android.preference.PreferenceManager;
-import android.preference.RingtonePreference;
 import android.support.v7.app.ActionBarActivity;
-import android.text.TextUtils;
-import android.util.Log;
-import android.view.MenuItem;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.TextView;
+import android.view.Window;
+import android.view.WindowManager;
 
-import java.util.List;
 
-/**
- * A {@link PreferenceActivity} that presents a set of application settings. On
- * handset devices, settings are presented as a single list. On tablets,
- * settings are split by category, with category headers shown to the left of
- * the list of settings.
- * <p>
- * See <a href="http://developer.android.com/design/patterns/settings.html">
- * Android Design: Settings</a> for design guidelines and the <a
- * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
- * API Guide</a> for more information on developing a Settings UI.
- */
 public class SettingsActivity extends ActionBarActivity {
 
     private static final String TAG = LaunchActivity.TAG;
 
-    /**
-     * Determines whether to always show the simplified settings UI, where
-     * settings are presented in a single list. When false, settings are shown
-     * as a master/detail two-pane view on tablets. When true, a single pane is
-     * shown on tablets.
-     */
-    private static final boolean ALWAYS_SIMPLE_PREFS = true;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_settings);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
 
         // display the fragment as the main content
         getFragmentManager().beginTransaction()
-                .replace(android.R.id.content, new SettingsFragment())
+                .replace(R.id.content_frame, new SettingsFragment())
                 .commit();
 
-        setupActionBar();
-    }
-
-    private void setupActionBar() {
-        final ActionBar actionBar = getSupportActionBar();
-        View titleView = getLayoutInflater().inflate(R.layout.app_title, null);
-        TextView titleText = (TextView) titleView.findViewById(R.id.title);
-        titleText.setText(getString(R.string.settings));
-        actionBar.setCustomView(titleView);
-        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
-                /*| ActionBar.DISPLAY_SHOW_HOME*/ | ActionBar.DISPLAY_HOME_AS_UP);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window w = getWindow();
+            w.setFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS,
+                    WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS |
+                            WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            w.setStatusBarColor(getResources().getColor(R.color.primary_dark));
+        }
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == android.R.id.home) {
-            onBackPressed();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(R.anim.abc_fade_in,
+                R.anim.abc_fade_out);
     }
 }

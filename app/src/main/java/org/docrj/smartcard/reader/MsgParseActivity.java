@@ -1,74 +1,67 @@
 package org.docrj.smartcard.reader;
 
+import android.os.Build;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.ActionBar;
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.support.v7.widget.ShareActionProvider;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 
 public class MsgParseActivity extends ActionBarActivity {
 
+    String mMsgName;
     String mHtml;
     String mActivityName;
     int mTestMode;
 
-    @SuppressWarnings("deprecation")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         Intent intent = getIntent();
         Bundle b = intent.getBundleExtra("parsed_msg");
-        String msgName = b.getString("name");
         String msgText = b.getString("text");
+
+        mMsgName = b.getString("name");
         mHtml = b.getString("html");
         mActivityName = b.getString("activity");
         mTestMode = b.getInt("test_mode");
 
-        final ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
-                /*| ActionBar.DISPLAY_SHOW_HOME*/ | ActionBar.DISPLAY_HOME_AS_UP);
-        SpinnerAdapter sAdapter = ArrayAdapter.createFromResource(this,
-                R.array.test_modes, R.layout.spinner_dropdown_action_bar);
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-        actionBar.setListNavigationCallbacks(sAdapter, new ActionBar.OnNavigationListener() {
-            String[] strings = getResources().getStringArray(R.array.test_modes);
+        setContentView(R.layout.activity_msg_parse);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        // toolbar reference does not work for setting title
+        getSupportActionBar().setTitle(mActivityName);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onNavigationItemSelected(int position, long itemId) {
-                String testMode = strings[position];
-                if (!testMode.equals(mActivityName)) {
-                    new Launcher(MsgParseActivity.this).launch(testMode, true, false);
-                    // finish activity so it does not remain on back stack
-                    finish();
-                    overridePendingTransition(0, 0);
-                }
-                return true;
+            public void onClick(View v) {
+                onBackPressed();
             }
         });
 
-        setContentView(R.layout.activity_msg_parse);
         TextView heading = (TextView) findViewById(R.id.heading);
+        heading.setText(mMsgName);
+
         TextView contents = (TextView) findViewById(R.id.msg_text);
-
-        heading.setText(msgName);
         contents.setText(msgText);
-    }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public void onResume() {
-        super.onResume();
-        final ActionBar actionBar = getSupportActionBar();
-        actionBar.setSelectedNavigationItem(mTestMode);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window w = getWindow();
+            w.setFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS,
+                    WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS |
+                            WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            w.setStatusBarColor(getResources().getColor(R.color.primary_dark));
+        }
     }
 
     @Override
@@ -79,24 +72,11 @@ public class MsgParseActivity extends ActionBarActivity {
         Intent sendIntent = new Intent();
         sendIntent.setAction(Intent.ACTION_SEND);
         sendIntent.putExtra(Intent.EXTRA_TEXT, Html.fromHtml(mHtml));
-        String subject = getString(R.string.app_name) + ": " + mActivityName;
+        String subject = getString(R.string.app_name) + ": " + mActivityName +
+                ": " + mMsgName;
         sendIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
         sendIntent.setType("text/html");
         sp.setShareIntent(sendIntent);
         return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-
-            case R.id.menu_settings:
-                startActivity(new Intent(this, SettingsActivity.class));
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 }

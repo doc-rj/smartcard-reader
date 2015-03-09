@@ -1,15 +1,35 @@
+/*
+ * Copyright 2015 Ryan Jones
+ *
+ * This file is part of smartcard-reader, package org.docrj.smartcard.reader.
+ *
+ * smartcard-reader is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version.
+ *
+ * smartcard-reader is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with smartcard-reader. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.docrj.smartcard.reader;
 
-import android.support.v7.app.ActionBar;
+import android.os.Build;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -51,7 +71,26 @@ public class AppEditActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_app_view);
+        setContentView(R.layout.activity_app_edit);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        findViewById(R.id.actionbar_cancel).setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // "cancel"
+                        finish();
+                    }
+                });
+        findViewById(R.id.actionbar_save).setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // "save"
+                        saveAndFinish(false);
+                    }
+                });
 
         // persistent data in shared prefs
         SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
@@ -89,7 +128,14 @@ public class AppEditActivity extends ActionBarActivity {
             mAppPos = NEW_APP_POS;
         }
         mName.requestFocus();
-        prepareActionBar();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window w = getWindow();
+            w.setFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS,
+                    WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS |
+                            WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            w.setStatusBarColor(getResources().getColor(R.color.primary_dark));
+        }
     }
 
     @Override
@@ -98,55 +144,22 @@ public class AppEditActivity extends ActionBarActivity {
         super.onBackPressed();
     }
 
-    private void prepareActionBar() {
-        final ActionBar actionBar = getSupportActionBar();
-        // inflate custom action bar view for cancel/save
-        final LayoutInflater inflater = (LayoutInflater) actionBar.getThemedContext()
-                .getSystemService(LAYOUT_INFLATER_SERVICE);
-        final View customActionBarView = inflater.inflate(
-                R.layout.actionbar_save_cancel, null);
-        customActionBarView.findViewById(R.id.actionbar_cancel).setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        // "cancel"
-                        finish();
-                    }
-                });
-        customActionBarView.findViewById(R.id.actionbar_done).setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        // "save"
-                        saveAndFinish(false);
-                    }
-                });
-
-        // Show the custom action bar view and hide the normal Home icon and title
-        actionBar.setDisplayOptions(
-                ActionBar.DISPLAY_SHOW_CUSTOM,
-                ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_SHOW_HOME
-                        | ActionBar.DISPLAY_SHOW_TITLE);
-        actionBar.setCustomView(customActionBarView,
-                new ActionBar.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT));
-    }
-
-    private void saveAndFinish(boolean ackAppChangeOnly) {
-        // validate name and aid
-        String name = mName.getText().toString();
-        String aid = mAid.getText().toString();
+    private boolean validateNameAndAid(String name, String aid, boolean backPressed) {
         if (name.isEmpty()) {
-            if (!(mAction == ACTION_NEW_APP && aid.isEmpty())) {
-                showToast(getString(R.string.empty_name));
+            if (!(backPressed && mAction.equals(ACTION_NEW_APP) && aid.isEmpty())) {
+                showToast(getString(aid.isEmpty() ?
+                        R.string.empty_name_aid : R.string.empty_name));
             }
-            return;
+            return false;
+        }
+        if (aid.isEmpty()) {
+            showToast(getString(R.string.empty_aid));
+            return false;
         }
         if (aid.length() < 10 || aid.length() > 32
                 || aid.length() % 2 != 0) {
             showToast(getString(R.string.invalid_aid));
-            return;
+            return false;
         }
         // ensure name is unique
         for (int i = 0; i < mApps.size(); i++) {
@@ -157,8 +170,18 @@ public class AppEditActivity extends ActionBarActivity {
             if (app.getName().equals(name)) {
                 showToast(getString(R.string.name_exists,
                         name));
-                return;
+                return false;
             }
+        }
+        return true;
+    }
+
+    private void saveAndFinish(boolean backPressed) {
+        // validate name and aid
+        String name = mName.getText().toString();
+        String aid = mAid.getText().toString();
+        if (!validateNameAndAid(name, aid, backPressed)) {
+            return;
         }
         // app type radio group
         int selectedId = mType.getCheckedRadioButtonId();
@@ -186,7 +209,7 @@ public class AppEditActivity extends ActionBarActivity {
         if (appChanged) {
             writePrefs();
         }
-        if (appChanged || !ackAppChangeOnly) {
+        if (appChanged || !backPressed) {
             showToast(getString(R.string.app_saved));
         }
 

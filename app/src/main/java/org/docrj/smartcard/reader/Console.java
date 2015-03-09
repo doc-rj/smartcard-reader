@@ -53,6 +53,10 @@ public class Console implements MessageAdapter.UiCallbacks {
         }
     }
 
+    public void onResume() {
+        setShareIntent();
+    }
+
     public void onViewParsedMsg(Bundle b) {
         Intent i = new Intent(mActivity, MsgParseActivity.class);
         b.putString("activity", mActivity.getTitle().toString());
@@ -111,7 +115,7 @@ public class Console implements MessageAdapter.UiCallbacks {
         mListView.smoothScrollToPosition(mMsgPos);
     }
 
-    private void setShareIntent() {
+    public void setShareIntent() {
         if (mMsgAdapter != null && mShareProvider != null) {
             Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);

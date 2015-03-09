@@ -2,8 +2,8 @@
 <resources>
     <string name="app_name">smartcard reader</string>
     <string name="log_to_file">Log to file</string>
-    <string name="intro_aid_route">Tap against smartcard to select app&#8230;</string>
-    <string name="intro_aid_route_manual">Hold against smartcard for manual select&#8230;</string>
+    <string name="intro_app_select">Tap against smartcard to select app&#8230;</string>
+    <string name="intro_app_select_manual">Hold against smartcard for manual select&#8230;</string>
     <string name="intro_emv_read">Tap against smartcard to read payment data&#8230;\n</string>
     <string name="wrong_tag_err">Not ISO-DEP, emulate card with AID above!</string>
     <string name="wrong_resp_err">Select fail, emulate card with AID above!</string>
@@ -28,15 +28,15 @@
     <string name="gpo_aip_afl_err">GPO response did not contain AIP and AFL</string>
     <string name="read_rec_ok" formatted="false">Read record okay, sfi: %d, rec: %d, status: 0x%X</string>
     <string name="read_rec_err" formatted="false">Read record fail, sfi: %d, rec: %d, status: 0x%X</string>
-    <string name="aid_route">aid route</string>
-    <string name="batch_route">batch route</string>
+    <string name="test_modes">test modes</string>
+    <string name="app_select">app select</string>
+    <string name="batch_select">batch select</string>
     <string name="emv_read">emv read</string>
     <string name="new_app">new</string>
     <string name="copy">copy</string>
     <string name="edit">edit</string>
     <string name="delete">delete</string>
     <string name="select">select</string>
-    <string name="apps">smartcard apps</string>
     <string name="share_msgs">share messages</string>
     <string name="share_msgs_via">share messages via&#8230;</string>
     <string name="clear_msgs">clear messages</string>
@@ -47,8 +47,11 @@
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_done">Done</string>
     <string name="dialog_quit">Quit</string>
+    <string name="smartcards">smartcards</string>
     <string name="smartcard_app">smartcard app</string>
     <string name="smartcard_apps">smartcard apps</string>
+    <string name="apps">smartcard apps</string>
+    <string name="app_groups">app groups</string>
     <string name="new_app_name">App:</string>
     <string name="new_app_name_hint">&lt;&#160;app name here!&#160;&gt;</string>
     <string name="new_app_aid">AID:</string>
@@ -58,12 +61,13 @@
     <string name="radio_other">other</string>
     <string name="make_current">Set as current app to select?</string>
     <string name="empty_name">App name required!</string>
-    <string name="invalid_aid">5&#8211;16 hex byte AID required!</string>
+    <string name="empty_name_aid">App name and AID required!</string>
+    <string name="empty_aid">AID required!</string>
+    <string name="invalid_aid">AID must be 5&#8211;16 hex bytes!</string>
     <string name="name_exists">App name %s exists!</string>
     <string name="aid_exists">AID %s exists!</string>
     <string name="app_icon_alt">P</string>
-    <string name="tap_to_copy">Select app to copy&#8230;</string>
-    <string name="tap_to_view">Select an app for detailed view&#8230;</string>
+    <string name="choose_app">Choose a smartcard app for detailed view&#8230;</string>
     <string name="nfc_disabled">Enable NFC?</string>
     <string name="enable_nfc">This app is useless when NFC is disabled. Reader mode depends on it. Hit OK to go to Settings, where you can enable NFC.</string>
     <string name="cmd_suffix">command</string>
@@ -85,8 +89,8 @@
     <string name="unknown">unknown</string>
     <string name="title_activity_launch">LaunchActivity</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_apps_list">AppsListActivity</string>
-    <string name="title_activity_app_view">AppViewActivity</string>
+    <string name="title_activity_apps_list">smartcard apps</string>
+    <string name="title_activity_app_view">smartcard app</string>
     <string name="title_activity_app_edit">AppEditActivity</string>
     <string name="save">save</string>
     <string name="cancel">cancel</string>
@@ -95,8 +99,4 @@
     <string name="read_only">Note: This smartcard app is read-only. Edit and delete functions are not available.</string>
     <string name="title_activity_msg_parse">MsgParseActivity</string>
 
-    <string name="hello_world">Hello world!</string>
-
-<!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

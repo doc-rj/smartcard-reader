@@ -34,7 +34,7 @@ public class LaunchActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
-        int testMode = ss.getInt("test_mode", Launcher.TEST_MODE_AID_ROUTE);
+        int testMode = ss.getInt("test_mode", Launcher.TEST_MODE_APP_ROUTE);
         new Launcher(this).launch(testMode, false, true);
         // finish activity so it does not remain on back stack
         finish();

@@ -1,20 +1,38 @@
+/*
+ * Copyright 2015 Ryan Jones
+ *
+ * This file is part of smartcard-reader, package org.docrj.smartcard.reader.
+ *
+ * smartcard-reader is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version.
+ *
+ * smartcard-reader is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with smartcard-reader. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.docrj.smartcard.reader;
 
-import android.support.v7.app.ActionBar;
-import android.app.Activity;
+import android.os.Build;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -27,8 +45,6 @@ public class AppsListActivity extends ActionBarActivity {
 
     private static final String TAG = LaunchActivity.TAG;
 
-    private static final int NUM_RO_APPS = AidRouteActivity.NUM_RO_APPS;
-
     // actions
     static final String ACTION_NEW_APP = "org.docrj.smartcard.reader.action_new_app";
     static final String ACTION_VIEW_APP = "org.docrj.smartcard.reader.action_view_app";
@@ -39,27 +55,25 @@ public class AppsListActivity extends ActionBarActivity {
     static final String EXTRA_APP_POS = "org.docrj.smartcard.reader.app_pos";
 
     private ListView mAppListView;
-    private SharedPreferences.Editor mEditor;
     private ArrayList<SmartcardApp> mApps;
     private int mSelectedAppPos = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        final ActionBar actionBar = getSupportActionBar();
-        View titleView = getLayoutInflater().inflate(R.layout.app_title, null);
-        TextView titleText = (TextView) titleView.findViewById(R.id.title);
-        titleText.setText(getString(R.string.smartcard_apps));
-        actionBar.setCustomView(titleView);
-        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
-                /*| ActionBar.DISPLAY_SHOW_HOME*/ | ActionBar.DISPLAY_HOME_AS_UP);
-
         setContentView(R.layout.activity_apps_list);
 
-        final ListView listView = (ListView) findViewById(R.id.listView);
-        mAppListView = listView;
-        listView.setOnItemClickListener(new ListView.OnItemClickListener() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+
+        mAppListView = (ListView) findViewById(R.id.listView);
+        mAppListView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @SuppressWarnings("deprecation")
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
@@ -72,9 +86,13 @@ public class AppsListActivity extends ActionBarActivity {
             }
         });
 
-        // persistent data in shared prefs
-        SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
-        mEditor = ss.edit();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window w = getWindow();
+            w.setFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS,
+                    WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS |
+                            WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            w.setStatusBarColor(getResources().getColor(R.color.primary_dark));
+        }
     }
 
     @Override
@@ -100,47 +118,27 @@ public class AppsListActivity extends ActionBarActivity {
     }
 
     @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(R.anim.abc_fade_in,
+                R.anim.abc_fade_out);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_apps_list, menu);
         return true;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-
             case R.id.menu_new_app:
                 Intent i = new Intent(this, AppEditActivity.class);
                 i.setAction(ACTION_NEW_APP);
                 startActivity(i);
                 return true;
-
-            case R.id.menu_settings:
-                startActivity(new Intent(this, SettingsActivity.class));
-                return true;
         }
-
         return super.onOptionsItemSelected(item);
-    }
-
-    private void writePrefs() {
-        // serialize list of SmartcardApp
-        Gson gson = new Gson();
-        String json = gson.toJson(mApps);
-        mEditor.putString("apps", json);
-        mEditor.putInt("selected_app_pos", mSelectedAppPos);
-        mEditor.commit();
-    }
-
-    private class writePrefsTask extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected Void doInBackground(Void... v) {
-            writePrefs();
-            return null;
-        }
     }
 }

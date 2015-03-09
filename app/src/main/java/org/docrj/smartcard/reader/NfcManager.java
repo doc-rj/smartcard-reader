@@ -32,10 +32,8 @@ import android.nfc.NfcAdapter;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.View;
 
 import com.afollestad.materialdialogs.AlertDialogWrapper;
-import com.afollestad.materialdialogs.MaterialDialog;
 
 public class NfcManager {
 
@@ -48,7 +46,7 @@ public class NfcManager {
             NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS;
 
     // dialog
-    private static final int DIALOG_ENABLE_NFC = AidRouteActivity.DIALOG_ENABLE_NFC;
+    private static final int DIALOG_ENABLE_NFC = AppSelectActivity.DIALOG_ENABLE_NFC;
 
     private NfcAdapter mNfcAdapter;
     private AlertDialog mEnableNfcDialog;

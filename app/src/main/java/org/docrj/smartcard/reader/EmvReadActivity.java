@@ -19,13 +19,10 @@
 
 package org.docrj.smartcard.reader;
 
-import android.support.v7.app.ActionBar;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.ShareActionProvider;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.media.AudioManager;
@@ -40,13 +37,11 @@ import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.SpinnerAdapter;
 
 import com.afollestad.materialdialogs.AlertDialogWrapper;
 
@@ -57,17 +52,17 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
     private static final String TAG = LaunchActivity.TAG;
 
     // dialogs
-    private static final int DIALOG_ENABLE_NFC = AidRouteActivity.DIALOG_ENABLE_NFC;
+    private static final int DIALOG_ENABLE_NFC = AppSelectActivity.DIALOG_ENABLE_NFC;
 
     // tap feedback values
-    private static final int TAP_FEEDBACK_NONE = AidRouteActivity.TAP_FEEDBACK_NONE;
-    private static final int TAP_FEEDBACK_VIBRATE = AidRouteActivity.TAP_FEEDBACK_VIBRATE;
-    private static final int TAP_FEEDBACK_AUDIO = AidRouteActivity.TAP_FEEDBACK_AUDIO;
+    private static final int TAP_FEEDBACK_NONE = AppSelectActivity.TAP_FEEDBACK_NONE;
+    private static final int TAP_FEEDBACK_VIBRATE = AppSelectActivity.TAP_FEEDBACK_VIBRATE;
+    private static final int TAP_FEEDBACK_AUDIO = AppSelectActivity.TAP_FEEDBACK_AUDIO;
 
     // test modes
-    private static final int TEST_MODE_AID_ROUTE = Launcher.TEST_MODE_AID_ROUTE;
     private static final int TEST_MODE_EMV_READ = Launcher.TEST_MODE_EMV_READ;
 
+    private NavDrawer mNavDrawer;
     private Handler mHandler;
     private Editor mEditor;
     private NfcManager mNfcManager;
@@ -85,31 +80,15 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.drawer_activity_emv_read);
 
-        final ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-        SpinnerAdapter sAdapter = ArrayAdapter.createFromResource(this,
-                R.array.test_modes, R.layout.spinner_dropdown_action_bar);
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-        actionBar.setSelectedNavigationItem(TEST_MODE_EMV_READ);
-        actionBar.setListNavigationCallbacks(sAdapter, new ActionBar.OnNavigationListener() {
-            String[] strings = getResources().getStringArray(R.array.test_modes);
-            @Override
-            public boolean onNavigationItemSelected(int position, long itemId) {
-                String testMode = strings[position];
-                if (!testMode.equals(getString(R.string.emv_read))) {
-                    new Launcher(EmvReadActivity.this).launch(testMode, false, false);
-                    // finish activity so it does not remain on back stack
-                    finish();
-                    overridePendingTransition(0, 0);
-                }
-                return true;
-            }
-        });
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        setContentView(R.layout.activity_emv_read);
-        ListView listView = (ListView) findViewById(R.id.msgListView);
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.emv_drawer_layout);
+        mNavDrawer = new NavDrawer(this, savedInstanceState, R.id.emv_read, drawerLayout, toolbar);
 
+        ListView listView = (ListView) findViewById(R.id.msg_list);
         mConsole = new Console(this, savedInstanceState, TEST_MODE_EMV_READ, listView);
         mHandler = new Handler();
         mNfcManager = new NfcManager(this, this);
@@ -133,6 +112,12 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
     }
 
     @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        mNavDrawer.onPostCreate();
+    }
+
+    @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
         if (key.equals("pref_auto_clear")){
             mAutoClear = prefs.getBoolean("pref_auto_clear", true);
@@ -145,13 +130,9 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public void onResume() {
         super.onResume();
-
-        final ActionBar actionBar = getSupportActionBar();
-        actionBar.setSelectedNavigationItem(TEST_MODE_EMV_READ);
 
         // this delay is a bit hacky; would be better to extend ListView
         // and override onLayout()
@@ -162,6 +143,8 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
         }, 50L);
 
         mNfcManager.onResume();
+        mConsole.onResume();
+        mNavDrawer.onResume();
         initSoundPool();
     }
 
@@ -182,13 +165,16 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        if (mNavDrawer.onBackPressed()) {
+            return;
+        }
         mConsole.clearShareIntent();
+        super.onBackPressed();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outstate) {
-        Log.d(TAG, "saving instance state!");
+        mNavDrawer.onSaveInstanceState(outstate);
         mConsole.onSaveInstanceState(outstate);
     }
 
@@ -217,23 +203,28 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
         return true;
     }
 
-    @SuppressWarnings("deprecation")
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        boolean drawerOpen = mNavDrawer.isOpen();
+        MenuItem item = menu.findItem(R.id.menu_share_msgs);
+        item.setVisible(!drawerOpen);
+        item = menu.findItem(R.id.menu_clear_msgs);
+        item.setVisible(!drawerOpen);
+
+        mConsole.setShareIntent();
+        return true;
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-        case R.id.menu_clear_msgs:
-            clearMessages();
-            return true;
-
-        case R.id.menu_apps:
-            startActivity(new Intent(this, AppsListActivity.class));
-            return true;
-
-        case R.id.menu_settings:
-            startActivity(new Intent(this, SettingsActivity.class));
+        if (mNavDrawer.onOptionsItemSelected(item)) {
             return true;
         }
-
+        switch (item.getItemId()) {
+            case R.id.menu_clear_msgs:
+                clearMessages();
+                return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 

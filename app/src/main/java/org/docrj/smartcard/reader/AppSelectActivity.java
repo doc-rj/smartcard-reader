@@ -22,10 +22,8 @@ package org.docrj.smartcard.reader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.media.AudioManager;
@@ -39,9 +37,10 @@ import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.ActionBar;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.ShareActionProvider;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.animation.AnimationUtils;
 import android.view.Gravity;
@@ -52,21 +51,18 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.animation.Animation;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.AlertDialogWrapper;
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 
-public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.UiCallbacks,
+public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.UiCallbacks,
     ReaderCallback, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = LaunchActivity.TAG;
@@ -107,8 +103,7 @@ public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.Ui
     static final int TAP_FEEDBACK_AUDIO = 2;
 
     // test modes
-    private static final int TEST_MODE_AID_ROUTE = Launcher.TEST_MODE_AID_ROUTE;
-    private static final int TEST_MODE_EMV_READ = Launcher.TEST_MODE_EMV_READ;
+    private static final int TEST_MODE_APP_ROUTE = Launcher.TEST_MODE_APP_ROUTE;
 
     private Handler mHandler;
     private Editor mEditor;
@@ -132,34 +127,14 @@ public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.Ui
     private boolean mSelectInInit;
     private TextView mIntro;
     private Spinner mAidSpinner;
+    private NavDrawer mNavDrawer;
+    private MenuItem mManualMenuItem;
 
-    @SuppressWarnings("deprecation")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.drawer_activity_app_route);
 
-        final ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-        SpinnerAdapter sAdapter = ArrayAdapter.createFromResource(this,
-                R.array.test_modes, R.layout.spinner_dropdown_action_bar);
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-        actionBar.setListNavigationCallbacks(sAdapter, new ActionBar.OnNavigationListener() {
-            String[] strings = getResources().getStringArray(R.array.test_modes);
-
-            @Override
-            public boolean onNavigationItemSelected(int position, long itemId) {
-                String testMode = strings[position];
-                if (!testMode.equals(getString(R.string.aid_route))) {
-                    new Launcher(AidRouteActivity.this).launch(testMode, false, false);
-                    // finish activity so it does not remain on back stack
-                    finish();
-                    overridePendingTransition(0, 0);
-                }
-                return true;
-            }
-        });
-
-        setContentView(R.layout.activity_aid_route);
         mIntro = (TextView) findViewById(R.id.intro);
         mSelectButton = (Button) findViewById(R.id.manualSelectButton);
         mSelectSeparator = findViewById(R.id.separator2);
@@ -180,8 +155,14 @@ public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.Ui
             }
         });
 
-        ListView listView = (ListView) findViewById(R.id.msgListView);
-        mConsole = new Console(this, savedInstanceState, TEST_MODE_AID_ROUTE, listView);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mNavDrawer = new NavDrawer(this, savedInstanceState, R.id.app_select, drawerLayout, toolbar);
+
+        ListView listView = (ListView) findViewById(R.id.msg_list);
+        mConsole = new Console(this, savedInstanceState, TEST_MODE_APP_ROUTE, listView);
         mHandler = new Handler();
         mNfcManager = new NfcManager(this, this);
 
@@ -244,9 +225,15 @@ public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.Ui
     }
 
     private void prepareViewForMode() {
-        mIntro.setText(mManual ? R.string.intro_aid_route_manual : R.string.intro_aid_route);
+        mIntro.setText(mManual ? R.string.intro_app_select_manual : R.string.intro_app_select);
         mSelectSeparator.setVisibility(mManual ? View.VISIBLE : View.INVISIBLE);
         mSelectButton.setVisibility(mManual ? View.VISIBLE : View.INVISIBLE);
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        mNavDrawer.onPostCreate();
     }
 
     @Override
@@ -264,13 +251,9 @@ public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.Ui
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public void onResume() {
         super.onResume();
-
-        final ActionBar actionBar = getSupportActionBar();
-        actionBar.setSelectedNavigationItem(TEST_MODE_AID_ROUTE);
 
         // restore persistent data
         SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
@@ -300,6 +283,8 @@ public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.Ui
         }, 50L);
 
         mNfcManager.onResume();
+        mConsole.onResume();
+        mNavDrawer.onResume();
         initSoundPool();
     }
 
@@ -320,13 +305,16 @@ public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.Ui
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        if (mNavDrawer.onBackPressed()) {
+            return;
+        }
         mConsole.clearShareIntent();
+        super.onBackPressed();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outstate) {
-        Log.d(TAG, "saving instance state!");
+        mNavDrawer.onSaveInstanceState(outstate);
         mConsole.onSaveInstanceState(outstate);
     }
 
@@ -346,11 +334,9 @@ public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.Ui
         return dialog;
     }
 
-    MenuItem mManualMenuItem;
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_aid_route, menu);
+        getMenuInflater().inflate(R.menu.activity_app_select, menu);
         mManualMenuItem = menu.findItem(R.id.menu_manual);
 
         prepareOptionsMenu();
@@ -364,9 +350,24 @@ public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.Ui
         mManualMenuItem.setChecked(mManual);
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        prepareOptionsMenu();
+        boolean drawerOpen = mNavDrawer.isOpen();
+        mManualMenuItem.setVisible(!drawerOpen);
+        MenuItem item = menu.findItem(R.id.menu_share_msgs);
+        item.setVisible(!drawerOpen);
+        item = menu.findItem(R.id.menu_clear_msgs);
+        item.setVisible(!drawerOpen);
+        return true;
+    }
+
     @SuppressWarnings("deprecation")
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if (mNavDrawer.onOptionsItemSelected(item)) {
+            return true;
+        }
         switch (item.getItemId()) {
             case R.id.menu_manual:
                 boolean shouldCheck = !mManualMenuItem.isChecked();
@@ -374,7 +375,7 @@ public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.Ui
                 mManual = shouldCheck;
                 prepareViewForMode();
                 if (mManual) {
-                    Animation shake = AnimationUtils.loadAnimation(AidRouteActivity.this, R.anim.shake);
+                    Animation shake = AnimationUtils.loadAnimation(AppSelectActivity.this, R.anim.shake);
                     mSelectButton.startAnimation(shake);
                 }
                 clearMessages();
@@ -383,20 +384,12 @@ public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.Ui
             case R.id.menu_clear_msgs:
                 clearMessages();
                 return true;
-
-            case R.id.menu_apps:
-                startActivity(new Intent(this, AppsListActivity.class));
-                return true;
-
-            case R.id.menu_settings:
-                startActivity(new Intent(this, SettingsActivity.class));
-                return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     private void showToast(String text) {
-        Toast toast = Toast.makeText(AidRouteActivity.this, text,
+        Toast toast = Toast.makeText(AppSelectActivity.this, text,
                 Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.CENTER_VERTICAL, 0, -100);
         toast.show();
@@ -451,7 +444,7 @@ public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.Ui
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Animation shake = AnimationUtils.loadAnimation(AidRouteActivity.this, R.anim.shake);
+                        Animation shake = AnimationUtils.loadAnimation(AppSelectActivity.this, R.anim.shake);
                         mSelectButton.startAnimation(shake);
                     }
                 });
@@ -461,7 +454,7 @@ public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.Ui
                 xcvr = new ManualReaderXcvr(isoDep, aid, this);
             } else if (mApps.get(mSelectedAppPos).getType() == SmartcardApp.TYPE_PAYMENT) {
                 // payment, ie. always selects ppse first
-                xcvr = new PaymentReaderXcvr(isoDep, aid, this, TEST_MODE_AID_ROUTE);
+                xcvr = new PaymentReaderXcvr(isoDep, aid, this, TEST_MODE_APP_ROUTE);
             } else {
                 // other/non-payment; auto select on each tap/connect
                 xcvr = new OtherReaderXcvr(isoDep, aid, this);
@@ -548,7 +541,7 @@ public class AidRouteActivity extends ActionBarActivity implements ReaderXcvr.Ui
         mEditor.putInt("selected_app_pos", mSelectedAppPos);
         mEditor.putBoolean("manual", mManual);
 
-        mEditor.putInt("test_mode", TEST_MODE_AID_ROUTE);
+        mEditor.putInt("test_mode", TEST_MODE_APP_ROUTE);
 
         mEditor.commit();
     }

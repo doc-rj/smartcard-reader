@@ -26,8 +26,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AidRouteActivity"
-            android:label="@string/aid_route"
+            android:name=".AppSelectActivity"
+            android:label="@string/app_select"
             android:launchMode="singleTop" >
         </activity>
         <activity

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="white">@android:color/white</color>
+    <color name="black">@android:color/black</color>
     <color name="bg_window">#FFF0F0F0</color>
     <color name="bg_separator">#FFBABABA</color>
     <color name="text_select">#FFCC0000</color>
@@ -12,7 +14,6 @@
     <color name="msg_err">@android:color/holo_red_light</color>
     <color name="btn_light">#FFE3E3E3</color>
     <color name="btn_dark">#FFC3C3C3</color>
-    <color name="btn_holo_gray">#FFCCCCCC</color>
     <color name="bg_material_dark">#ff303030</color>
     <color name="bg_floating_material_dark">#FF424242</color>
     <color name="light_gray">#9E9E9E</color>
@@ -28,7 +29,9 @@
     <color name="primary_text">@color/primary</color>
     <!--<color name="secondary_text">#000000</color>-->
     <color name="secondary_text">@color/primary_dark</color>
-    <color name="actionbar_text">#FFFFFF</color>
+    <color name="actionbar_text">@color/white</color>
+    <color name="drawer_subheader">#A6FFFFFF</color>
+    <color name="drawer_text">#DEFFFFFF</color>
 </resources>
 
 <!-- <color name="msg_okay">@android:color/holo_green_dark</color> -->

@@ -1,0 +1,149 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:background="@color/bg_window"
+    tools:context="org.docrj.smartcard.reader.AppViewActivity">
+
+<LinearLayout
+    android:id="@+id/app_layout"
+    android:layout_width="fill_parent"
+    android:layout_height="45dp"
+    android:orientation="horizontal"
+    android:layout_marginBottom="15dp"
+    android:background="@color/btn_light">
+
+    <TextView
+        android:id="@+id/text1"
+        android:layout_width="75dp"
+        android:layout_height="37dp"
+        android:fontFamily="sans-serif-condensed"
+        android:text="@string/new_app_name"
+        android:paddingLeft="7dp"
+        android:paddingRight="7dp"
+        android:gravity="center"
+        android:background="@color/btn_light"
+        android:layout_gravity="center_vertical"
+        android:textStyle="bold|italic"
+        android:textSize="@dimen/font_large" />
+
+    <EditText
+        android:id="@+id/app_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-condensed"
+        android:hint="@string/new_app_name_hint"
+        android:inputType="text|textNoSuggestions"
+        android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 "
+        android:longClickable="false"
+        android:background="@null"
+        android:layout_gravity="center_vertical"
+        android:textSize="@dimen/font_normal" />
+</LinearLayout>
+
+<LinearLayout
+    android:id="@+id/aid_layout"
+    android:layout_width="fill_parent"
+    android:layout_height="45dp"
+    android:orientation="horizontal"
+    android:layout_marginBottom="15dp"
+    android:background="@color/btn_light">
+
+    <TextView
+        android:id="@+id/text2"
+        android:layout_width="75dp"
+        android:layout_height="37dp"
+        android:fontFamily="sans-serif-condensed"
+        android:text="@string/new_app_aid"
+        android:paddingLeft="7dp"
+        android:paddingRight="7dp"
+        android:gravity="center"
+        android:background="@color/btn_light"
+        android:layout_gravity="center_vertical"
+        android:textStyle="bold|italic"
+        android:textSize="@dimen/font_large" />
+
+    <!-- android:textAppearance="?android:attr/textAppearanceLarge" -->
+
+    <EditText
+        android:id="@+id/app_aid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-condensed"
+        android:hint="@string/new_app_aid_hint"
+        android:digits="0123456789ABCDEF"
+        android:inputType="textCapCharacters|textNoSuggestions"
+        android:longClickable="false"
+        android:background="@null"
+        android:layout_gravity="center_vertical"
+        android:textSize="@dimen/font_normal" />
+</LinearLayout>
+
+<LinearLayout
+    android:id="@+id/type_layout"
+    android:layout_width="fill_parent"
+    android:layout_height="45dp"
+    android:orientation="horizontal"
+    android:layout_marginBottom="15dp"
+    android:weightSum="1"
+    android:background="@color/btn_light">
+
+    <TextView
+        android:id="@+id/text3"
+        android:layout_width="75dp"
+        android:layout_height="37dp"
+        android:fontFamily="sans-serif-condensed"
+        android:text="@string/new_app_type"
+        android:paddingLeft="7dp"
+        android:paddingRight="7dp"
+        android:gravity="center"
+        android:background="@color/btn_light"
+        android:layout_gravity="center_vertical"
+        android:textStyle="bold|italic"
+        android:textSize="@dimen/font_large" />
+
+    <RadioGroup
+        android:id="@+id/radio_grp_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center_vertical">
+
+        <RadioButton
+            android:id="@+id/radio_payment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-condensed"
+            android:text="@string/radio_payment"
+            android:checked="true"
+            android:textSize="@dimen/font_normal" />
+
+        <RadioButton
+            android:id="@+id/radio_other"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-condensed"
+            android:text="@string/radio_other"
+            android:textSize="@dimen/font_normal" />
+    </RadioGroup>
+</LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:text="@string/read_only"
+        android:id="@+id/note"
+        android:gravity="center_vertical"
+        android:paddingLeft="15dp"
+        android:textSize="@dimen/font_small"
+        android:textStyle="italic"
+        android:background="@color/btn_light" />
+</LinearLayout>
+

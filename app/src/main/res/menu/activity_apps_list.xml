@@ -9,10 +9,4 @@
         app:showAsAction="always"
         android:title="@string/new_app"
         android:icon="@drawable/ic_action_add" />
-
-    <item android:id="@+id/menu_settings"
-        android:showAsAction="never"
-        app:showAsAction="never"
-        android:title="@string/settings"
-        android:icon="@drawable/ic_action_settings" />
 </menu>

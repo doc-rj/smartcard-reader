@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="app_theme" parent="app_base_theme">
+        <item name="android:windowBackground">@color/primary</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:actionBarStyle">@style/action_bar</item>
+        <item name="android:actionMenuTextColor">@color/actionbar_text</item>
+        <!-- support library compatibility -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorAccent">@color/accent</item>
+        <item name="actionBarStyle">@style/action_bar</item>
+        <item name="actionMenuTextColor">@color/actionbar_text</item>
+        <!-- for status bar coloring w/ toolbar and drawer -->
+        <item name="android:windowTranslucentStatus">true</item>
+    </style>
+</resources>

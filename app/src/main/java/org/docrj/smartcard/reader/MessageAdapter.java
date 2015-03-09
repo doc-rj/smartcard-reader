@@ -81,8 +81,10 @@ public class MessageAdapter extends BaseAdapter {
             ArrayList<String> name = instate.getStringArrayList("msg_name");
             ArrayList<String> parsed = instate.getStringArrayList("msg_parsed");
             for (int i = 0; i < text.size(); i++) {
-                mMessages.add(new Message(text.get(i), type.get(i),
-                    name.get(i), parsed.get(i)));
+                Message msg = new Message(text.get(i), type.get(i),
+                        name.get(i), parsed.get(i));
+                mMessages.add(msg);
+                updateShareMsgsHtml(msg);
             }
         }
     }
@@ -186,7 +188,6 @@ public class MessageAdapter extends BaseAdapter {
     public String getShareMsgsHtml() {
         String html = mHtmlBuilder.toString();
         Log.d(TAG, "length: " + html.length());
-        //return mHtmlBuilder.toString();
         return html;
     }
 

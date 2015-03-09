@@ -1,5 +1,5 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
-    <style name="app_base_theme" parent="Theme.AppCompat.Light.DarkActionBar" />
+    <style name="app_base_theme" parent="Theme.AppCompat.Light.NoActionBar" />
 
     <style name="app_theme" parent="app_base_theme">     
         <item name="android:windowBackground">@color/bg_window</item>
@@ -7,9 +7,78 @@
         <item name="android:actionBarStyle">@style/action_bar</item>
         <item name="android:actionMenuTextColor">@color/actionbar_text</item>
         <!-- support library compatibility -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="colorAccent">@color/accent</item>
         <item name="actionBarStyle">@style/action_bar</item>
         <item name="actionMenuTextColor">@color/actionbar_text</item>
+    </style>
+
+    <style name="toolbar_base" parent="">
+        <item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
+        <item name="theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+    </style>
+
+    <style name="toolbar" parent="toolbar_base">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">?attr/actionBarSize</item>
+        <item name="android:minHeight">?attr/actionBarSize</item>
+        <item name="android:background">?attr/colorPrimary</item>
+        <item name="titleTextAppearance">@style/TextAppearance.Widget.Event.Toolbar.Title</item>
+        <item name="android:layout_marginTop">25dp</item>
+    </style>
+
+    <style name="toolbar_settings" parent="toolbar">
+        <item name="android:layout_marginTop">0dp</item>
+    </style>
+
+    <style name="TextAppearance.Widget.Event.Toolbar.Title" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">@dimen/font_large</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+
+    <style name="drawer_subheader">
+        <item name="android:background">@color/primary_dark</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:layout_marginBottom">0dp</item>
+        <item name="android:paddingLeft">16dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">@dimen/font_normal</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textColor">@color/drawer_subheader</item>
+    </style>
+
+    <style name="drawer_entry">
+        <item name="android:background">@drawable/nav_selector</item>
+    </style>
+
+    <style name="drawer_image">
+        <item name="android:layout_width">26dp</item>
+        <item name="android:layout_height">26dp</item>
+        <item name="android:layout_marginLeft">16dp</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="drawer_text">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_marginLeft">30dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">@dimen/font_normal</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textColor">@color/drawer_text</item>
+    </style>
+
+    <style name="drawer_separator">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/height_thin_separator</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:background">@color/primary</item>
     </style>
 
     <style name="action_bar" parent="Widget.AppCompat.ActionBar">

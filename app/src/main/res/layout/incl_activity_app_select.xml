@@ -9,6 +9,7 @@
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:animateLayoutChanges="true"
+    android:background="@color/bg_window"
     tools:context=".AidRouteActivity" >
 
     <TextView
@@ -19,7 +20,7 @@
         android:gravity="left"
         android:textColor="@android:color/holo_blue_dark"
         android:textSize="@dimen/font_medium"
-        android:text="@string/intro_aid_route" />
+        android:text="@string/intro_app_select" />
 
     <Spinner
         android:id="@+id/aid"
@@ -32,7 +33,7 @@
         style="@style/separator" />
 
     <ListView
-        android:id="@+id/msgListView"
+        android:id="@+id/msg_list"
         android:layout_below="@+id/separator"
 	    style="@style/list"
         android:layout_alignParentEnd="false"
@@ -49,10 +50,10 @@
         android:layout_width="match_parent"
         android:layout_height="55dp"
         android:layout_centerHorizontal="true"
-        android:text="@string/select"
+        android:layout_alignParentBottom="true"
         style="@style/button"
+        android:text="@string/select"
         android:hapticFeedbackEnabled="true"
         android:visibility="invisible"
-        android:layout_alignParentBottom="true"
         android:background="@drawable/button_bg_states" />
 </RelativeLayout>

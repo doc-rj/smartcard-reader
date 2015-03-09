@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- scrollview in landscape, but not portrait as it causes shadow not to show -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:layout_gravity="left|start"
+    android:clipToPadding="false"
+    android:fillViewport="true">
+<!-- fitSystemWindows=true so drawer will be displayed under the status bar -->
+<LinearLayout
+    android:orientation="vertical"
+    android:layout_width="280dp"
+    android:layout_height="wrap_content"
+    android:elevation="8dp"
+    android:clickable="true"
+    android:background="@color/primary_dark"
+    android:fitsSystemWindows="@bool/fitsSysWindows">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:weightSum="1">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="153dp"
+            android:src="@drawable/cards"
+            android:cropToPadding="false"
+            android:adjustViewBounds="false"
+            android:scaleType="centerCrop" />
+    </LinearLayout>
+
+    <View style="@style/drawer_separator" />
+
+    <TextView
+        android:text="@string/test_modes"
+        style="@style/drawer_subheader">
+    </TextView>
+
+    <LinearLayout
+        android:id="@+id/app_select"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="0dp"
+        style="@style/drawer_entry">
+
+        <ImageView
+            android:src="@drawable/ic_action_done"
+            style="@style/drawer_image"/>
+
+        <TextView
+            android:text="@string/app_select"
+            style="@style/drawer_text"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/emv_read"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="0dp"
+        style="@style/drawer_entry">
+
+        <ImageView
+            android:src="@drawable/ic_action_receipt"
+            style="@style/drawer_image"/>
+
+        <TextView
+            android:text="@string/emv_read"
+            style="@style/drawer_text"/>
+    </LinearLayout>
+
+    <View
+        android:layout_marginTop="8dp"
+        style="@style/drawer_separator" />
+
+    <LinearLayout
+        android:id="@+id/apps"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="0dp"
+        style="@style/drawer_entry">
+
+        <ImageView
+            android:src="@drawable/ic_action_credit_card"
+            style="@style/drawer_image"
+            android:adjustViewBounds="false" />
+
+        <TextView
+            android:text="@string/apps"
+            style="@style/drawer_text"/>
+    </LinearLayout>
+
+    <View
+        android:layout_marginTop="8dp"
+        style="@style/drawer_separator" />
+
+    <LinearLayout
+        android:id="@+id/settings"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="0dp"
+        style="@style/drawer_entry">
+
+        <ImageView
+            android:src="@drawable/ic_action_settings"
+            style="@style/drawer_image"/>
+
+        <TextView
+            android:text="@string/settings"
+            style="@style/drawer_text"/>
+    </LinearLayout>
+</LinearLayout>
+</ScrollView>
