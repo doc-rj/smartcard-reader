@@ -8,5 +8,5 @@
     android:fitsSystemWindows="@bool/fitsSysWindows">
 
     <include layout="@layout/toolbar_save" />
-    <include layout="@layout/incl_activity_app_view" />
+    <include layout="@layout/incl_activity_app_edit" />
 </LinearLayout>

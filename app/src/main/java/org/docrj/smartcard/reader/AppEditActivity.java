@@ -19,6 +19,7 @@
 
 package org.docrj.smartcard.reader;
 
+import android.app.Activity;
 import android.os.Build;
 import android.content.Context;
 import android.content.Intent;
@@ -28,12 +29,18 @@ import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.CheckedTextView;
 import android.widget.EditText;
+import android.widget.ListPopupWindow;
+import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -41,11 +48,16 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 
 public class AppEditActivity extends ActionBarActivity {
 
     private static final String TAG = LaunchActivity.TAG;
+
+    private static final String[] DEFAULT_GROUPS = SmartcardApp.GROUPS;
 
     // actions
     private static final String ACTION_NEW_APP = AppsListActivity.ACTION_NEW_APP;
@@ -66,6 +78,17 @@ public class AppEditActivity extends ActionBarActivity {
     private EditText mName;
     private EditText mAid;
     private RadioGroup mType;
+
+    // groups created by user (no payment/other)
+    private HashSet<String> mUserGroups;
+    // groups of which the app is member
+    private HashSet<String> mAppGroups;
+
+    private Button mGrpButton;
+    // group items for the popup window list adapter
+    private ArrayList<GroupItem> mGrpItems = new ArrayList<>();
+    private GroupAdapter mGrpAdapter;
+    private ListPopupWindow mPopup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,13 +119,29 @@ public class AppEditActivity extends ActionBarActivity {
         SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
         mEditor = ss.edit();
 
+        Gson gson = new Gson();
         String json = ss.getString("apps", null);
         if (json != null) {
             // deserialize list of SmartcardApp
-            Gson gson = new Gson();
             Type collectionType = new TypeToken<ArrayList<SmartcardApp>>() {
             }.getType();
             mApps = gson.fromJson(json, collectionType);
+        }
+
+        if (savedInstanceState == null) {
+            json = ss.getString("groups", null);
+            if (json == null) {
+                mUserGroups = new LinkedHashSet<>();
+            } else {
+                Type collectionType = new TypeToken<LinkedHashSet<String>>() {
+                }.getType();
+                mUserGroups = gson.fromJson(json, collectionType);
+                // here we do not need the default groups payment/other
+                //mUserGroups.removeAll(Arrays.asList(DEFAULT_GROUPS));
+            }
+        } else {
+            mUserGroups =
+                new LinkedHashSet<>(savedInstanceState.getStringArrayList("user_groups"));
         }
 
         Intent intent = getIntent();
@@ -113,9 +152,6 @@ public class AppEditActivity extends ActionBarActivity {
         mAid = (EditText) findViewById(R.id.app_aid);
         mType = (RadioGroup) findViewById(R.id.radio_grp_type);
 
-        TextView note = (TextView) findViewById(R.id.note);
-        note.setVisibility(View.GONE);
-
         if (ACTION_EDIT_APP.equals(mAction) || ACTION_COPY_APP.equals(mAction)) {
             SmartcardApp app = mApps.get(mAppPos);
             mName.setText(app.getName());
@@ -123,11 +159,66 @@ public class AppEditActivity extends ActionBarActivity {
             mType.check((app.getType() == SmartcardApp.TYPE_OTHER) ? R.id.radio_other
                     : R.id.radio_payment);
         }
+        if (savedInstanceState == null) {
+            if (ACTION_EDIT_APP.equals(mAction) || ACTION_COPY_APP.equals(mAction)) {
+                SmartcardApp app = mApps.get(mAppPos);
+                // clone so that we modify a new set for comparison later
+                mAppGroups = (HashSet<String>) app.getGroups().clone();
+            } else {
+                mAppGroups = new LinkedHashSet<>();
+                mAppGroups.add(DEFAULT_GROUPS[SmartcardApp.TYPE_PAYMENT]);
+            }
+        } else {
+            mAppGroups =
+                new LinkedHashSet<>(savedInstanceState.getStringArrayList("app_groups"));
+        }
+
+        mType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                int type = getType();
+                mAppGroups.remove(DEFAULT_GROUPS[Math.abs(type-1)]);
+                mAppGroups.add(DEFAULT_GROUPS[type]);
+                updateGrpButton();
+            }
+        });
+
         if (ACTION_COPY_APP.equals(mAction)) {
             // now that we have populated the fields, treat copy like new
             mAppPos = NEW_APP_POS;
         }
         mName.requestFocus();
+
+        mGrpAdapter = new GroupAdapter(this, mGrpItems);
+        mGrpButton = (Button) findViewById(R.id.group_list);
+        updateGrpButton();
+
+        mGrpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mPopup != null) {
+                    mPopup.dismiss();
+                }
+                // update group list on click to make sure all recent input
+                // (eg. type payment/other) is taken into account
+                updateGrpList();
+                // use a list popup window populated with checked textview rows
+                ListPopupWindow popup = new ListPopupWindow(AppEditActivity.this, null);
+                popup.setWidth(((View)mGrpButton.getParent()).getWidth());
+                popup.setAnchorView(mGrpButton);
+                popup.setAdapter(mGrpAdapter);
+                popup.setOnItemClickListener(mItemClickListener);
+                popup.show();
+                mPopup = popup;
+                // setup the popup window's listview
+                ListView listView = popup.getListView();
+                listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+                int size = mGrpItems.size();
+                for (int i = 0; i < size; i++) {
+                    listView.setItemChecked(i, mGrpItems.get(i).isChecked());
+                }
+            }
+        });
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window w = getWindow();
@@ -136,6 +227,12 @@ public class AppEditActivity extends ActionBarActivity {
                             WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             w.setStatusBarColor(getResources().getColor(R.color.primary_dark));
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putStringArrayList("user_groups", new ArrayList<>(mUserGroups));
+        outState.putStringArrayList("app_groups", new ArrayList<>(mAppGroups));
     }
 
     @Override
@@ -176,6 +273,14 @@ public class AppEditActivity extends ActionBarActivity {
         return true;
     }
 
+    private int getType() {
+        int selectedId = mType.getCheckedRadioButtonId();
+        RadioButton radioBtn = (RadioButton) findViewById(selectedId);
+        return radioBtn.getText().toString()
+                .equals(getString(R.string.radio_payment)) ? SmartcardApp.TYPE_PAYMENT
+                : SmartcardApp.TYPE_OTHER;
+    }
+
     private void saveAndFinish(boolean backPressed) {
         // validate name and aid
         String name = mName.getText().toString();
@@ -184,14 +289,11 @@ public class AppEditActivity extends ActionBarActivity {
             return;
         }
         // app type radio group
-        int selectedId = mType.getCheckedRadioButtonId();
-        RadioButton radioBtn = (RadioButton) findViewById(selectedId);
-        int type = radioBtn.getText().toString()
-                .equals(getString(R.string.radio_payment)) ? SmartcardApp.TYPE_PAYMENT
-                : SmartcardApp.TYPE_OTHER;
+        int type = getType();
 
         boolean appChanged = false;
         SmartcardApp newApp = new SmartcardApp(name, aid, type);
+        newApp.setGroups(mAppGroups);
 
         if (mAction == ACTION_NEW_APP || mAction == ACTION_COPY_APP) {
             appChanged = true;
@@ -229,6 +331,10 @@ public class AppEditActivity extends ActionBarActivity {
         Gson gson = new Gson();
         String json = gson.toJson(mApps);
         mEditor.putString("apps", json);
+
+        // TODO: check this. shouldn't we store defaults: payment/other
+        json = gson.toJson(mUserGroups);
+        mEditor.putString("groups", json);
         mEditor.commit();
     }
 
@@ -238,4 +344,137 @@ public class AppEditActivity extends ActionBarActivity {
         toast.setGravity(Gravity.CENTER_VERTICAL, 0, -100);
         toast.show();
     }
+
+    private void updateGrpButton() {
+        String grpText;
+        if (mAppGroups.size() <= 1) {
+            grpText = getString(R.string.new_app_groups_hint);
+        } else {
+            grpText = mAppGroups.toString().replaceAll("[\\[\\]]", "");
+        }
+        mGrpButton.setText(grpText);
+    }
+
+    private void updateGrpList() {
+        mGrpItems.clear();
+        for (String group : mUserGroups) {
+            mGrpItems.add(new GroupItem(group, mAppGroups.contains(group)));
+        }
+        mGrpItems.add(new GroupItem(DEFAULT_GROUPS[getType()], true));
+        mGrpItems.add(new GroupItem(getString(R.string.new_group), false));
+    }
+
+    private void createNewGroup() {
+        if (mPopup != null) {
+            mPopup.dismiss();
+        }
+        NewGroupDialogFragment.show(getFragmentManager(),
+                new NewGroupDialogFragment.OnNewGroupListener() {
+                    @Override
+                    public void onNewGroup(String name) {
+                        if (Arrays.asList(DEFAULT_GROUPS).contains(name)) {
+                            showToast(getString(R.string.default_group_exists));
+                            return;
+                        }
+                        mAppGroups.add(name);
+                        mUserGroups.add(name);
+                        updateGrpButton();
+                    }
+                });
+    }
+
+    public static final class GroupItem {
+        private final String mName;
+        private boolean mChecked;
+
+        public GroupItem(String name, boolean checked) {
+            mName = name;
+            mChecked = checked;
+        }
+
+        public boolean isChecked() {
+            return mChecked;
+        }
+
+        public void setChecked(boolean checked) {
+            mChecked = checked;
+        }
+
+        @Override
+        public String toString() {
+            return mName;
+        }
+    }
+
+    private class GroupAdapter extends ArrayAdapter<GroupItem> {
+        public GroupAdapter(Activity context, ArrayList<GroupItem> groupItems) {
+            super(context, R.layout.group_list_item, groupItems);
+        }
+
+        @Override
+        public View getView(final int position, View convertView, ViewGroup parent) {
+            final View itemView = super.getView(position, convertView, parent);
+            if (itemView == null) {
+                return null;
+            }
+            final CheckedTextView checkedTextView = (CheckedTextView)itemView;
+
+            if (hasCheckbox(position)) {
+                checkedTextView.setEnabled(isEnabled(position));
+            } else {
+                checkedTextView.setCheckMarkDrawable(null);
+                checkedTextView.setTextColor(getResources().getColor(R.color.accent));
+            }
+            return checkedTextView;
+        }
+
+        @Override
+        public boolean isEnabled(int position) {
+            return position != getCount()-2;
+        }
+
+        public boolean hasCheckbox(int position) {
+            return position != getCount()-1;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            if (hasCheckbox(position)) {
+                return isEnabled(position) ? 0 : 1;
+            } else {
+                return 2;
+            }
+        }
+
+        @Override
+        public int getViewTypeCount() {
+            return 3;
+        }
+    }
+
+    final AdapterView.OnItemClickListener mItemClickListener =
+            new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    ListView list = (ListView) parent;
+                    int count = mGrpItems.size();
+
+                    if (list.isItemChecked(count - 1)) {
+                        list.setItemChecked(count - 1, false);
+                        createNewGroup();
+                        return;
+                    }
+
+                    boolean checked = list.isItemChecked(position);
+                    mGrpItems.get(position).setChecked(checked);
+                    String name = mGrpItems.get(position).toString();
+
+                    if (checked) {
+                        mAppGroups.add(name);
+                    } else {
+                        mAppGroups.remove(name);
+                    }
+                    updateGrpButton();
+                }
+            };
 }

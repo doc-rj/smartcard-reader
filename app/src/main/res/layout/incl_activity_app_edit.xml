@@ -9,8 +9,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    android:background="@color/bg_window"
-    tools:context="org.docrj.smartcard.reader.AppViewActivity">
+    android:background="@color/bg_window">
 
 <LinearLayout
     android:id="@+id/app_layout"
@@ -47,7 +46,8 @@
         android:layout_gravity="center_vertical"
         android:textSize="@dimen/font_normal"
         android:paddingLeft="10dp"
-        android:textColor="@color/black" />
+        android:textColor="@color/black"
+        android:textColorHint="@color/secondary_text"/>
 </LinearLayout>
 
 <LinearLayout
@@ -85,7 +85,8 @@
         android:layout_gravity="center_vertical"
         android:textSize="@dimen/font_normal"
         android:paddingLeft="10dp"
-        android:textColor="@color/black" />
+        android:textColor="@color/black"
+        android:textColorHint="@color/secondary_text" />
 </LinearLayout>
 
 <LinearLayout
@@ -140,7 +141,7 @@
 
 <LinearLayout
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="45dp"
     android:minHeight="45dp"
     android:orientation="horizontal"
     android:layout_marginBottom="15dp"
@@ -149,43 +150,26 @@
 
     <TextView
         android:layout_width="80dp"
-        android:layout_height="match_parent"
+        android:layout_height="37dp"
         android:fontFamily="sans-serif-condensed"
         android:text="@string/new_app_groups"
         android:paddingLeft="7dp"
         android:paddingRight="7dp"
         android:background="@color/btn_light"
-        android:layout_gravity="center_vertical"
-        android:paddingTop="10dp"
+        android:layout_gravity="center_vertical|top"
         android:textStyle="bold|italic"
         android:textSize="@dimen/font_large"
-        android:gravity="top|right" />
+        android:gravity="center_vertical|right" />
 
-    <TextView
+    <Button
+        style="@style/spinner_button"
         android:id="@+id/group_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-condensed"
+        android:focusable="true"
         android:text="@string/new_app_groups_hint"
-        android:background="@null"
-        android:layout_gravity="center_vertical"
-        android:textSize="@dimen/font_normal"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"
-        android:paddingLeft="10dp"
-        android:textColor="@color/black" />
+        android:paddingLeft="10dp"/>
 </LinearLayout>
-
-<TextView
-    android:layout_width="match_parent"
-    android:layout_height="45dp"
-    android:text="@string/read_only"
-    android:id="@+id/note"
-    android:gravity="center_vertical"
-    android:paddingLeft="15dp"
-    android:textSize="@dimen/font_small"
-    android:textStyle="italic"
-    android:background="@color/btn_light" />
 
 </LinearLayout>
 

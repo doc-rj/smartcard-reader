@@ -26,9 +26,9 @@ import android.content.Intent;
 
 public class Launcher {
     // test modes
-    static final int TEST_MODE_APP_ROUTE = 0;
-    //static final int TEST_MODE_BATCH_ROUTE = 1;
-    static final int TEST_MODE_EMV_READ = 1;
+    static final int TEST_MODE_APP_SELECT = 0;
+    static final int TEST_MODE_BATCH_SELECT = 1;
+    static final int TEST_MODE_EMV_READ = 2;
 
     final Context mContext;
 
@@ -39,8 +39,11 @@ public class Launcher {
     void launch(int testMode, boolean newTask, boolean animation) {
         Class<?> cls;
         switch(testMode) {
-            case TEST_MODE_APP_ROUTE:
+            case TEST_MODE_APP_SELECT:
                 cls = AppSelectActivity.class;
+                break;
+            case TEST_MODE_BATCH_SELECT:
+                cls = BatchSelectActivity.class;
                 break;
             case TEST_MODE_EMV_READ:
                 cls = EmvReadActivity.class;
@@ -66,13 +69,13 @@ public class Launcher {
 
     public int testModeToInt(String testMode) {
         if (mContext.getString(R.string.app_select).equals(testMode)) {
-            return TEST_MODE_APP_ROUTE;
-        //} else if (mContext.getString(R.string.batch_route).equals(testMode)) {
-        //    return TEST_MODE_BATCH_ROUTE;
+            return TEST_MODE_APP_SELECT;
+        } else if (mContext.getString(R.string.batch_select).equals(testMode)) {
+            return TEST_MODE_BATCH_SELECT;
         } else if (mContext.getString(R.string.emv_read).equals(testMode)) {
             return TEST_MODE_EMV_READ;
         } else {
-            return TEST_MODE_APP_ROUTE;
+            return TEST_MODE_APP_SELECT;
         }
     }
 }

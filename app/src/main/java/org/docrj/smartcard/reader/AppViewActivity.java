@@ -30,7 +30,6 @@ import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -46,11 +45,14 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 
 public class AppViewActivity extends ActionBarActivity {
 
     private static final String TAG = LaunchActivity.TAG;
+
+    private static final String[] DEFAULT_GROUPS = SmartcardApp.GROUPS;
 
     // actions
     private static final String ACTION_VIEW_APP = AppsListActivity.ACTION_VIEW_APP;
@@ -75,6 +77,7 @@ public class AppViewActivity extends ActionBarActivity {
     private EditText mName;
     private EditText mAid;
     private RadioGroup mType;
+    private TextView mGroups;
     private TextView mNote;
     private AlertDialog mConfirmDeleteDialog;
 
@@ -105,6 +108,7 @@ public class AppViewActivity extends ActionBarActivity {
         mAid = (EditText) findViewById(R.id.app_aid);
         mType = (RadioGroup) findViewById(R.id.radio_grp_type);
         mNote = (TextView) findViewById(R.id.note);
+        mGroups = (TextView) findViewById(R.id.group_list);
 
         // view only
         mName.setFocusable(false);
@@ -140,6 +144,7 @@ public class AppViewActivity extends ActionBarActivity {
         mAid.setText(app.getAid());
         mType.check((app.getType() == SmartcardApp.TYPE_OTHER) ? R.id.radio_other
                 : R.id.radio_payment);
+        updateGroups(mApps.get(mAppPos).getGroups());
         if (!mReadOnly) {
             mNote.setVisibility(View.GONE);
         }
@@ -170,6 +175,25 @@ public class AppViewActivity extends ActionBarActivity {
             delMenuItem.setVisible(false);
         }
         return true;
+    }
+
+    private void updateGroups(HashSet<String> appGroups) {
+        String grpText = getString(R.string.none);
+        if (appGroups.size() == 0) {
+            if (!mReadOnly) {
+                grpText += " - " + getString(R.string.edit_to_add_groups);
+            }
+        } else
+        if (appGroups.size() == 1) {
+            grpText = appGroups.toString().replaceAll("[\\[\\]]", "");;
+            if (!mReadOnly) {
+                grpText += " - " + getString(R.string.edit_to_add_groups);
+            }
+        } else {
+            grpText = appGroups.toString().replaceAll("[\\[\\]]", "");
+            grpText = grpText.replace(", ", ",\n");
+        }
+        mGroups.setText(grpText);
     }
 
     @SuppressWarnings("deprecation")
@@ -240,7 +264,7 @@ public class AppViewActivity extends ActionBarActivity {
         mSelectedAppPos = mAppPos;
         mEditor.putInt("selected_app_pos", mSelectedAppPos);
         mEditor.commit();
-        new Launcher(this).launch(Launcher.TEST_MODE_APP_ROUTE, true, true);
+        new Launcher(this).launch(Launcher.TEST_MODE_APP_SELECT, true, true);
         finish();
     }
 
@@ -250,7 +274,7 @@ public class AppViewActivity extends ActionBarActivity {
         //AlertDialog.Builder builder = new AlertDialog.Builder(
         //        this, R.style.dialog);
         AlertDialogWrapper.Builder builder = new AlertDialogWrapper.Builder(this);
-        final LayoutInflater li = getLayoutInflater();
+        //final LayoutInflater li = getLayoutInflater();
         Dialog dialog = null;
         switch (id) {
             case DIALOG_CONFIRM_DELETE:

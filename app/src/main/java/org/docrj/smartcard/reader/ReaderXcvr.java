@@ -51,7 +51,7 @@ public class ReaderXcvr implements Runnable {
         void setUserSelectListener(UiListener callback);
         
         // cleanup, if needed
-        void onFinish();
+        void onFinish(boolean err);
     }
 
     public interface UiListener {
@@ -73,6 +73,14 @@ public class ReaderXcvr implements Runnable {
         this.mAidBytes = Util.hexToBytes(aid);
         this.mUiCallbacks = uiCallbacks;
         this.mContext = (Context) uiCallbacks;
+    }
+
+    public ReaderXcvr(IsoDep isoDep, String aid, UiCallbacks uiCallbacks, Context context) {
+        this.mIsoDep = isoDep;
+        this.mAid = aid;
+        this.mAidBytes = Util.hexToBytes(aid);
+        this.mUiCallbacks = uiCallbacks;
+        this.mContext = context;
     }
 
     protected static String bytesToHexAndAscii(byte[] data, boolean ascii) {

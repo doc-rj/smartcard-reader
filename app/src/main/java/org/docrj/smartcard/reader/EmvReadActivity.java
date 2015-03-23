@@ -30,7 +30,6 @@ import android.media.SoundPool;
 import android.nfc.NfcAdapter.ReaderCallback;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
@@ -42,6 +41,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
+import android.widget.ViewSwitcher;
 
 import com.afollestad.materialdialogs.AlertDialogWrapper;
 
@@ -63,7 +63,6 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
     private static final int TEST_MODE_EMV_READ = Launcher.TEST_MODE_EMV_READ;
 
     private NavDrawer mNavDrawer;
-    private Handler mHandler;
     private Editor mEditor;
     private NfcManager mNfcManager;
     private Console mConsole;
@@ -76,7 +75,6 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
     private SoundPool mSoundPool;
     private Vibrator mVibrator;
 
-    @SuppressWarnings("deprecation")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,8 +87,8 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
         mNavDrawer = new NavDrawer(this, savedInstanceState, R.id.emv_read, drawerLayout, toolbar);
 
         ListView listView = (ListView) findViewById(R.id.msg_list);
-        mConsole = new Console(this, savedInstanceState, TEST_MODE_EMV_READ, listView);
-        mHandler = new Handler();
+        ViewSwitcher switcher = (ViewSwitcher) findViewById(R.id.switcher);
+        mConsole = new Console(this, savedInstanceState, TEST_MODE_EMV_READ, listView, switcher);
         mNfcManager = new NfcManager(this, this);
 
         ApduParser.init(this);
@@ -123,7 +121,7 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
             mAutoClear = prefs.getBoolean("pref_auto_clear", true);
         } else if (key.equals("pref_show_separators")) {
             mShowMsgSeparators = prefs.getBoolean("pref_show_separators", true);
-            clearMessages();
+            clearMessages(true);
         } else if (key.equals("pref_tap_feedback")) {
             String tapFeedback = prefs.getString("pref_tap_feedback", "1");
             mTapFeedback = Integer.valueOf(tapFeedback);
@@ -133,15 +131,6 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
     @Override
     public void onResume() {
         super.onResume();
-
-        // this delay is a bit hacky; would be better to extend ListView
-        // and override onLayout()
-        mHandler.postDelayed(new Runnable() {
-            public void run() {
-                mConsole.smoothScrollToPosition();
-            }
-        }, 50L);
-
         mNfcManager.onResume();
         mConsole.onResume();
         mNavDrawer.onResume();
@@ -153,6 +142,7 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
         super.onPause();
         writePrefs();
         releaseSoundPool();
+        mConsole.onPause();
         mNfcManager.onPause();
     }
 
@@ -222,7 +212,7 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
         }
         switch (item.getItemId()) {
             case R.id.menu_clear_msgs:
-                clearMessages();
+                clearMessages(true);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -258,6 +248,7 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
     @Override
     public void onTagDiscovered(Tag tag) {
         doTapFeedback();
+        clearImage();
         // maybe clear console or show separator, depends on settings
         if (mAutoClear) {
             clearMessages();
@@ -304,12 +295,20 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
         mConsole.clear();
     }
 
+    private void clearMessages(boolean showImg) {
+        mConsole.clear(showImg);
+    }
+
+    private void clearImage() {
+        mConsole.showImage(false);
+    }
+
     @Override
     public void setUserSelectListener(final ReaderXcvr.UiListener callback) {
     }
 
     @Override
-    public void onFinish() {
+    public void onFinish(boolean err) {
         // nothing yet! animation cleanup worked better elsewhere
     }
 
@@ -322,13 +321,5 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
     private void writePrefs() {
         mEditor.putInt("test_mode", TEST_MODE_EMV_READ);
         mEditor.commit();
-    }
-
-    private class writePrefsTask extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected Void doInBackground(Void... v) {
-            writePrefs();
-            return null;
-        }
     }
 }

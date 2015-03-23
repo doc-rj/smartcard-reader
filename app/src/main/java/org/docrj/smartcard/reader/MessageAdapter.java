@@ -64,11 +64,10 @@ public class MessageAdapter extends BaseAdapter {
     };
 
     private LayoutInflater mLayoutInflater;
-    private List<Message> mMessages = new ArrayList<Message>(100);
     private Context mContext;
     private UiCallbacks mUiCallbacks;
+    private List<Message> mMessages = new ArrayList<Message>(100);
     private StringBuilder mHtmlBuilder = new StringBuilder(2400);
-    //private StringBuilder mTextBuilder = new StringBuilder(2400);
 
     public MessageAdapter(LayoutInflater layoutInflater, Bundle instate, UiCallbacks uiCallbacks) {
         mLayoutInflater = layoutInflater;
@@ -109,7 +108,6 @@ public class MessageAdapter extends BaseAdapter {
     public void clearMessages() {
         mMessages.clear();
         mHtmlBuilder.setLength(0);
-        //mTextBuilder.setLength(0);
         notifyDataSetChanged();
     }
 
@@ -139,14 +137,13 @@ public class MessageAdapter extends BaseAdapter {
             (parsed == null) ? "" : parsed);
         mMessages.add(msg);
         updateShareMsgsHtml(msg);
-        //updateShareMsgsText(msg);
         notifyDataSetChanged();
     }
 
     public void addSeparator() {
         Message msg = new Message(MSG_BREAK);
         mMessages.add(msg);
-        // TODO: update share?
+        updateShareMsgsHtml(msg);
         notifyDataSetChanged();
     }
 
@@ -164,6 +161,10 @@ public class MessageAdapter extends BaseAdapter {
     }
 
     private void updateShareMsgsHtml(Message msg) {
+        if (msg.type == MSG_BREAK) {
+            mHtmlBuilder.append("<p style= 'font-family:courier new;'>=====</p>");
+            return;
+        }
         String name = (msg.type == MSG_SEND || msg.type == MSG_RCV) ?
                 "<b>" + msg.name + " (raw):</b><br/><br/>" : "";
         String text = msg.text.replace("-->", "&#45;&#45;&gt;").replace("<--", "&lt;&#45;&#45;");
@@ -176,26 +177,11 @@ public class MessageAdapter extends BaseAdapter {
         mHtmlBuilder.append("</p>");
     }
 
-    /*
-    private void updateShareMsgsText(Message msg) {
-        mTextBuilder.append(msg.text + "\n\n");
-        if (!msg.parsed.isEmpty()) {
-            mTextBuilder.append(msg.name + ":\n\n" + msg.parsed + "\n\n");
-        }
-    }
-    */
-
     public String getShareMsgsHtml() {
         String html = mHtmlBuilder.toString();
         Log.d(TAG, "length: " + html.length());
         return html;
     }
-
-    /*
-    public String getShareMsgsText() {
-        return mTextBuilder.toString();
-    }
-    */
 
     @Override
     public int getCount() {
@@ -243,11 +229,12 @@ public class MessageAdapter extends BaseAdapter {
         // handling based on presence of parsed message contents
         if (msg.parsed.isEmpty()) {
             btn.setEnabled(false);
-            btn.setBackgroundResource(0);
+            btn.setBackground(null);
             img.setVisibility(View.GONE);
         } else {
             btn.setEnabled(true);
-            btn.setBackgroundResource(R.drawable.parsed_msg_bg_states);
+            btn.setBackground(mContext.getResources().
+                    getDrawable(R.drawable.parsed_msg_bg_states));
             img.setVisibility(View.VISIBLE);
             btn.setOnClickListener(new MessageClickListener(position));
         }

@@ -21,16 +21,26 @@ package org.docrj.smartcard.reader;
 
 import org.docrj.smartcard.util.Util;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+
 public class SmartcardApp {
 
     public static final int TYPE_PAYMENT = 0;
     public static final int TYPE_OTHER = 1;
+
+    static final String[] GROUPS = {
+            "payment", "other"
+    };
 
     private String mName;
     private String mAid;
     private byte[] mAidBytes;
     private int mType;
     private boolean mReadOnly;
+
+    private HashSet<String> mGroups = new LinkedHashSet<>();
 
     public SmartcardApp() {
     }
@@ -39,8 +49,8 @@ public class SmartcardApp {
         mName = name;
         mAid = aid;
         mAidBytes = Util.hexToBytes(aid);
-        mType = type;
         mReadOnly = false;
+        setType(type);
     }
 
     public void copy(SmartcardApp app) {
@@ -48,8 +58,8 @@ public class SmartcardApp {
             mName = app.getName();
             mAid = app.getAid();
             mAidBytes = app.getAidBytes();
-            mType = app.getType();
             mReadOnly = false;
+            setType(app.getType());
         }
     }
 
@@ -63,10 +73,24 @@ public class SmartcardApp {
 
     public void setType(int type) {
         mType = type;
+        mGroups.remove(GROUPS[Math.abs(type-1)]);
+        mGroups.add(GROUPS[type]);
     }
 
     public void setReadOnly(boolean readOnly) {
         mReadOnly = readOnly;
+    }
+
+    public void setGroups(HashSet<String> groups) {
+        mGroups = groups;
+    }
+
+    public void addGroup(String group) {
+        mGroups.add(group);
+    }
+
+    public void removeGroup(String group) {
+        mGroups.remove(group);
     }
 
     public String getName() {
@@ -89,8 +113,17 @@ public class SmartcardApp {
         return mReadOnly;
     }
 
-    public String toBriefString() {
-        return mName;
+    public boolean isMemberOf(String groupName) {
+        for (String group : mGroups) {
+            if (group.equals(groupName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public HashSet<String> getGroups() {
+        return mGroups;
     }
 
     @Override
@@ -101,11 +134,16 @@ public class SmartcardApp {
         SmartcardApp app = (SmartcardApp) obj;
         return (mName.equals(app.getName()) &&
             mAid.equals(app.getAid()) &&
-            mType == app.getType());
+            mType == app.getType() &&
+            mGroups.equals(app.getGroups()));
     }
 
     @Override
     public String toString() {
         return mName + " (" + mAid + ")";
+    }
+
+    public String toBriefString() {
+        return mName;
     }
 }

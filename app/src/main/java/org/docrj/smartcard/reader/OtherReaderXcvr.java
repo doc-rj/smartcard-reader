@@ -23,8 +23,8 @@ import java.io.IOException;
 
 import org.docrj.smartcard.iso7816.ResponseApdu;
 import org.docrj.smartcard.iso7816.SelectApdu;
-import org.docrj.smartcard.reader.R;
 
+import android.content.Context;
 import android.nfc.TagLostException;
 import android.nfc.tech.IsoDep;
 import android.util.Log;
@@ -35,8 +35,13 @@ public class OtherReaderXcvr extends ReaderXcvr {
         super(isoDep, aid, uiCallbacks);
     }
 
+    public OtherReaderXcvr(IsoDep isoDep, String aid, UiCallbacks uiCallbacks, Context context) {
+        super(isoDep, aid, uiCallbacks, context);
+    }
+
     @Override
     public void run() {
+        boolean err = false;
         try {
             mIsoDep.connect();
 
@@ -54,10 +59,12 @@ public class OtherReaderXcvr extends ReaderXcvr {
             }
             mIsoDep.close();
         } catch (TagLostException e) {
-            mUiCallbacks
-                    .onError(mContext.getString(R.string.tag_lost_err));
+            mUiCallbacks.onError(mContext.getString(R.string.tag_lost_err));
+            err = true;
         } catch (IOException e) {
             mUiCallbacks.onError(e.getMessage());
+            err = true;
         }
+        mUiCallbacks.onFinish(err);
     }
 }

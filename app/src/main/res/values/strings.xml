@@ -3,6 +3,7 @@
     <string name="app_name">smartcard reader</string>
     <string name="log_to_file">Log to file</string>
     <string name="intro_app_select">Tap against smartcard to select app&#8230;</string>
+    <string name="intro_batch_select">Tap and hold against smartcard for batch select&#8230;</string>
     <string name="intro_app_select_manual">Hold against smartcard for manual select&#8230;</string>
     <string name="intro_emv_read">Tap against smartcard to read payment data&#8230;\n</string>
     <string name="wrong_tag_err">Not ISO-DEP, emulate card with AID above!</string>
@@ -52,11 +53,13 @@
     <string name="smartcard_apps">smartcard apps</string>
     <string name="apps">smartcard apps</string>
     <string name="app_groups">app groups</string>
+    <string name="new_app_groups">Groups:</string>
     <string name="new_app_name">App:</string>
     <string name="new_app_name_hint">&lt;&#160;app name here!&#160;&gt;</string>
     <string name="new_app_aid">AID:</string>
     <string name="new_app_aid_hint">&lt;&#160;5&#8211;16 hex bytes&#160;&gt;</string>
-    <string name="new_app_type">Type:</string>    
+    <string name="new_app_type">Type:</string>
+    <string name="new_app_groups_hint">&lt;&#160;add groups for batch select&#160;&gt;</string>
     <string name="radio_payment">payment</string>
     <string name="radio_other">other</string>
     <string name="make_current">Set as current app to select?</string>
@@ -96,7 +99,14 @@
     <string name="cancel">cancel</string>
     <string name="app_saved">smartcard app saved</string>
     <string name="confirm_delete">This smartcard app will be deleted.</string>
-    <string name="read_only">Note: This smartcard app is read-only. Edit and delete functions are not available.</string>
+    <string name="read_only"><b>Note:</b> This smartcard app is read-only. Edit and delete functions are not available.</string>
+    <string name="new_group">new group</string>
+    <string name="none">none</string>
+    <string name="edit_to_add_groups">edit to add groups</string>
+    <string name="default_group_exists">default group already exists!</string>
+    <string name="title_dialog_new_group">new group</string>
     <string name="title_activity_msg_parse">MsgParseActivity</string>
+    <string name="batch_complete">Batch complete!</string>
+    <string name="batch_interrupted">Batch interrupted\n\n** Be sure to align antennas and hold securely against smartcard for the duration. **</string>
 
 </resources>

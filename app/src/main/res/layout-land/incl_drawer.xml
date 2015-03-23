@@ -56,6 +56,23 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/batch_select"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="0dp"
+        style="@style/drawer_entry">
+
+        <ImageView
+            android:src="@drawable/ic_action_done_all"
+            style="@style/drawer_image"/>
+
+        <TextView
+            android:text="@string/batch_select"
+            style="@style/drawer_text"/>
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/emv_read"
         android:orientation="horizontal"
         android:layout_width="match_parent"

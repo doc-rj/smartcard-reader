@@ -49,21 +49,16 @@ public class AppAdapter extends ArrayAdapter<SmartcardApp> {
             LayoutInflater inflater = mContext.getLayoutInflater();
             item = inflater.inflate(R.layout.spinner_apps_list, parent, false);
         }
-
         SmartcardApp current = mApps.get(position);
         TextView textView = (TextView) item.findViewById(android.R.id.text1);
         textView.setText(mBrief ? current.toBriefString() : current.toString());
         Drawable img;
         if (current.getType() == SmartcardApp.TYPE_PAYMENT) {
             img = mContext.getResources().getDrawable(R.drawable.credit_card2_green);
-            textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null,
-                    null);
         } else {
-            img = mContext.getResources().getDrawable(
-                    R.drawable.credit_card2_blue);
-            textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null,
-                    null);
+            img = mContext.getResources().getDrawable(R.drawable.credit_card2_blue);
         }
+        textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null, null);
         return item;
     }
 
@@ -72,24 +67,18 @@ public class AppAdapter extends ArrayAdapter<SmartcardApp> {
         View row = convertView;
         if (row == null) {
             LayoutInflater inflater = mContext.getLayoutInflater();
-            row = inflater.inflate(R.layout.spinner_dropdown_apps_list, parent,
-                    false);
+            row = inflater.inflate(R.layout.spinner_dropdown_apps_list, parent, false);
         }
-
         SmartcardApp current = mApps.get(position);
         TextView textView = (TextView) row.findViewById(android.R.id.text1);
         textView.setText(mBrief ? current.toBriefString() : current.toString());
         Drawable img;
         if (current.getType() == SmartcardApp.TYPE_PAYMENT) {
             img = mContext.getResources().getDrawable(R.drawable.credit_card_green);
-            textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null,
-                    null);
         } else {
-            img = mContext.getResources().getDrawable(
-                    R.drawable.credit_card_blue);
-            textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null,
-                    null);
+            img = mContext.getResources().getDrawable(R.drawable.credit_card_blue);
         }
+        textView.setCompoundDrawablesWithIntrinsicBounds(img, null, null, null);
         return row;
     }
 }

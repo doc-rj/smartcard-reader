@@ -10,7 +10,7 @@
     android:focusableInTouchMode="true"
     android:animateLayoutChanges="true"
     android:background="@color/bg_window"
-    tools:context=".EmvReadActivity" >
+    tools:context=".AidRouteActivity" >
 
     <TextView
         android:id="@+id/intro"
@@ -20,11 +20,16 @@
         android:gravity="left"
         android:textColor="@color/intro"
         android:textSize="@dimen/font_medium"
-        android:text="@string/intro_emv_read" />
+        android:text="@string/intro_batch_select" />
+
+    <Spinner
+        android:id="@+id/group"
+        android:layout_below="@+id/intro"
+        style="@style/spinner" />
 
     <View
-        android:id="@+id/separator"
-        android:layout_below="@+id/intro"
+        android:id="@+id/separator" 
+        android:layout_below="@+id/group"
         style="@style/separator" />
 
     <ViewSwitcher
@@ -39,13 +44,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:visibility="invisible"
-                android:layout_weight="0">
-            </RelativeLayout>
-
             <ImageView
                 android:id="@+id/tap_img"
                 android:layout_width="220dp"

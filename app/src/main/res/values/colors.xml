@@ -4,14 +4,14 @@
     <color name="black">@android:color/black</color>
     <color name="bg_window">#FFF0F0F0</color>
     <color name="bg_separator">#FFBABABA</color>
-    <color name="text_select">#FFCC0000</color>
-    <color name="text_edit">#FF008080</color>
     <color name="text_hint">#FFD0D0D0</color>
     <color name="text_normal">#FF505050</color>
-    <color name="msg_send">@android:color/holo_blue_dark</color>
+    <color name="intro">@color/accent</color>
+    <color name="msg_send">@color/accent</color>
     <color name="msg_rcv">@android:color/black</color>
     <color name="msg_okay">#FF00CC00</color>
-    <color name="msg_err">@android:color/holo_red_light</color>
+    <!--<color name="msg_err">@android:color/holo_red_light</color>-->
+    <color name="msg_err">#ffff4444</color>
     <color name="btn_light">#FFE3E3E3</color>
     <color name="btn_dark">#FFC3C3C3</color>
     <color name="bg_material_dark">#ff303030</color>
@@ -23,7 +23,8 @@
     <!--<color name="primary_dark">#B71C1C</color>-->
     <!--<color name="primary_dark">#616161</color>-->
     <color name="primary_dark">@color/bg_material_dark</color>
-    <color name="accent">#1E88E5</color>
+    <!--<color name="accent">@android:color/holo_blue_dark</color>-->
+    <color name="accent">#ff0099cc</color>
     <!--<color name="primary_text">#FFFFFF</color>-->
     <!--<color name="primary_text">#000000</color>-->
     <color name="primary_text">@color/primary</color>
@@ -33,6 +34,3 @@
     <color name="drawer_subheader">#A6FFFFFF</color>
     <color name="drawer_text">#DEFFFFFF</color>
 </resources>
-
-<!-- <color name="msg_okay">@android:color/holo_green_dark</color> -->
-<!-- <color name="btn_dark">@android:color/holo_orange_light</color> -->

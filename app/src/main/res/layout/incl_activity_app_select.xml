@@ -8,7 +8,7 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:animateLayoutChanges="true"
+    android:animateLayoutChanges="false"
     android:background="@color/bg_window"
     tools:context=".AidRouteActivity" >
 
@@ -18,42 +18,62 @@
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-condensed"
         android:gravity="left"
-        android:textColor="@android:color/holo_blue_dark"
+        android:textColor="@color/intro"
         android:textSize="@dimen/font_medium"
         android:text="@string/intro_app_select" />
 
     <Spinner
-        android:id="@+id/aid"
+        android:id="@+id/app"
         android:layout_below="@+id/intro"
         style="@style/spinner" />
 
     <View
         android:id="@+id/separator" 
-        android:layout_below="@+id/aid"
+        android:layout_below="@+id/app"
         style="@style/separator" />
 
-    <ListView
-        android:id="@+id/msg_list"
-        android:layout_below="@+id/separator"
-	    style="@style/list"
-        android:layout_alignParentEnd="false"
-        android:layout_above="@+id/separator2" />
+    <ViewSwitcher
+        android:id="@+id/switcher"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/separator"
+        android:layout_above="@+id/manual_select_bar"
+        android:outAnimation="@anim/abc_fade_out"
+        android:inAnimation="@anim/abc_fade_in">
+        <!-- image is default and switcher index 0 -->
+        <ImageView
+            android:id="@+id/tap_img"
+            android:layout_width="220dp"
+            android:layout_height="308dp"
+            android:layout_gravity="center"
+            android:src="@drawable/tap"
+            android:scaleType="fitCenter" />
+        <!-- message list is switcher index 1 -->
+        <ListView
+            android:id="@+id/msg_list"
+            style="@style/list"/>
+    </ViewSwitcher>
 
+    <RelativeLayout
+        android:id="@+id/manual_select_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:visibility="invisible"
+        android:elevation="4dp" >
     <View
         android:id="@+id/separator2"
-        style="@style/separator"
-        android:visibility="invisible"
-        android:layout_above="@+id/manualSelectButton" />
+        style="@style/separator" />
 
     <Button
-        android:id="@+id/manualSelectButton"
+        android:id="@+id/manual_select_button"
         android:layout_width="match_parent"
         android:layout_height="55dp"
         android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@id/separator2"
         style="@style/button"
         android:text="@string/select"
         android:hapticFeedbackEnabled="true"
-        android:visibility="invisible"
         android:background="@drawable/button_bg_states" />
+    </RelativeLayout>
 </RelativeLayout>

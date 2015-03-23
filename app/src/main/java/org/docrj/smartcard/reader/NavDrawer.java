@@ -71,15 +71,15 @@ public class NavDrawer {
         };
         drawerLayout.setDrawerListener(mDrawerToggle);
 
-        View appRoute = drawerLayout.findViewById(R.id.app_select);
-        //View batchRoute = drawerLayout.findViewById(R.id.batch_route);
+        View appSelect = drawerLayout.findViewById(R.id.app_select);
+        View batchSelect = drawerLayout.findViewById(R.id.batch_select);
         View emvRead = drawerLayout.findViewById(R.id.emv_read);
         View apps = drawerLayout.findViewById(R.id.apps);
         //View appGroups = drawerLayout.findViewById(R.id.app_groups);
         View settings = drawerLayout.findViewById(R.id.settings);
 
-        appRoute.setOnClickListener(mClickListener);
-        //batchRoute.setOnClickListener(mClickListener);
+        appSelect.setOnClickListener(mClickListener);
+        batchSelect.setOnClickListener(mClickListener);
         emvRead.setOnClickListener(mClickListener);
         apps.setOnClickListener(mClickListener);
         //appGroups.setOnClickListener(mClickListener);
@@ -150,12 +150,10 @@ public class NavDrawer {
                     finishCurrent = true;
                     break;
 
-                /*
-                case R.id.batch_route:
-                    intent.setClass(mActivity, AppRouteActivity.class);
+                case R.id.batch_select:
+                    intent.setClass(mActivity, BatchSelectActivity.class);
                     finishCurrent = true;
                     break;
-                */
 
                 case R.id.emv_read:
                     intent.setClass(mActivity, EmvReadActivity.class);

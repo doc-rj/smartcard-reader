@@ -55,7 +55,6 @@ public class ManualReaderXcvr extends OtherReaderXcvr implements ReaderXcvr.UiLi
                 // should not happen
                 Log.e(TAG, "interrupted exception!");
             }
-            mUiCallbacks.onFinish();
         } catch (TagLostException e) {
             mUiCallbacks.onError(mContext.getString(R.string.tag_lost_err));
         } catch (IOException e) {

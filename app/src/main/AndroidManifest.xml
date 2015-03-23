@@ -31,6 +31,11 @@
             android:launchMode="singleTop" >
         </activity>
         <activity
+            android:name=".BatchSelectActivity"
+            android:label="@string/batch_select"
+            android:launchMode="singleTop" >
+        </activity>
+        <activity
             android:name=".EmvReadActivity"
             android:label="@string/emv_read"
             android:launchMode="singleTop" >

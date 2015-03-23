@@ -16,7 +16,7 @@
         <!-- using toolbar so that drawer can be displayed
              in front of the action bar -->
         <include layout="@layout/incl_toolbar" />
-        <include layout="@layout/incl_activity_app_select" />
+        <include layout="@layout/incl_activity_batch_select" />
     </LinearLayout>
 
     <!-- drawer -->

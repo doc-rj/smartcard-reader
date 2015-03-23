@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Ryan Jones
+ * Copyright 2015 Ryan Jones
  *
  * This file is part of smartcard-reader, package org.docrj.smartcard.reader.
  *
@@ -19,9 +19,6 @@
 
 package org.docrj.smartcard.reader;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -31,7 +28,6 @@ import android.media.SoundPool;
 import android.nfc.NfcAdapter.ReaderCallback;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
@@ -42,16 +38,12 @@ import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.ViewGroup;
-import android.view.animation.AnimationUtils;
-import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.animation.Animation;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -61,39 +53,20 @@ import com.afollestad.materialdialogs.AlertDialogWrapper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 
-public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.UiCallbacks,
+
+public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr.UiCallbacks,
     ReaderCallback, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = LaunchActivity.TAG;
 
-    private static final String[] GROUPS = SmartcardApp.GROUPS;
-
-    // update all five items below when adding/removing default apps!
-    static final int DEFAULT_APP_POS = 0;
-    static final String[] APP_NAMES = {
-        "Amex", "Amex 5-Byte", "Amex 7-Byte", // American Express ExpressPay
-        "Amex 8-Byte",
-        "Discover",                           // Discover Zip
-        "MasterCard", "MasterCard U.S.",      // MasterCard PayPass
-        "Visa", "Visa Credit", "Visa Debit",  // Visa PayWave
-        "Test Pay", "Test Other"
-    };
-    static final String[] APP_AIDS = {
-        "A00000002501", "A000000025", "A0000000250107",
-        "A000000025010701",
-        "A0000003241010",
-        "A0000000041010", "A0000000042203",
-        "A0000000031010", "A000000003101001", "A000000003101002",
-        "F07465737420414944", "F07465737420414944"
-    };
-    // all are payment type except "Test Other"
-    static final int[] APP_TYPES = {
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
-    };
-    static final int[] APP_READ_ONLY = {
-        1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0
-    };
+    private static final String[] DEFAULT_GROUPS = SmartcardApp.GROUPS;
 
     // dialogs
     static final int DIALOG_ENABLE_NFC = 0;
@@ -104,54 +77,45 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
     static final int TAP_FEEDBACK_AUDIO = 2;
 
     // test modes
-    private static final int TEST_MODE_APP_SELECT = Launcher.TEST_MODE_APP_SELECT;
+    private static final int TEST_MODE_BATCH_SELECT = Launcher.TEST_MODE_BATCH_SELECT;
 
     private NavDrawer mNavDrawer;
-    private Handler mHandler;
     private Editor mEditor;
     private NfcManager mNfcManager;
     private Console mConsole;
 
     private boolean mAutoClear;
-    private boolean mManual;
     private boolean mShowMsgSeparators;
     private int mTapFeedback;
-    private boolean mSelectHaptic;
 
     private int mTapSound;
     private SoundPool mSoundPool;
     private Vibrator mVibrator;
 
-    private int mSelectedAppPos = DEFAULT_APP_POS;
+    private int mSelectedGrpPos = 0;
     private ArrayList<SmartcardApp> mApps;
+    // groups created by user (no payment/other)
+    private HashSet<String> mGroups;
     private boolean mSelectInInit;
 
-    private TextView mIntro;
-    private ViewGroup mSelectBar;
-    private Button mSelectButton;
-    private Spinner mAppSpinner;
-    private MenuItem mManualMenuItem;
+    private ArrayList<SmartcardApp> mGrpMembers;
+    private GroupAdapter mGrpAdapter;
+    private Spinner mGrpSpinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.drawer_activity_app_select);
-
-        mIntro = (TextView) findViewById(R.id.intro);
-        mSelectBar = (ViewGroup) findViewById(R.id.manual_select_bar);
-        mSelectButton = (Button) findViewById(R.id.manual_select_button);
+        setContentView(R.layout.drawer_activity_batch_select);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mNavDrawer = new NavDrawer(this, savedInstanceState, R.id.app_select, drawerLayout, toolbar);
+        mNavDrawer = new NavDrawer(this, savedInstanceState, R.id.batch_select, drawerLayout, toolbar);
 
         ListView listView = (ListView) findViewById(R.id.msg_list);
         ViewSwitcher switcher = (ViewSwitcher) findViewById(R.id.switcher);
-        mConsole = new Console(this, savedInstanceState, TEST_MODE_APP_SELECT, listView, switcher);
-
-        mHandler = new Handler();
+        mConsole = new Console(this, savedInstanceState, TEST_MODE_BATCH_SELECT, listView, switcher);
         mNfcManager = new NfcManager(this, this);
 
         ApduParser.init(this);
@@ -160,38 +124,23 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
         SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
         mEditor = ss.edit();
 
-        // if shared prefs is empty, synchronously write defaults
-        String json = ss.getString("apps", null);
-        if (json == null) {
-            // initialize default smartcard apps
-            mApps = new ArrayList<SmartcardApp>();
-            for (int i = 0; i < APP_NAMES.length; i++) {
-                SmartcardApp app = new SmartcardApp(APP_NAMES[i], APP_AIDS[i], APP_TYPES[i]);
-                // a few smartcard apps cannot be edited or deleted
-                if (APP_READ_ONLY[i] == 1) {
-                    app.setReadOnly(true);
-                }
-                mApps.add(app);
-            }
-            // write to shared prefs
-            writePrefs();
-        }
-
         // do not clear messages for initial selection
         mSelectInInit = true;
-        mAppSpinner = (Spinner) findViewById(R.id.app);
-        mAppSpinner
+        mGrpAdapter = new GroupAdapter(getLayoutInflater());
+        mGrpSpinner = (Spinner) findViewById(R.id.group);
+        mGrpSpinner
                 .setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent,
-                                               View view, int pos, long id) {
-                        if (!mSelectInInit && !mManual) {
+                            View view, int pos, long id) {
+                        if (!mSelectInInit) {
                             clearMessages(true);
                         }
                         mSelectInInit = false;
-                        mSelectedAppPos = pos;
-                        Log.d(TAG, "App: " + mApps.get(pos).getName()
-                                + ", AID: " + mApps.get(pos).getAid());
+                        mSelectedGrpPos = pos;
+                        String groupName = mGrpAdapter.getGroupName(pos);
+                        mGrpMembers = findGroupMembers(groupName);
+                        Log.d(TAG, "group: " + groupName + ", size: " + mGrpMembers.size());
                     }
 
                     @Override
@@ -207,45 +156,8 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
         mShowMsgSeparators = prefs.getBoolean("pref_show_separators", true);
         String tapFeedback = prefs.getString("pref_tap_feedback", "1");
         mTapFeedback = Integer.valueOf(tapFeedback);
-        mSelectHaptic = prefs.getBoolean("pref_select_haptic", true);
 
         mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-    }
-
-    private void prepareViewForMode() {
-        mIntro.setText(mManual ? R.string.intro_app_select_manual : R.string.intro_app_select);
-        if (mManual) {
-            mSelectButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (mSelectHaptic) {
-                        v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY,
-                                HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
-                    }
-                    clearMessages(false);
-                    // short delay to show cleared messages
-                    mHandler.postDelayed(new Runnable() {
-                        public void run() {
-                            onError(getString(R.string.manual_disconnected));
-                        }
-                    }, 50L);
-                }
-            });
-            if (mSelectBar.getVisibility() == View.INVISIBLE) {
-                // slide select bar up and shake the button!
-                mSelectBar.setVisibility(View.VISIBLE);
-                Animation slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up);
-                mSelectBar.startAnimation(slideUp);
-                Animation shake = AnimationUtils.loadAnimation(this, R.anim.shake);
-                mSelectButton.startAnimation(shake);
-            }
-        } else {
-            if (mSelectBar.getVisibility() == View.VISIBLE) {
-                Animation slideDown = AnimationUtils.loadAnimation(this, R.anim.slide_down);
-                mSelectBar.startAnimation(slideDown);
-                mSelectBar.setVisibility(View.INVISIBLE);
-            }
-        }
     }
 
     @Override
@@ -264,8 +176,6 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
         } else if (key.equals("pref_tap_feedback")) {
             String tapFeedback = prefs.getString("pref_tap_feedback", "1");
             mTapFeedback = Integer.valueOf(tapFeedback);
-        } else if (key.equals("pref_select_haptic")) {
-            mSelectHaptic = prefs.getBoolean("pref_select_haptic", true);
         }
     }
 
@@ -275,22 +185,37 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
 
         // restore persistent data
         SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
-        String json = ss.getString("apps", null);
-        // deserialize list of SmartcardApp
+
         Gson gson = new Gson();
-        Type collectionType = new TypeToken<ArrayList<SmartcardApp>>() {}.getType();
-        mApps = gson.fromJson(json, collectionType);
-        mSelectedAppPos = ss.getInt("selected_app_pos", mSelectedAppPos);
+        Type collectionType;
+        String json = ss.getString("apps", null);
+        if (json != null) {
+            collectionType = new TypeToken<ArrayList<SmartcardApp>>() {
+            }.getType();
+            mApps = gson.fromJson(json, collectionType);
+        }
+        json = ss.getString("groups", null);
+        if (json == null) {
+            mGroups = new LinkedHashSet<>();
+        } else {
+            collectionType = new TypeToken<LinkedHashSet<String>>() {
+            }.getType();
+            mGroups = gson.fromJson(json, collectionType);
+        }
+        mGroups.addAll(Arrays.asList(DEFAULT_GROUPS));
+
+        mSelectedGrpPos = ss.getInt("selected_grp_pos", mSelectedGrpPos);
 
         // do not clear messages for this selection on resume;
         // setAdapter and setSelection result in onItemSelected callback
         mSelectInInit = true;
-        AppAdapter appAdapter = new AppAdapter(this, mApps, false);
-        mAppSpinner.setAdapter(appAdapter);
-        mAppSpinner.setSelection(mSelectedAppPos);
 
-        mManual = ss.getBoolean("manual", mManual);
-        prepareViewForMode();
+        mGrpAdapter.clear();
+        for (String group : mGroups) {
+            mGrpAdapter.addGroup(group, findGroupMembers(group));
+        }
+        mGrpSpinner.setAdapter(mGrpAdapter);
+        mGrpSpinner.setSelection(mSelectedGrpPos);
 
         mNfcManager.onResume();
         mConsole.onResume();
@@ -347,25 +272,15 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_app_select, menu);
-        mManualMenuItem = menu.findItem(R.id.menu_manual);
-
-        prepareOptionsMenu();
-
+        getMenuInflater().inflate(R.menu.activity_batch_select, menu);
         MenuItem item = menu.findItem(R.id.menu_share_msgs);
         mConsole.setShareProvider((ShareActionProvider) MenuItemCompat.getActionProvider(item));
         return true;
     }
 
-    private void prepareOptionsMenu() {
-        mManualMenuItem.setChecked(mManual);
-    }
-
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        prepareOptionsMenu();
         boolean drawerOpen = mNavDrawer.isOpen();
-        mManualMenuItem.setVisible(!drawerOpen);
         MenuItem item = menu.findItem(R.id.menu_share_msgs);
         item.setVisible(!drawerOpen);
         item = menu.findItem(R.id.menu_clear_msgs);
@@ -379,14 +294,6 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
             return true;
         }
         switch (item.getItemId()) {
-            case R.id.menu_manual:
-                boolean shouldCheck = !mManualMenuItem.isChecked();
-                mManualMenuItem.setChecked(shouldCheck);
-                mManual = shouldCheck;
-                prepareViewForMode();
-                clearMessages(true);
-                return true;
-
             case R.id.menu_clear_msgs:
                 clearMessages(true);
                 return true;
@@ -429,6 +336,8 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
         if (mAutoClear) {
             clearMessages();
         } else {
+            // two separators between taps/discoveries
+            addMessageSeparator();
             addMessageSeparator();
         }
         // get IsoDep handle and run xcvr thread
@@ -436,29 +345,7 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
         if (isoDep == null) {
             onError(getString(R.string.wrong_tag_err));
         } else {
-            ReaderXcvr xcvr;
-            String aid = mApps.get(mSelectedAppPos).getAid();
-
-            if (mManual) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Animation shake = AnimationUtils.loadAnimation(AppSelectActivity.this, R.anim.shake);
-                        mSelectButton.startAnimation(shake);
-                    }
-                });
-                // manual select mode; for multiple selects per tap/connect
-                // does not select ppse for payment apps unless specifically configured
-                xcvr = new ManualReaderXcvr(isoDep, aid, this);
-            } else if (mApps.get(mSelectedAppPos).getType() == SmartcardApp.TYPE_PAYMENT) {
-                // payment, ie. always selects ppse first
-                xcvr = new PaymentReaderXcvr(isoDep, aid, this, TEST_MODE_APP_SELECT);
-            } else {
-                // other/non-payment; auto select on each tap/connect
-                xcvr = new OtherReaderXcvr(isoDep, aid, this);
-            }
-
-            new Thread(xcvr).start();
+            new Thread(new BatchReaderXcvr(isoDep, mGrpMembers, this)).start();
         }
     }
 
@@ -502,30 +389,6 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
 
     @Override
     public void setUserSelectListener(final ReaderXcvr.UiListener callback) {
-        mSelectButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // haptic feedback
-                if (mSelectHaptic) {
-                    v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY,
-                            HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
-                }
-                // update console and do select transaction
-                if (mAutoClear) {
-                    clearMessages(false);
-                    // short delay to show cleared messages
-                    mHandler.postDelayed(new Runnable() {
-                        public void run() {
-                            callback.onUserSelect(mApps.get(mSelectedAppPos).getAid());
-                        }
-                    }, 50L);
-                } else {
-                    clearImage();
-                    addMessageSeparator();
-                    callback.onUserSelect(mApps.get(mSelectedAppPos).getAid());
-                }
-            }
-        });
     }
 
     @Override
@@ -540,21 +403,22 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
     }
 
     private void writePrefs() {
-        // serialize list of SmartcardApp
-        Gson gson = new Gson();
-        String json = gson.toJson(mApps);
-        mEditor.putString("apps", json);
-        mEditor.putInt("selected_app_pos", mSelectedAppPos);
-        mEditor.putBoolean("manual", mManual);
-        mEditor.putInt("test_mode", TEST_MODE_APP_SELECT);
+        mEditor.putInt("selected_grp_pos", mSelectedGrpPos);
+        mEditor.putInt("test_mode", TEST_MODE_BATCH_SELECT);
         mEditor.commit();
     }
 
-    private class writePrefsTask extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected Void doInBackground(Void... v) {
-            writePrefs();
-            return null;
+    private ArrayList<SmartcardApp> findGroupMembers(String groupName) {
+        ArrayList<SmartcardApp> apps = new ArrayList<>();
+        for (SmartcardApp app : mApps) {
+            HashSet<String> groups = app.getGroups();
+            for (String group : groups) {
+                if (group.equals(groupName)) {
+                    apps.add(app);
+                    break;
+                }
+            }
         }
+        return apps;
     }
 }
