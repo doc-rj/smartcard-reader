@@ -19,11 +19,13 @@
         android:text="@string/choose_app"
         android:textSize="@dimen/font_medium"
         android:paddingTop="10dp"
-        android:paddingLeft="10dp" />
+        android:paddingBottom="10dp"
+        android:paddingLeft="8dp" />
 
-    <ListView
+    <org.docrj.smartcard.reader.AnimatedExpandableListView
         android:id="@+id/listView"
-        style="@style/spinner"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_below="@id/text1" />
 
 </RelativeLayout>

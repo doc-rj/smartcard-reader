@@ -21,6 +21,8 @@ package org.docrj.smartcard.reader;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -69,30 +71,30 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
 
     private static final String[] GROUPS = SmartcardApp.GROUPS;
 
-    // update all five items below when adding/removing default apps!
+    // update all five memberApps below when adding/removing default apps!
     static final int DEFAULT_APP_POS = 0;
     static final String[] APP_NAMES = {
         "Amex", "Amex 5-Byte", "Amex 7-Byte", // American Express ExpressPay
-        "Amex 8-Byte",
+        "Amex 8-Byte",                        // ""
         "Discover",                           // Discover Zip
         "MasterCard", "MasterCard U.S.",      // MasterCard PayPass
-        "Visa", "Visa Credit", "Visa Debit",  // Visa PayWave
-        "Test Pay", "Test Other"
+        "Test Other", "Test Pay",             // test
+        "Visa", "Visa Credit", "Visa Debit"   // Visa PayWave
     };
     static final String[] APP_AIDS = {
         "A00000002501", "A000000025", "A0000000250107",
         "A000000025010701",
         "A0000003241010",
         "A0000000041010", "A0000000042203",
+        "F07465737420414944", "F07465737420414944",
         "A0000000031010", "A000000003101001", "A000000003101002",
-        "F07465737420414944", "F07465737420414944"
     };
     // all are payment type except "Test Other"
     static final int[] APP_TYPES = {
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0
     };
     static final int[] APP_READ_ONLY = {
-        1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0
+        1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0
     };
 
     // dialogs
@@ -280,6 +282,10 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
         Gson gson = new Gson();
         Type collectionType = new TypeToken<ArrayList<SmartcardApp>>() {}.getType();
         mApps = gson.fromJson(json, collectionType);
+
+        // TODO: remove
+        //Collections.sort(mApps, SmartcardApp.nameComparator);
+
         mSelectedAppPos = ss.getInt("selected_app_pos", mSelectedAppPos);
 
         // do not clear messages for this selection on resume;
@@ -300,18 +306,18 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
 
     @Override
     public void onPause() {
-        super.onPause();
         writePrefs();
         releaseSoundPool();
         mConsole.onPause();
         mNfcManager.onPause();
+        super.onPause();
     }
 
     @Override
     public void onStop() {
-        super.onStop();
         // dismiss enable NFC dialog
         mNfcManager.onStop();
+        super.onStop();
     }
 
     @Override

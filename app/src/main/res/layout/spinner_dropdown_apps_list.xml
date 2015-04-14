@@ -7,5 +7,5 @@
     android:layout_height="fill_parent"
     android:gravity="center_vertical|left"
 
-    android:drawableLeft="@drawable/credit_card2_dark"
+    android:drawableLeft="@drawable/credit_card_green"
     android:drawablePadding="4dp" />

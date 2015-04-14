@@ -75,14 +75,12 @@ public class NavDrawer {
         View batchSelect = drawerLayout.findViewById(R.id.batch_select);
         View emvRead = drawerLayout.findViewById(R.id.emv_read);
         View apps = drawerLayout.findViewById(R.id.apps);
-        //View appGroups = drawerLayout.findViewById(R.id.app_groups);
         View settings = drawerLayout.findViewById(R.id.settings);
 
         appSelect.setOnClickListener(mClickListener);
         batchSelect.setOnClickListener(mClickListener);
         emvRead.setOnClickListener(mClickListener);
         apps.setOnClickListener(mClickListener);
-        //appGroups.setOnClickListener(mClickListener);
         settings.setOnClickListener(mClickListener);
 
         if (inState != null) {
@@ -141,7 +139,6 @@ public class NavDrawer {
 
             final Intent intent = new Intent();
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            //intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             boolean finishCurrent = false;
             final int viewId = view.getId();
             switch(viewId) {
@@ -164,13 +161,6 @@ public class NavDrawer {
                     intent.setClass(mActivity, AppsListActivity.class);
                     finishCurrent = false;
                     break;
-
-                /*
-                case R.id.app_groups:
-                    intent.setClass(mActivity, AppsListActivity.class);
-                    finishCurrent = false;
-                    break;
-                */
 
                 case R.id.settings:
                     intent.setClass(mActivity, SettingsActivity.class);

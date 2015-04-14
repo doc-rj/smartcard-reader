@@ -22,6 +22,7 @@ package org.docrj.smartcard.reader;
 import org.docrj.smartcard.util.Util;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 
@@ -41,6 +42,15 @@ public class SmartcardApp {
     private boolean mReadOnly;
 
     private HashSet<String> mGroups = new LinkedHashSet<>();
+
+    public static Comparator<SmartcardApp> nameComparator =
+            new Comparator<SmartcardApp>() {
+                @Override
+                public int compare(SmartcardApp app1, SmartcardApp app2) {
+                    // alphabetize in ascending order, case insensitive
+                    return app1.mName.toLowerCase().compareTo(app2.mName.toLowerCase());
+                }
+            };
 
     public SmartcardApp() {
     }

@@ -29,7 +29,6 @@ import android.nfc.NfcAdapter.ReaderCallback;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.view.MenuItemCompat;
@@ -42,11 +41,9 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
 import com.afollestad.materialdialogs.AlertDialogWrapper;
@@ -56,6 +53,7 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -99,7 +97,7 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
     private boolean mSelectInInit;
 
     private ArrayList<SmartcardApp> mGrpMembers;
-    private GroupAdapter mGrpAdapter;
+    private BatchSelectGroupAdapter mGrpAdapter;
     private Spinner mGrpSpinner;
 
     @Override
@@ -126,7 +124,7 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
 
         // do not clear messages for initial selection
         mSelectInInit = true;
-        mGrpAdapter = new GroupAdapter(getLayoutInflater());
+        mGrpAdapter = new BatchSelectGroupAdapter(getLayoutInflater());
         mGrpSpinner = (Spinner) findViewById(R.id.group);
         mGrpSpinner
                 .setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
@@ -139,7 +137,7 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
                         mSelectInInit = false;
                         mSelectedGrpPos = pos;
                         String groupName = mGrpAdapter.getGroupName(pos);
-                        mGrpMembers = findGroupMembers(groupName);
+                        mGrpMembers = Util.findGroupMembers(groupName, mApps);
                         Log.d(TAG, "group: " + groupName + ", size: " + mGrpMembers.size());
                     }
 
@@ -194,6 +192,7 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
             }.getType();
             mApps = gson.fromJson(json, collectionType);
         }
+
         json = ss.getString("groups", null);
         if (json == null) {
             mGroups = new LinkedHashSet<>();
@@ -204,6 +203,10 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
         }
         mGroups.addAll(Arrays.asList(DEFAULT_GROUPS));
 
+        // alphabetize, case insensitive
+        List<String> groupList = new ArrayList<>(mGroups);
+        Collections.sort(groupList, String.CASE_INSENSITIVE_ORDER);
+
         mSelectedGrpPos = ss.getInt("selected_grp_pos", mSelectedGrpPos);
 
         // do not clear messages for this selection on resume;
@@ -211,8 +214,8 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
         mSelectInInit = true;
 
         mGrpAdapter.clear();
-        for (String group : mGroups) {
-            mGrpAdapter.addGroup(group, findGroupMembers(group));
+        for (String group : groupList) {
+            mGrpAdapter.addGroup(group, Util.findGroupMembers(group, mApps));
         }
         mGrpSpinner.setAdapter(mGrpAdapter);
         mGrpSpinner.setSelection(mSelectedGrpPos);
@@ -406,19 +409,5 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
         mEditor.putInt("selected_grp_pos", mSelectedGrpPos);
         mEditor.putInt("test_mode", TEST_MODE_BATCH_SELECT);
         mEditor.commit();
-    }
-
-    private ArrayList<SmartcardApp> findGroupMembers(String groupName) {
-        ArrayList<SmartcardApp> apps = new ArrayList<>();
-        for (SmartcardApp app : mApps) {
-            HashSet<String> groups = app.getGroups();
-            for (String group : groups) {
-                if (group.equals(groupName)) {
-                    apps.add(app);
-                    break;
-                }
-            }
-        }
-        return apps;
     }
 }

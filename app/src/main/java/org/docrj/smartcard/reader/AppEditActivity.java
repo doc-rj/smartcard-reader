@@ -49,8 +49,10 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 
 public class AppEditActivity extends ActionBarActivity {
@@ -73,7 +75,13 @@ public class AppEditActivity extends ActionBarActivity {
     private SharedPreferences.Editor mEditor;
     private ArrayList<SmartcardApp> mApps;
     private String mAction;
-    private int mAppPos;
+    private int mAppPos;             // app select pos
+
+    private List<String> mSortedAllGroups;
+    private int mSelectedGrpPos;     // batch select group idx
+    private String mSelectedGrpName;
+    private int mExpandedGrpPos;     // app browse group idx
+    private String mExpandedGrpName;
 
     private EditText mName;
     private EditText mAid;
@@ -85,7 +93,7 @@ public class AppEditActivity extends ActionBarActivity {
     private HashSet<String> mAppGroups;
 
     private Button mGrpButton;
-    // group items for the popup window list adapter
+    // group memberApps for the popup window list adapter
     private ArrayList<GroupItem> mGrpItems = new ArrayList<>();
     private GroupAdapter mGrpAdapter;
     private ListPopupWindow mPopup;
@@ -136,13 +144,23 @@ public class AppEditActivity extends ActionBarActivity {
                 Type collectionType = new TypeToken<LinkedHashSet<String>>() {
                 }.getType();
                 mUserGroups = gson.fromJson(json, collectionType);
-                // here we do not need the default groups payment/other
-                //mUserGroups.removeAll(Arrays.asList(DEFAULT_GROUPS));
             }
         } else {
             mUserGroups =
                 new LinkedHashSet<>(savedInstanceState.getStringArrayList("user_groups"));
         }
+
+        // alphabetize, case insensitive
+        mSortedAllGroups = new ArrayList<>(mUserGroups);
+        mSortedAllGroups.addAll(Arrays.asList(DEFAULT_GROUPS));
+        Collections.sort(mSortedAllGroups, String.CASE_INSENSITIVE_ORDER);
+
+        // when adding or removing groups, we may need to adjust group position indices for
+        // batch select and app browse activities, which apply to the sorted list of groups
+        mSelectedGrpPos = ss.getInt("selected_grp_pos", 0);
+        mSelectedGrpName = mSortedAllGroups.get(mSelectedGrpPos);
+        mExpandedGrpPos = ss.getInt("expanded_grp_pos", -1);
+        mExpandedGrpName = (mExpandedGrpPos == -1) ? "" : mSortedAllGroups.get(mExpandedGrpPos);
 
         Intent intent = getIntent();
         mAction = intent.getAction();
@@ -159,6 +177,7 @@ public class AppEditActivity extends ActionBarActivity {
             mType.check((app.getType() == SmartcardApp.TYPE_OTHER) ? R.id.radio_other
                     : R.id.radio_payment);
         }
+
         if (savedInstanceState == null) {
             if (ACTION_EDIT_APP.equals(mAction) || ACTION_COPY_APP.equals(mAction)) {
                 SmartcardApp app = mApps.get(mAppPos);
@@ -305,6 +324,15 @@ public class AppEditActivity extends ActionBarActivity {
             if (!newApp.equals(app)) {
                 appChanged = true;
                 mApps.set(mAppPos, newApp);
+
+                if (!newApp.getGroups().equals(app.getGroups())) {
+                    for (String group : app.getGroups()) {
+                        // remove group if empty
+                        if (Util.isGroupEmpty(group, mApps)) {
+                            removeGroup(group);
+                        }
+                    }
+                }
             }
         }
 
@@ -327,14 +355,17 @@ public class AppEditActivity extends ActionBarActivity {
     }
 
     private void writePrefs() {
-        // serialize list of SmartcardApp
+        // serialize list of apps
         Gson gson = new Gson();
         String json = gson.toJson(mApps);
         mEditor.putString("apps", json);
-
-        // TODO: check this. shouldn't we store defaults: payment/other
+        // serialize hash set of user-added groups
         json = gson.toJson(mUserGroups);
         mEditor.putString("groups", json);
+        // selected group in batch select mode
+        mEditor.putInt("selected_grp_pos", mSelectedGrpPos);
+        // expanded group in app browse
+        mEditor.putInt("expanded_grp_pos", mExpandedGrpPos);
         mEditor.commit();
     }
 
@@ -378,9 +409,47 @@ public class AppEditActivity extends ActionBarActivity {
                         }
                         mAppGroups.add(name);
                         mUserGroups.add(name);
+                        // if inserting alphabetically "smaller" group name,
+                        // then adjust the saved group position indices
+                        if (name.compareTo(mSelectedGrpName) < 0) {
+                            mSelectedGrpPos++;
+                            mSelectedGrpName = mSortedAllGroups.get(mSelectedGrpPos);
+                        }
+                        if (name.compareTo(mExpandedGrpName) < 0) {
+                            mExpandedGrpPos++;
+                            mExpandedGrpName = mSortedAllGroups.get(mExpandedGrpPos);
+                        }
                         updateGrpButton();
                     }
                 });
+    }
+
+    private void removeGroup(String name) {
+        // remove from saved hash set
+        mUserGroups.remove(name);
+        // adjust selected group position indices as needed
+        if (name.equals(mSelectedGrpName)) {
+            // always guaranteed at least two groups: other and payment
+            mSelectedGrpName = (mSelectedGrpPos == 0) ?
+                    mSortedAllGroups.get(1) : mSortedAllGroups.get(0);
+            mSelectedGrpPos = 0;
+        } else
+        if (name.compareTo(mSelectedGrpName) < 0) {
+            mSelectedGrpPos--;
+            mSelectedGrpName = mSortedAllGroups.get(mSelectedGrpPos);
+        }
+        // adjust expanded group position index as needed
+        if (name.equals(mExpandedGrpName)) {
+            // no expanded group; all collapsed
+            mExpandedGrpPos = -1;
+            mExpandedGrpName = "";
+        } else
+        if (name.compareTo(mExpandedGrpName) < 0) {
+            mExpandedGrpPos--;
+            mExpandedGrpName = mSortedAllGroups.get(mExpandedGrpPos);
+        }
+        // remove from sorted list
+        mSortedAllGroups.remove(name);
     }
 
     public static final class GroupItem {
@@ -408,7 +477,7 @@ public class AppEditActivity extends ActionBarActivity {
 
     private class GroupAdapter extends ArrayAdapter<GroupItem> {
         public GroupAdapter(Activity context, ArrayList<GroupItem> groupItems) {
-            super(context, R.layout.group_list_item, groupItems);
+            super(context, R.layout.app_edit_group_list_item, groupItems);
         }
 
         @Override
@@ -428,15 +497,20 @@ public class AppEditActivity extends ActionBarActivity {
             return checkedTextView;
         }
 
+        // list position (count - 2) is reserved for payment/other;
+        // it is informational only and cannot be unchecked
         @Override
         public boolean isEnabled(int position) {
             return position != getCount()-2;
         }
 
+        // list position (count - 1) is reserved for "new group" action item
+        // does not have a checkbox
         public boolean hasCheckbox(int position) {
             return position != getCount()-1;
         }
 
+        // this is needed for getView() to work as expected
         @Override
         public int getItemViewType(int position) {
             if (hasCheckbox(position)) {
@@ -446,6 +520,7 @@ public class AppEditActivity extends ActionBarActivity {
             }
         }
 
+        // this is needed for getView() to work as expected
         @Override
         public int getViewTypeCount() {
             return 3;
@@ -457,10 +532,9 @@ public class AppEditActivity extends ActionBarActivity {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     ListView list = (ListView) parent;
-                    int count = mGrpItems.size();
-
-                    if (list.isItemChecked(count - 1)) {
-                        list.setItemChecked(count - 1, false);
+                    int lastIndex = mGrpItems.size() - 1;
+                    if (list.isItemChecked(lastIndex)) {
+                        list.setItemChecked(lastIndex, false);
                         createNewGroup();
                         return;
                     }

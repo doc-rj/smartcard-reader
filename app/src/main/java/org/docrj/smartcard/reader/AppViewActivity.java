@@ -45,7 +45,11 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 
 public class AppViewActivity extends ActionBarActivity {
@@ -74,12 +78,20 @@ public class AppViewActivity extends ActionBarActivity {
     private int mAppPos;
     private boolean mReadOnly;
 
+    private HashSet<String> mUserGroups;
+    private List<String> mSortedAllGroups;
+    private int mSelectedGrpPos;     // batch select group idx
+    private String mSelectedGrpName;
+    private int mExpandedGrpPos;     // app browse group idx
+    private String mExpandedGrpName;
+
     private EditText mName;
     private EditText mAid;
     private RadioGroup mType;
     private TextView mGroups;
     private TextView mNote;
     private AlertDialog mConfirmDeleteDialog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +112,29 @@ public class AppViewActivity extends ActionBarActivity {
         mEditor = ss.edit();
 
         mSelectedAppPos = ss.getInt("selected_app_pos", 0);
+
+        Gson gson = new Gson();
+        String json = ss.getString("groups", null);
+        if (json == null) {
+            mUserGroups = new LinkedHashSet<>();
+        } else {
+            Type collectionType = new TypeToken<LinkedHashSet<String>>() {
+            }.getType();
+            mUserGroups = gson.fromJson(json, collectionType);
+        }
+
+        // alphabetize, case insensitive
+        mSortedAllGroups = new ArrayList<>(mUserGroups);
+        mSortedAllGroups.addAll(Arrays.asList(DEFAULT_GROUPS));
+        Collections.sort(mSortedAllGroups, String.CASE_INSENSITIVE_ORDER);
+
+        // when deleting an app results in an empty group, we remove the group;
+        // we may need to adjust group position indices for batch select and app
+        // browse activities, which apply to the sorted list of groups
+        mSelectedGrpPos = ss.getInt("selected_grp_pos", 0);
+        mSelectedGrpName = mSortedAllGroups.get(mSelectedGrpPos);
+        mExpandedGrpPos = ss.getInt("expanded_grp_pos", -1);
+        mExpandedGrpName = (mExpandedGrpPos == -1) ? "" : mSortedAllGroups.get(mExpandedGrpPos);
 
         Intent intent = getIntent();
         mAppPos = intent.getIntExtra(EXTRA_APP_POS, 0);
@@ -255,7 +290,17 @@ public class AppViewActivity extends ActionBarActivity {
         } else if (mSelectedAppPos > mAppPos) {
             mSelectedAppPos--;
         }
-        mApps.remove(mAppPos);
+        // remove app from list
+        SmartcardApp app = mApps.remove(mAppPos);
+        HashSet<String> groups = app.getGroups();
+        // only bother if assigned to more than the default other/payment group
+        if (groups.size() > 1) {
+            for (String group : groups) {
+                if (Util.isGroupEmpty(group, mApps)) {
+                    removeGroup(group);
+                }
+            }
+        }
         writePrefs();
         finish();
     }
@@ -306,11 +351,47 @@ public class AppViewActivity extends ActionBarActivity {
     }
 
     private void writePrefs() {
-        // serialize list of SmartcardApp
+        // serialize list of apps
         Gson gson = new Gson();
         String json = gson.toJson(mApps);
         mEditor.putString("apps", json);
+        // selected app in app select mode
         mEditor.putInt("selected_app_pos", mSelectedAppPos);
+        // serialize hash set of user-added groups
+        json = gson.toJson(mUserGroups);
+        mEditor.putString("groups", json);
+        // selected group in batch select mode
+        mEditor.putInt("selected_grp_pos", mSelectedGrpPos);
+        // expanded group in app browse
+        mEditor.putInt("expanded_grp_pos", mExpandedGrpPos);
         mEditor.commit();
+    }
+
+    private void removeGroup(String name) {
+        // remove from saved hash set
+        mUserGroups.remove(name);
+        // adjust selected group position indices as needed
+        if (name.equals(mSelectedGrpName)) {
+            // always guaranteed at least two groups: other and payment
+            mSelectedGrpName = (mSelectedGrpPos == 0) ?
+                    mSortedAllGroups.get(1) : mSortedAllGroups.get(0);
+            mSelectedGrpPos = 0;
+        } else
+        if (name.compareTo(mSelectedGrpName) < 0) {
+            mSelectedGrpPos--;
+            mSelectedGrpName = mSortedAllGroups.get(mSelectedGrpPos);
+        }
+        // adjust expanded group position index as needed
+        if (name.equals(mExpandedGrpName)) {
+            // no expanded group; all collapsed
+            mExpandedGrpPos = -1;
+            mExpandedGrpName = "";
+        } else
+        if (name.compareTo(mExpandedGrpName) < 0) {
+            mExpandedGrpPos--;
+            mExpandedGrpName = mSortedAllGroups.get(mExpandedGrpPos);
+        }
+        // remove from sorted list
+        mSortedAllGroups.remove(name);
     }
 }
