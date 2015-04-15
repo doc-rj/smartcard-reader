@@ -76,7 +76,8 @@ public class BatchSelectGroupAdapter extends BaseAdapter {
         mGroups.clear();
     }
 
-    public void addGroup(String name, Collection<SmartcardApp> members) {
+    // returns array list position for the group
+    public int addGroup(String name, Collection<SmartcardApp> members) {
         int type;
         if (name.equals(DEFAULT_GROUPS[SmartcardApp.TYPE_PAYMENT])) {
             type = GROUP_TYPE_PAYMENT;
@@ -101,13 +102,15 @@ public class BatchSelectGroupAdapter extends BaseAdapter {
                 type = GROUP_TYPE_OTHER;
             }
         }
-        addGroup(name, type, members.size());
+        return addGroup(name, type, members.size());
     }
 
-    public void addGroup(String name, int type, int numMembers) {
+    // returns array list position for the group
+    public int addGroup(String name, int type, int numMembers) {
         Group group = new Group(name, type, numMembers);
         mGroups.add(group);
         notifyDataSetChanged();
+        return mGroups.size() - 1;
     }
 
     public String getGroupName(int position) {

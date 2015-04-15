@@ -233,6 +233,7 @@ public class AppsListActivity extends ActionBarActivity {
 
     private static class GroupItem {
         String groupName;
+        // mapping of app to its position in the apps list
         HashMap<SmartcardApp, Integer> appToPosMap;
         List<SmartcardApp> memberApps;
 

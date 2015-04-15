@@ -66,7 +66,7 @@ public class Util {
         return true;
     }
 
-    // returns a mapping of group member apps to their position in the mApps list
+    // returns a mapping of group member apps to their position in the apps list
     public static HashMap<SmartcardApp, Integer> mapGroupMembers(String groupName, List<SmartcardApp> apps) {
         HashMap<SmartcardApp, Integer> memberApps = new LinkedHashMap<>();
         int i = 0;

@@ -54,6 +54,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -92,11 +93,10 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
 
     private int mSelectedGrpPos = 0;
     private ArrayList<SmartcardApp> mApps;
-    // groups created by user (no payment/other)
-    private HashSet<String> mGroups;
+    // mapping of group adapter list position to alphabetized member apps
+    private HashMap<Integer, List<SmartcardApp>> mGrpToMembersMap = new HashMap<>(2);
     private boolean mSelectInInit;
 
-    private ArrayList<SmartcardApp> mGrpMembers;
     private BatchSelectGroupAdapter mGrpAdapter;
     private Spinner mGrpSpinner;
 
@@ -137,8 +137,7 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
                         mSelectInInit = false;
                         mSelectedGrpPos = pos;
                         String groupName = mGrpAdapter.getGroupName(pos);
-                        mGrpMembers = Util.findGroupMembers(groupName, mApps);
-                        Log.d(TAG, "group: " + groupName + ", size: " + mGrpMembers.size());
+                        Log.d(TAG, "group: " + groupName);
                     }
 
                     @Override
@@ -193,18 +192,17 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
             mApps = gson.fromJson(json, collectionType);
         }
 
+        HashSet<String> groups = new LinkedHashSet<>();
         json = ss.getString("groups", null);
-        if (json == null) {
-            mGroups = new LinkedHashSet<>();
-        } else {
+        if (json != null) {
             collectionType = new TypeToken<LinkedHashSet<String>>() {
             }.getType();
-            mGroups = gson.fromJson(json, collectionType);
+            groups = gson.fromJson(json, collectionType);
         }
-        mGroups.addAll(Arrays.asList(DEFAULT_GROUPS));
+        groups.addAll(Arrays.asList(DEFAULT_GROUPS));
 
         // alphabetize, case insensitive
-        List<String> groupList = new ArrayList<>(mGroups);
+        List<String> groupList = new ArrayList<>(groups);
         Collections.sort(groupList, String.CASE_INSENSITIVE_ORDER);
 
         mSelectedGrpPos = ss.getInt("selected_grp_pos", mSelectedGrpPos);
@@ -214,8 +212,12 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
         mSelectInInit = true;
 
         mGrpAdapter.clear();
+        mGrpToMembersMap.clear();
         for (String group : groupList) {
-            mGrpAdapter.addGroup(group, Util.findGroupMembers(group, mApps));
+            ArrayList<SmartcardApp> memberApps = Util.findGroupMembers(group, mApps);
+            Collections.sort(memberApps, SmartcardApp.nameComparator);
+            int pos = mGrpAdapter.addGroup(group, memberApps);
+            mGrpToMembersMap.put(pos, memberApps);
         }
         mGrpSpinner.setAdapter(mGrpAdapter);
         mGrpSpinner.setSelection(mSelectedGrpPos);
@@ -348,7 +350,8 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
         if (isoDep == null) {
             onError(getString(R.string.wrong_tag_err));
         } else {
-            new Thread(new BatchReaderXcvr(isoDep, mGrpMembers, this)).start();
+            List<SmartcardApp> memberApps = mGrpToMembersMap.get(mSelectedGrpPos);
+            new Thread(new BatchReaderXcvr(isoDep, memberApps, this)).start();
         }
     }
 
