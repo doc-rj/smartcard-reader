@@ -241,11 +241,11 @@ public class AppViewActivity extends ActionBarActivity {
                 return true;
 
             case R.id.menu_edit_app:
-                edit_app();
+                editApp();
                 return true;
 
             case R.id.menu_copy_app:
-                copy_app();
+                copyApp();
                 return true;
 
             case R.id.menu_delete_app:
@@ -253,20 +253,20 @@ public class AppViewActivity extends ActionBarActivity {
                 return true;
 
             case R.id.menu_select_app:
-                select_app();
+                selectApp();
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void edit_app() {
+    private void editApp() {
         Intent i = new Intent(this, AppEditActivity.class);
         i.setAction(ACTION_EDIT_APP);
         i.putExtra(EXTRA_APP_POS, mAppPos);
         startActivity(i);
     }
 
-    private void copy_app() {
+    private void copyApp() {
         Intent i = new Intent(this, AppEditActivity.class);
         i.setAction(ACTION_COPY_APP);
         i.putExtra(EXTRA_APP_POS, mAppPos);
@@ -284,7 +284,8 @@ public class AppViewActivity extends ActionBarActivity {
         }
     }
 
-    private void delete_app() {
+    private void deleteApp() {
+        // adjust selected position for app select mode
         if (mSelectedAppPos == mAppPos) {
             mSelectedAppPos = 0;
         } else if (mSelectedAppPos > mAppPos) {
@@ -293,7 +294,8 @@ public class AppViewActivity extends ActionBarActivity {
         // remove app from list
         SmartcardApp app = mApps.remove(mAppPos);
         HashSet<String> groups = app.getGroups();
-        // only bother if assigned to more than the default other/payment group
+        // only bother to adjust groups if app was assigned to
+        // more than the default other/payment group
         if (groups.size() > 1) {
             for (String group : groups) {
                 if (Util.isGroupEmpty(group, mApps)) {
@@ -305,7 +307,7 @@ public class AppViewActivity extends ActionBarActivity {
         finish();
     }
 
-    private void select_app() {
+    private void selectApp() {
         mSelectedAppPos = mAppPos;
         mEditor.putInt("selected_app_pos", mSelectedAppPos);
         mEditor.commit();
@@ -333,7 +335,7 @@ public class AppViewActivity extends ActionBarActivity {
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog,
                                                         int id) {
-                                        delete_app();
+                                        deleteApp();
                                     }
                                 })
                         .setNegativeButton(R.string.dialog_cancel,

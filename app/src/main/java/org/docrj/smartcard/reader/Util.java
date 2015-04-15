@@ -19,6 +19,10 @@
 
 package org.docrj.smartcard.reader;
 
+import android.content.Context;
+import android.view.Gravity;
+import android.widget.Toast;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -81,5 +85,11 @@ public class Util {
             i++;
         }
         return memberApps;
+    }
+
+    public static void showToast(Context context, String text) {
+        Toast toast = Toast.makeText(context, text, Toast.LENGTH_SHORT);
+        toast.setGravity(Gravity.CENTER_VERTICAL, 0, -100);
+        toast.show();
     }
 }

@@ -22,7 +22,6 @@ package org.docrj.smartcard.reader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -169,14 +168,14 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
             mApps = new ArrayList<SmartcardApp>();
             for (int i = 0; i < APP_NAMES.length; i++) {
                 SmartcardApp app = new SmartcardApp(APP_NAMES[i], APP_AIDS[i], APP_TYPES[i]);
-                // a few smartcard apps cannot be edited or deleted
+                // some smartcard apps cannot be edited or deleted
                 if (APP_READ_ONLY[i] == 1) {
                     app.setReadOnly(true);
                 }
                 mApps.add(app);
             }
-            // write to shared prefs
-            writePrefs();
+            // write default apps to persistent shared prefs
+            writeAppsToPrefs();
         }
 
         // do not clear messages for initial selection
@@ -282,9 +281,6 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
         Gson gson = new Gson();
         Type collectionType = new TypeToken<ArrayList<SmartcardApp>>() {}.getType();
         mApps = gson.fromJson(json, collectionType);
-
-        // TODO: remove
-        //Collections.sort(mApps, SmartcardApp.nameComparator);
 
         mSelectedAppPos = ss.getInt("selected_app_pos", mSelectedAppPos);
 
@@ -545,11 +541,15 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
         }
     }
 
-    private void writePrefs() {
-        // serialize list of SmartcardApp
+    private void writeAppsToPrefs() {
+        // serialize list of apps
         Gson gson = new Gson();
         String json = gson.toJson(mApps);
         mEditor.putString("apps", json);
+        mEditor.commit();
+    }
+
+    private void writePrefs() {
         mEditor.putInt("selected_app_pos", mSelectedAppPos);
         mEditor.putBoolean("manual", mManual);
         mEditor.putInt("test_mode", TEST_MODE_APP_SELECT);

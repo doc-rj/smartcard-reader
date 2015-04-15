@@ -59,7 +59,7 @@ public class FileShareActivity extends Activity {
                     OutputStreamWriter osw = new OutputStreamWriter(os);
                     osw.write(Html.toHtml(text));
                     osw.close();
-                    showToast(getString(R.string.saved_to, file.getName()));
+                    Util.showToast(this, getString(R.string.saved_to, file.getName()));
 
                     // add file to media library for viewing via mtp
                     Intent scanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
@@ -67,29 +67,18 @@ public class FileShareActivity extends Activity {
                     sendBroadcast(scanIntent);
                 } catch (IOException e) {
                     Log.e(TAG, "failed to write file: " + e.toString());
-                    showToast(getString(R.string.save_exception));
+                    Util.showToast(this, getString(R.string.save_exception));
                 }
             } else {
-                showToast(getString(R.string.save_not_mounted));                
+                Util.showToast(this, getString(R.string.save_not_mounted));
             }
         }
-
         finish();
     }
-    
+
     private boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state)) {
-            return true;
-        }
-        return false;
-    }
-
-    private void showToast(String text) {
-        Toast toast = Toast.makeText(FileShareActivity.this, text,
-                Toast.LENGTH_SHORT);
-        toast.setGravity(Gravity.CENTER_VERTICAL, 0, -100);
-        toast.show();
+        return Environment.MEDIA_MOUNTED.equals(state);
     }
 
     /*
@@ -106,9 +95,9 @@ public class FileShareActivity extends Activity {
             for (File file : dir.listFiles()) {
                 file.delete();
             }
-            showToast("deleted saved files");
+            Util.showToast(this, "deleted saved files");
         } else {
-            showToast("no saved files");
+            Util.showToast(this, "no saved files");
         }
     }
 
