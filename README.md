@@ -10,6 +10,7 @@ apps running on another smartphone.
 <img align="left" width="50%" src="/docs/tn_screen_nav_drawer.png">
 <img align="right" width="50%" src="/docs/tn_screen_app_select.png">
 
+
 #### So What?
 
 What exactly can smartcard-reader do for you?
@@ -50,19 +51,22 @@ modify the ones you've added.
 
 #### Test Modes
 
+Smart card apps and AIDs can be defined/created, copied, modified, and assigned to
+groups under "smartcard apps" in the navigation drawer.
+
 So, there are 4 test modes (app select has 2 sub-modes): 
 
-1. app select -- select one smart card app/AID at a time
+**1. app select** -- select one smart card app/AID at a time
 
-   1a. automatic: one select per tap
+   **1a. automatic** -- one select per tap
 
-   1b. manual w/ soft button: multiple selects and apps per tap/connection,
+   **1b. manual w/ soft button** -- multiple selects and apps per tap/connection,
 	   choose one app at a time
 
-2. batch select -- select a full group of AIDs back-to-back, automatically upon
-   tapping
+**2. batch select** -- select a full group of apps back-to-back, automatically upon
+   tapping; assign apps to groups under "smartcard apps"
 
-3. emv read -- read payment card data
+**3. emv read** -- read payment card data
 
 #### Background Info
 
