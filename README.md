@@ -4,6 +4,12 @@ smartcard-reader turns your Android device (running Kitkat or later) into a
 payment terminal or similar smartcard reader. It uses NFC to interact with a
 contactless smartcard, either physical or emulated.
 
+Among other things, it is especially useful for testing HCE (host card emulation)
+apps running on another smartphone.
+
+<img align="left" width="50%" src="/docs/tn_screen_nav_drawer.png">
+<img align="right" width="50%" src="/docs/tn_screen_app_select.png">
+
 #### So What?
 
 What exactly can smartcard-reader do for you?
@@ -26,17 +32,37 @@ the appropriate responses from another NFC-paired device -- the device under tes
 smartcard-reader can also be used to check which smartcard apps are present on
 or off host.
 
+Other developers have told me that smartcard-reader is useful for testing their
+HCE apps. One benefit is a second smartphone with this app is more convenient and
+accessible than a laptop, test reader, and scripting environment.
+
 Read more about "application selection" and AIDs [here](http://en.wikipedia.org/wiki/EMV#Application_selection).
 
 And, [here](http://www.cardwerk.com/smartcards/smartcard_standard_ISO7816-4.aspx)
 is an ISO 7816-4 reference containing APDU commands including "select file".
 
-#### Come again?
+#### Come Again?
 
 Just run smartcard-reader on one device, set the App/AID that you want to select,
 and tap it against another device -- the device doing the card emulation. You can,
 of course, also tap a physical smartcard. You can also add your own Apps/AIDs, and
 modify the ones you've added.
+
+#### Test Modes
+
+So, there are 4 test modes (app select has 2 sub-modes): 
+
+1. app select -- select one smart card app/AID at a time
+
+   1a. automatic: one select per tap
+
+   1b. manual w/ soft button: multiple selects and apps per tap/connection,
+	   choose one app at a time
+
+2. batch select -- select a full group of AIDs back-to-back, automatically upon
+   tapping
+
+3. emv read -- read payment card data
 
 #### Background Info
 
