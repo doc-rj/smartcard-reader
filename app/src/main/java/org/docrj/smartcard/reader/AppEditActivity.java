@@ -27,7 +27,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -41,7 +40,6 @@ import android.widget.ListPopupWindow;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -62,13 +60,14 @@ public class AppEditActivity extends ActionBarActivity {
     private static final String[] DEFAULT_GROUPS = SmartcardApp.GROUPS;
 
     // actions
-    private static final String ACTION_NEW_APP = AppsListActivity.ACTION_NEW_APP;
-    private static final String ACTION_VIEW_APP = AppsListActivity.ACTION_VIEW_APP;
-    private static final String ACTION_EDIT_APP = AppsListActivity.ACTION_EDIT_APP;
-    private static final String ACTION_COPY_APP = AppsListActivity.ACTION_COPY_APP;
+    private static final String ACTION_NEW_APP = AppListActivity.ACTION_NEW_APP;
+    private static final String ACTION_VIEW_APP = AppListActivity.ACTION_VIEW_APP;
+    private static final String ACTION_EDIT_APP = AppListActivity.ACTION_EDIT_APP;
+    private static final String ACTION_COPY_APP = AppListActivity.ACTION_COPY_APP;
 
     // extras
-    private static final String EXTRA_APP_POS = AppsListActivity.EXTRA_APP_POS;
+    private static final String EXTRA_SELECT = AppListActivity.EXTRA_SELECT;
+    private static final String EXTRA_APP_POS = AppListActivity.EXTRA_APP_POS;
 
     private static final int NEW_APP_POS = -1;
 
@@ -262,38 +261,6 @@ public class AppEditActivity extends ActionBarActivity {
         super.onBackPressed();
     }
 
-    private boolean validateNameAndAid(String name, String aid, boolean backPressed) {
-        if (name.isEmpty()) {
-            if (!(backPressed && mAction.equals(ACTION_NEW_APP) && aid.isEmpty())) {
-                Util.showToast(this, getString(aid.isEmpty() ?
-                        R.string.empty_name_aid : R.string.empty_name));
-            }
-            return false;
-        }
-        if (aid.isEmpty()) {
-            Util.showToast(this, getString(R.string.empty_aid));
-            return false;
-        }
-        if (aid.length() < 10 || aid.length() > 32
-                || aid.length() % 2 != 0) {
-            Util.showToast(this, getString(R.string.invalid_aid));
-            return false;
-        }
-        // ensure name is unique
-        for (int i = 0; i < mApps.size(); i++) {
-            // skip the app being edited
-            if (mAppPos == i)
-                continue;
-            SmartcardApp app = mApps.get(i);
-            if (app.getName().equals(name)) {
-                Util.showToast(this, getString(R.string.name_exists,
-                        name));
-                return false;
-            }
-        }
-        return true;
-    }
-
     private int getType() {
         int selectedId = mType.getCheckedRadioButtonId();
         RadioButton radioBtn = (RadioButton) findViewById(selectedId);
@@ -335,61 +302,16 @@ public class AppEditActivity extends ActionBarActivity {
             Util.showToast(this, getString(R.string.app_saved));
         }
 
-        if (mAction == ACTION_COPY_APP) {
+        // show app detail view after new or copy actions
+        //if (mAction == ACTION_NEW_APP || mAction == ACTION_COPY_APP) {
             Intent i = new Intent(this, AppViewActivity.class);
             i.setAction(ACTION_VIEW_APP);
             i.putExtra(EXTRA_APP_POS, mAppPos);
             startActivity(i);
             // calling activity (copy-from app view) will finish
             setResult(RESULT_OK);
-        }
+        //}
         finish();
-    }
-
-    private void handleAppChange(SmartcardApp newApp, SmartcardApp oldApp,
-                                 SmartcardApp selectedApp) {
-        // sort and re-index for name change or new name
-        if (oldApp == null || !newApp.getName().equals(oldApp.getName())) {
-            Collections.sort(mApps, SmartcardApp.nameComparator);
-            int oldAppPos = mAppPos;
-            mAppPos = mApps.indexOf(newApp);
-            // to simplify logic, just using indexOf(selectedApp) here;
-            // additional benefit is that we do not have to assume list
-            // was previously sorted
-            if (mSelectedAppPos == oldAppPos) {
-                // only applies to edit action
-                mSelectedAppPos = mAppPos;
-            } else {
-                mSelectedAppPos = mApps.indexOf(selectedApp);
-            }
-            // TODO: remove this logic, which was replaced by the above;
-            // here, re-indexing assumes list was previously sorted
-            /*
-            if (mAction == ACTION_EDIT_APP) {
-                if (mSelectedAppPos == oldAppPos) {
-                    mSelectedAppPos = mAppPos;
-                } else if (oldAppPos < mSelectedAppPos && mAppPos >= mSelectedAppPos) {
-                    mSelectedAppPos--;
-                } else if (oldAppPos > mSelectedAppPos && mAppPos <= mSelectedAppPos) {
-                    mSelectedAppPos++;
-                }
-            } else {
-                if (mAppPos <= mSelectedAppPos) {
-                    mSelectedAppPos++;
-                }
-            }
-            */
-        }
-        // handle groups change (only applies to edit action)
-        if (oldApp != null && !newApp.getGroups().equals(oldApp.getGroups())) {
-            for (String group : oldApp.getGroups()) {
-                // remove group if empty
-                if (Util.isGroupEmpty(group, mApps)) {
-                    removeGroup(group);
-                }
-            }
-        }
-        writePrefs();
     }
 
     private SmartcardApp createNewAppIfValid(boolean backPressed) {
@@ -403,6 +325,69 @@ public class AppEditActivity extends ActionBarActivity {
         SmartcardApp newApp = new SmartcardApp(name, aid, getType());
         newApp.setGroups(mAppGroups);
         return newApp;
+    }
+
+    private boolean validateNameAndAid(String name, String aid, boolean backPressed) {
+        if (name.isEmpty()) {
+            if (!(backPressed && mAction.equals(ACTION_NEW_APP) && aid.isEmpty())) {
+                Util.showToast(this, getString(aid.isEmpty() ?
+                        R.string.empty_name_aid : R.string.empty_name));
+            }
+            return false;
+        }
+        if (aid.isEmpty()) {
+            Util.showToast(this, getString(R.string.empty_aid));
+            return false;
+        }
+        if (aid.length() < 10 || aid.length() > 32
+                || aid.length() % 2 != 0) {
+            Util.showToast(this, getString(R.string.invalid_aid));
+            return false;
+        }
+        // ensure name is unique
+        for (int i = 0; i < mApps.size(); i++) {
+            // skip the app being edited
+            if (mAppPos == i)
+                continue;
+            SmartcardApp app = mApps.get(i);
+            if (app.getName().equals(name)) {
+                Util.showToast(this, getString(R.string.name_exists,
+                        name));
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void handleAppChange(SmartcardApp newApp, SmartcardApp oldApp,
+                                 SmartcardApp selectedApp) {
+        // sort and re-index for name change or new name
+        if (oldApp == null || !newApp.getName().equals(oldApp.getName())) {
+            Collections.sort(mApps, SmartcardApp.nameComparator);
+            int oldAppPos = mAppPos;
+            mAppPos = mApps.indexOf(newApp);
+            if (mSelectedAppPos == oldAppPos ||
+                    getIntent().getBooleanExtra(EXTRA_SELECT, false)) {
+                // applies to edit action, or if app creation was initiated
+                // from the app select screen
+                mSelectedAppPos = mAppPos;
+            } else {
+                // to simplify logic, just using indexOf(selectedApp) here;
+                // additional benefit is that we do not have to assume list
+                // was previously sorted
+                mSelectedAppPos = mApps.indexOf(selectedApp);
+            }
+        }
+        // handle groups change (only applies to edit action)
+        if (oldApp != null && !newApp.getGroups().equals(oldApp.getGroups())) {
+            for (String group : oldApp.getGroups()) {
+                // remove group if empty
+                if (Util.isGroupEmpty(group, mApps)) {
+                    removeGroup(group);
+                }
+            }
+        }
+        writePrefs();
     }
 
     private void writePrefs() {
@@ -456,15 +441,15 @@ public class AppEditActivity extends ActionBarActivity {
                         }
                         mAppGroups.add(name);
                         mUserGroups.add(name);
+                        mSortedAllGroups.add(name);
+                        Collections.sort(mSortedAllGroups, String.CASE_INSENSITIVE_ORDER);
                         // if inserting alphabetically "smaller" group name,
                         // then adjust the saved group position indices
                         if (name.compareTo(mSelectedGrpName) < 0) {
                             mSelectedGrpPos++;
-                            mSelectedGrpName = mSortedAllGroups.get(mSelectedGrpPos);
                         }
                         if (name.compareTo(mExpandedGrpName) < 0) {
                             mExpandedGrpPos++;
-                            mExpandedGrpName = mSortedAllGroups.get(mExpandedGrpPos);
                         }
                         updateGrpButton();
                     }
@@ -474,16 +459,16 @@ public class AppEditActivity extends ActionBarActivity {
     private void removeGroup(String name) {
         // remove from saved hash set
         mUserGroups.remove(name);
+        // remove from sorted list
+        mSortedAllGroups.remove(name);
         // adjust selected group position indices as needed
         if (name.equals(mSelectedGrpName)) {
             // always guaranteed at least two groups: other and payment
-            mSelectedGrpName = (mSelectedGrpPos == 0) ?
-                    mSortedAllGroups.get(1) : mSortedAllGroups.get(0);
             mSelectedGrpPos = 0;
+            mSelectedGrpName = mSortedAllGroups.get(0);
         } else
         if (name.compareTo(mSelectedGrpName) < 0) {
             mSelectedGrpPos--;
-            mSelectedGrpName = mSortedAllGroups.get(mSelectedGrpPos);
         }
         // adjust expanded group position index as needed
         if (name.equals(mExpandedGrpName)) {
@@ -493,10 +478,7 @@ public class AppEditActivity extends ActionBarActivity {
         } else
         if (name.compareTo(mExpandedGrpName) < 0) {
             mExpandedGrpPos--;
-            mExpandedGrpName = mSortedAllGroups.get(mExpandedGrpPos);
         }
-        // remove from sorted list
-        mSortedAllGroups.remove(name);
     }
 
     public static final class GroupItem {

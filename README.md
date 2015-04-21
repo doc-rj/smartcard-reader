@@ -112,17 +112,17 @@ new reader mode is a key enabler of smartcard-reader.
 <img align="left" width="50%" src="/docs/tn_screen_nav_drawer.png">
 <img align="right" width="50%" src="/docs/tn_screen_app_select.png">
 
+<img align="left" width="50%" src="/docs/tn_screen_parsed_msg.png">
+<img align="right" width="50%" src="/docs/tn_screen_share_gmail.png">
+
+<img align="left" width="50%" src="/docs/tn_screen_app_list.png">
+<img align="right" width="50%" src="/docs/tn_screen_app_list_fam.png">
+
+<img align="left" width="50%" src="/docs/tn_screen_new_app.png">
+<img align="right" width="50%" src="/docs/tn_screen_app_view.png">
+
 <img align="left" width="50%" src="/docs/tn_screen_batch_select_intro.png">
 <img align="right" width="50%" src="/docs/tn_screen_batch_select.png">
 
 <img align="left" width="50%" src="/docs/tn_screen_emv_read.png">
-<img align="right" width="50%" src="/docs/tn_screen_manual_select.png">
-
-<img align="left" width="50%" src="/docs/tn_screen_parsed_msg.png">
-<img align="right" width="50%" src="/docs/tn_screen_share_gmail.png">
-
-<img align="left" width="50%" src="/docs/tn_screen_apps_list.png">
-<img align="right" width="50%" src="/docs/tn_screen_new_app.png">
-
-<img align="left" width="50%" src="/docs/tn_screen_app_view.png">
 <img align="right" width="50%" src="/docs/tn_screen_settings.png">

@@ -90,6 +90,7 @@
     <orderEntry type="library" exported="" name="support-annotations-22.0.0" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-22.0.0" level="project" />
     <orderEntry type="library" exported="" name="recyclerview-v7-21.0.3" level="project" />
+    <orderEntry type="library" exported="" name="fab-1.4.0" level="project" />
     <orderEntry type="library" exported="" name="material-dialogs-0.6.3.5" level="project" />
   </component>
 </module>

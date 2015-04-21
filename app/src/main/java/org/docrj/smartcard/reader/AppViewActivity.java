@@ -59,18 +59,19 @@ public class AppViewActivity extends ActionBarActivity {
     private static final String[] DEFAULT_GROUPS = SmartcardApp.GROUPS;
 
     // actions
-    private static final String ACTION_VIEW_APP = AppsListActivity.ACTION_VIEW_APP;
-    private static final String ACTION_EDIT_APP = AppsListActivity.ACTION_EDIT_APP;
-    private static final String ACTION_COPY_APP = AppsListActivity.ACTION_COPY_APP;
+    private static final String ACTION_EDIT_APP = AppListActivity.ACTION_EDIT_APP;
+    private static final String ACTION_COPY_APP = AppListActivity.ACTION_COPY_APP;
 
     // extras
-    private static final String EXTRA_APP_POS = AppsListActivity.EXTRA_APP_POS;
+    private static final String EXTRA_APP_POS = AppListActivity.EXTRA_APP_POS;
+    private static final String EXTRA_SELECT = AppListActivity.EXTRA_SELECT;
 
     // dialogs
     private static final int DIALOG_CONFIRM_DELETE = 0;
 
     // requests
-    private static final int REQUEST_COPY_APP = 0;
+    private static final int REQUEST_EDIT_APP = 0;
+    private static final int REQUEST_COPY_APP = 1;
 
     private SharedPreferences.Editor mEditor;
     private ArrayList<SmartcardApp> mApps;
@@ -263,19 +264,22 @@ public class AppViewActivity extends ActionBarActivity {
         Intent i = new Intent(this, AppEditActivity.class);
         i.setAction(ACTION_EDIT_APP);
         i.putExtra(EXTRA_APP_POS, mAppPos);
-        startActivity(i);
+        startActivityForResult(i, REQUEST_EDIT_APP);
     }
 
     private void copyApp() {
         Intent i = new Intent(this, AppEditActivity.class);
         i.setAction(ACTION_COPY_APP);
         i.putExtra(EXTRA_APP_POS, mAppPos);
+        if (getIntent().getBooleanExtra(EXTRA_SELECT, false)) {
+            i.putExtra(EXTRA_SELECT, true);
+        }
         startActivityForResult(i, REQUEST_COPY_APP);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_COPY_APP) {
+        if (requestCode == REQUEST_EDIT_APP || requestCode == REQUEST_COPY_APP) {
             if (resultCode == RESULT_OK) {
                 // copy-to app view created successfully, and it
                 // replaces this copy-from app view in the stack
@@ -330,7 +334,7 @@ public class AppViewActivity extends ActionBarActivity {
                         .setCancelable(true)
                         .setIcon(R.drawable.ic_action_delete_gray)
                         .setTitle(mName.getText())
-                        .setMessage(R.string.confirm_delete)
+                        .setMessage(R.string.confirm_delete_app)
                         .setPositiveButton(R.string.dialog_ok,
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog,

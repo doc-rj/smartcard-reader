@@ -21,6 +21,7 @@ package org.docrj.smartcard.reader;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.media.AudioManager;
@@ -67,6 +68,15 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
 
     private static final String[] DEFAULT_GROUPS = SmartcardApp.GROUPS;
 
+    // actions
+    private static final String ACTION_VIEW_GROUP = AppListActivity.ACTION_VIEW_GROUP;
+    private static final String ACTION_NEW_GROUP = AppListActivity.ACTION_NEW_GROUP;
+
+    // extras
+    private static final String EXTRA_SELECT = AppListActivity.EXTRA_SELECT;
+    private static final String EXTRA_GROUP_POS = AppListActivity.EXTRA_GROUP_POS;
+    private static final String EXTRA_GROUP_NAME = AppListActivity.EXTRA_GROUP_NAME;
+
     // dialogs
     static final int DIALOG_ENABLE_NFC = 0;
 
@@ -91,6 +101,9 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
     private SoundPool mSoundPool;
     private Vibrator mVibrator;
 
+    // groups created by user (no payment/other)
+    private HashSet<String> mGroups;
+    // selected index in sorted group list
     private int mSelectedGrpPos = 0;
     private ArrayList<SmartcardApp> mApps;
     // mapping of group adapter list position to alphabetized member apps
@@ -192,17 +205,17 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
             mApps = gson.fromJson(json, collectionType);
         }
 
-        HashSet<String> groups = new LinkedHashSet<>();
+        mGroups = new LinkedHashSet<>();
         json = ss.getString("groups", null);
         if (json != null) {
             collectionType = new TypeToken<LinkedHashSet<String>>() {
             }.getType();
-            groups = gson.fromJson(json, collectionType);
+            mGroups = gson.fromJson(json, collectionType);
         }
-        groups.addAll(Arrays.asList(DEFAULT_GROUPS));
+        mGroups.addAll(Arrays.asList(DEFAULT_GROUPS));
 
         // alphabetize, case insensitive
-        List<String> groupList = new ArrayList<>(groups);
+        List<String> groupList = new ArrayList<>(mGroups);
         Collections.sort(groupList, String.CASE_INSENSITIVE_ORDER);
 
         mSelectedGrpPos = ss.getInt("selected_grp_pos", mSelectedGrpPos);
@@ -286,7 +299,11 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         boolean drawerOpen = mNavDrawer.isOpen();
-        MenuItem item = menu.findItem(R.id.menu_share_msgs);
+        MenuItem item = menu.findItem(R.id.menu_group_details);
+        item.setVisible(!drawerOpen);
+        item = menu.findItem(R.id.menu_add_group);
+        item.setVisible(!drawerOpen);
+        item = menu.findItem(R.id.menu_share_msgs);
         item.setVisible(!drawerOpen);
         item = menu.findItem(R.id.menu_clear_msgs);
         item.setVisible(!drawerOpen);
@@ -299,9 +316,41 @@ public class BatchSelectActivity extends ActionBarActivity implements ReaderXcvr
             return true;
         }
         switch (item.getItemId()) {
-            case R.id.menu_clear_msgs:
+            case R.id.menu_add_group: {
+                // show new group dialog
+                NewGroupDialogFragment.show(getFragmentManager(),
+                        new NewGroupDialogFragment.OnNewGroupListener() {
+                            @Override
+                            public void onNewGroup(String name) {
+                                if (Arrays.asList(DEFAULT_GROUPS).contains(name) ||
+                                        mGroups.contains(name)) {
+                                    Util.showToast(BatchSelectActivity.this,
+                                            getString(R.string.group_exists, name));
+                                    return;
+                                }
+                                Intent i = new Intent(BatchSelectActivity.this,
+                                        GroupEditActivity.class);
+                                i.setAction(ACTION_NEW_GROUP);
+                                i.putExtra(EXTRA_GROUP_NAME, name);
+                                i.putExtra(EXTRA_SELECT, true);
+                                startActivity(i);
+                            }
+                        });
+                return true;
+            }
+            case R.id.menu_group_details: {
+                Intent i = new Intent(this, GroupViewActivity.class);
+                i.setAction(ACTION_VIEW_GROUP);
+                i.putExtra(EXTRA_GROUP_POS, mSelectedGrpPos);
+                // select group copy when copy is initiated from group details
+                i.putExtra(EXTRA_SELECT, true);
+                startActivity(i);
+                return true;
+            }
+            case R.id.menu_clear_msgs: {
                 clearMessages(true);
                 return true;
+            }
         }
         return super.onOptionsItemSelected(item);
     }

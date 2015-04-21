@@ -35,5 +35,5 @@
         android:gravity="right"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:fontFamily="sans-serif-condensed"
-        android:text="10"/>
+        android:text="(10)"/>
 </LinearLayout>

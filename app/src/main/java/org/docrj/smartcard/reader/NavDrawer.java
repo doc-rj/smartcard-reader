@@ -105,10 +105,6 @@ public class NavDrawer {
         outstate.putBoolean("drawer_open", isOpen());
     }
 
-    public void onConfigurationChanged(Configuration newConfig) {
-        mDrawerToggle.onConfigurationChanged(newConfig);
-    }
-
     public boolean onBackPressed() {
         if (mDrawerLayout.isDrawerOpen(Gravity.START|Gravity.LEFT)) {
             mDrawerLayout.closeDrawers();
@@ -158,7 +154,7 @@ public class NavDrawer {
                     break;
 
                 case R.id.apps:
-                    intent.setClass(mActivity, AppsListActivity.class);
+                    intent.setClass(mActivity, AppListActivity.class);
                     finishCurrent = false;
                     break;
 

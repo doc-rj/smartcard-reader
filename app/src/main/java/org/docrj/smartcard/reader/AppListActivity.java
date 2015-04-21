@@ -25,23 +25,27 @@ import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import org.docrj.smartcard.reader.AnimatedExpandableListView.AnimatedExpandableListAdapter;
+import org.docrj.smartcard.widget.AnimatedExpandableListView;
+import org.docrj.smartcard.widget.AnimatedExpandableListView.AnimatedExpandableListAdapter;
 
+import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -56,24 +60,33 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 
-public class AppsListActivity extends ActionBarActivity {
+public class AppListActivity extends ActionBarActivity {
 
     private static final String TAG = LaunchActivity.TAG;
 
     private static final String[] DEFAULT_GROUPS = SmartcardApp.GROUPS;
 
     // actions
-    static final String ACTION_NEW_APP = "org.docrj.smartcard.reader.action_new_app";
     static final String ACTION_VIEW_APP = "org.docrj.smartcard.reader.action_view_app";
+    static final String ACTION_NEW_APP = "org.docrj.smartcard.reader.action_new_app";
     static final String ACTION_EDIT_APP = "org.docrj.smartcard.reader.action_edit_app";
     static final String ACTION_COPY_APP = "org.docrj.smartcard.reader.action_copy_app";
 
-    // extras
-    static final String EXTRA_APP_POS = "org.docrj.smartcard.reader.app_pos";
+    static final String ACTION_VIEW_GROUP = "org.docrj.smartcard.reader.action_view_group";
+    static final String ACTION_NEW_GROUP = "org.docrj.smartcard.reader.action_new_group";
+    static final String ACTION_EDIT_GROUP = "org.docrj.smartcard.reader.action_edit_group";
+    static final String ACTION_COPY_GROUP = "org.docrj.smartcard.reader.action_copy_group";
 
-    private Handler mHandler;
+    // extras
+    static final String EXTRA_SELECT = "org.docrj.smartcard.reader.select";
+    static final String EXTRA_APP_POS = "org.docrj.smartcard.reader.app_pos";
+    static final String EXTRA_GROUP_POS = "org.docrj.smartcard.reader.group_pos";
+    static final String EXTRA_GROUP_NAME = "org.docrj.smartcard.reader.group_name";
+    static final String EXTRA_SOURCE_GROUP_NAME = "org.docrj.smartcard.reader.source_group_name";
+
     private SharedPreferences.Editor mEditor;
     private AnimatedExpandableListView mGrpListView;
+
     // groups created by user (no payment/other)
     private HashSet<String> mGroups;
     private ArrayList<SmartcardApp> mApps;
@@ -83,7 +96,7 @@ public class AppsListActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_apps_list);
+        setContentView(R.layout.activity_app_list);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -108,11 +121,33 @@ public class AppsListActivity extends ActionBarActivity {
                     }
                     mGrpListView.expandGroupWithAnimation(groupPosition);
                     mExpandedGrp = groupPosition;
-                    // removed this as it causes some funky looking effects under
-                    // certain conditions
-                    //mGrpListView.setSelectedGroup(groupPosition);
                 }
                 return true;
+            }
+        });
+
+        mGrpListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                // convert flat position to group or child
+                long packedPos = mGrpListView.getExpandableListPosition(position);
+                int type = AnimatedExpandableListView.getPackedPositionType(packedPos);
+                if (type == AnimatedExpandableListView.PACKED_POSITION_TYPE_GROUP) {
+                    int groupPos = AnimatedExpandableListView.getPackedPositionGroup(packedPos);
+                    // first expand group if not yet expanded; this makes for a nicer
+                    // transition to and from the group detail view, as this gives the
+                    // group focus, and shows group expanding to match the detail view
+                    if (!mGrpListView.isGroupExpanded(groupPos)) {
+                        mGrpListView.performItemClick(view, position, id);
+                    }
+                    // start group view activity
+                    Intent i = new Intent(AppListActivity.this, GroupViewActivity.class);
+                    i.setAction(ACTION_VIEW_GROUP);
+                    i.putExtra(EXTRA_GROUP_NAME, mGrpAdapter.getGroup(groupPos).groupName);
+                    startActivity(i);
+                    return true;
+                }
+                return false;
             }
         });
 
@@ -121,7 +156,7 @@ public class AppsListActivity extends ActionBarActivity {
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
                 SmartcardApp app = mGrpAdapter.getChild(groupPosition, childPosition);
                 // view app
-                Intent i = new Intent(AppsListActivity.this, AppViewActivity.class);
+                Intent i = new Intent(AppListActivity.this, AppViewActivity.class);
                 i.setAction(ACTION_VIEW_APP);
                 i.putExtra(EXTRA_APP_POS, mGrpAdapter.getGroup(groupPosition).appToPosMap.get(app));
                 startActivity(i);
@@ -129,7 +164,68 @@ public class AppsListActivity extends ActionBarActivity {
             }
         });
 
-        mHandler = new Handler();
+        // floating action menu and accompanying scrim
+        final RelativeLayout scrim = (RelativeLayout) findViewById(R.id.scrim);
+        final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.fam);
+        fam.setClosedOnTouchOutside(true);
+        fam.setOnMenuToggleListener(new FloatingActionMenu.OnMenuToggleListener() {
+            @Override
+            public void onMenuToggle(boolean opened) {
+                if (opened) {
+                    // fade in dim layout under the floating buttons
+                    scrim.setVisibility(View.VISIBLE);
+                    Animation fadeIn = AnimationUtils.loadAnimation(AppListActivity.this,
+                            R.anim.abc_fade_in);
+                    scrim.startAnimation(fadeIn);
+                } else {
+                    // fade out back to normal
+                    Animation fadeOut = AnimationUtils.loadAnimation(AppListActivity.this,
+                            R.anim.abc_fade_out);
+                    scrim.startAnimation(fadeOut);
+                    scrim.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+
+        FloatingActionButton appFab = (FloatingActionButton) findViewById(R.id.fab_app);
+        appFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // start activity to add new app
+                Intent i = new Intent(AppListActivity.this, AppEditActivity.class);
+                i.setAction(ACTION_NEW_APP);
+                startActivity(i);
+                // close floating action menu
+                fam.toggle(false);
+            }
+        });
+
+        FloatingActionButton grpFab = (FloatingActionButton) findViewById(R.id.fab_group);
+        grpFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // show new group dialog
+                NewGroupDialogFragment.show(getFragmentManager(),
+                        new NewGroupDialogFragment.OnNewGroupListener() {
+                            @Override
+                            public void onNewGroup(String name) {
+                                if (Arrays.asList(DEFAULT_GROUPS).contains(name) ||
+                                    mGroups.contains(name)) {
+                                    Util.showToast(AppListActivity.this,
+                                            getString(R.string.group_exists, name));
+                                    return;
+                                }
+                                Intent i = new Intent(AppListActivity.this, GroupEditActivity.class);
+                                i.setAction(ACTION_NEW_GROUP);
+                                i.putExtra(EXTRA_GROUP_NAME, name);
+                                startActivity(i);
+                            }
+                        });
+                // close floating action menu
+                fam.toggle(false);
+            }
+        });
+
         // persistent data in shared prefs
         SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
         mEditor = ss.edit();
@@ -206,24 +302,6 @@ public class AppsListActivity extends ActionBarActivity {
         mExpandedGrp = -1;
         super.onBackPressed();
         overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_apps_list, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_new_app:
-                Intent i = new Intent(this, AppEditActivity.class);
-                i.setAction(ACTION_NEW_APP);
-                startActivity(i);
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     private void writePrefs() {

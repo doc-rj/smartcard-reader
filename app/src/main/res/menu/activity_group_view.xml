@@ -1,0 +1,36 @@
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="org.docrj.smartcard.reader.GroupViewActivity">
+
+    <item android:id="@+id/menu_edit_group"
+        android:showAsAction="always"
+        app:showAsAction="always"
+        android:title="@string/edit"
+        android:icon="@drawable/ic_action_create" />
+
+    <item android:id="@+id/menu_copy_group"
+        android:showAsAction="always"
+        app:showAsAction="always"
+        android:title="@string/copy"
+        android:icon="@drawable/ic_action_copy" />
+
+    <item android:id="@+id/menu_delete_group"
+        android:showAsAction="ifRoom"
+        app:showAsAction="ifRoom"
+        android:title="@string/delete"
+        android:icon="@drawable/ic_action_delete" />
+
+    <item android:id="@+id/menu_rename_group"
+        android:showAsAction="never"
+        app:showAsAction="never"
+        android:title="@string/rename"
+        android:icon="@drawable/ic_action_create" />
+
+    <item android:id="@+id/menu_select_group"
+        android:showAsAction="never"
+        app:showAsAction="never"
+        android:title="@string/select"
+        android:icon="@drawable/ic_action_done_all" />
+</menu>

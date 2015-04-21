@@ -21,10 +21,12 @@ package org.docrj.smartcard.reader;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.media.AudioManager;
@@ -106,6 +108,14 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
 
     // test modes
     private static final int TEST_MODE_APP_SELECT = Launcher.TEST_MODE_APP_SELECT;
+
+    // actions
+    private static final String ACTION_VIEW_APP = AppListActivity.ACTION_VIEW_APP;
+    private static final String ACTION_NEW_APP = AppListActivity.ACTION_NEW_APP;
+
+    // extras
+    private static final String EXTRA_SELECT = AppListActivity.EXTRA_SELECT;
+    private static final String EXTRA_APP_POS = AppListActivity.EXTRA_APP_POS;
 
     private NavDrawer mNavDrawer;
     private Handler mHandler;
@@ -367,8 +377,12 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
     public boolean onPrepareOptionsMenu(Menu menu) {
         prepareOptionsMenu();
         boolean drawerOpen = mNavDrawer.isOpen();
+        MenuItem item = menu.findItem(R.id.menu_add_app);
+        item.setVisible(!drawerOpen);
+        item = menu.findItem(R.id.menu_app_details);
+        item.setVisible(!drawerOpen);
         mManualMenuItem.setVisible(!drawerOpen);
-        MenuItem item = menu.findItem(R.id.menu_share_msgs);
+        item = menu.findItem(R.id.menu_share_msgs);
         item.setVisible(!drawerOpen);
         item = menu.findItem(R.id.menu_clear_msgs);
         item.setVisible(!drawerOpen);
@@ -381,17 +395,36 @@ public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.U
             return true;
         }
         switch (item.getItemId()) {
-            case R.id.menu_manual:
+            case R.id.menu_add_app: {
+                // start activity to add new app
+                Intent i = new Intent(this, AppEditActivity.class);
+                i.setAction(ACTION_NEW_APP);
+                i.putExtra(EXTRA_SELECT, true);
+                startActivity(i);
+                return true;
+            }
+            case R.id.menu_app_details: {
+                // start activity to view app details
+                Intent i = new Intent(this, AppViewActivity.class);
+                i.setAction(ACTION_VIEW_APP);
+                i.putExtra(EXTRA_APP_POS, mSelectedAppPos);
+                // select app copy when copy is initiated from app details
+                i.putExtra(EXTRA_SELECT, true);
+                startActivity(i);
+                return true;
+            }
+            case R.id.menu_manual: {
                 boolean shouldCheck = !mManualMenuItem.isChecked();
                 mManualMenuItem.setChecked(shouldCheck);
                 mManual = shouldCheck;
                 prepareViewForMode();
                 clearMessages(true);
                 return true;
-
-            case R.id.menu_clear_msgs:
+            }
+            case R.id.menu_clear_msgs: {
                 clearMessages(true);
                 return true;
+            }
         }
         return super.onOptionsItemSelected(item);
     }

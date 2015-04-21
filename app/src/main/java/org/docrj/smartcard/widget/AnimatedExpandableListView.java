@@ -21,7 +21,7 @@
  * with smartcard-reader. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.docrj.smartcard.reader;
+package org.docrj.smartcard.widget;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -55,22 +55,33 @@
             android:launchMode="singleTop" >
         </activity>
         <activity
-            android:name=".AppsListActivity"
-            android:label="@string/title_activity_apps_list"
-            android:launchMode="singleTop" >
+            android:name=".AppListActivity"
+            android:label="@string/title_activity_app_list"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing" >
         </activity>
         <activity
             android:name=".AppViewActivity"
             android:label="@string/title_activity_app_view"
             android:launchMode="singleTop"
-            android:parentActivityName=".AppsListActivity" >
+            android:parentActivityName=".AppListActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".AppsListActivity" />
+                android:value=".AppListActivity" />
         </activity>
         <activity
             android:name=".AppEditActivity"
             android:label="@string/title_activity_app_edit"
+            android:launchMode="singleTop" >
+        </activity>
+        <activity
+            android:name=".GroupViewActivity"
+            android:label="@string/title_activity_group_view"
+            android:launchMode="singleTop" >
+        </activity>
+        <activity
+            android:name=".GroupEditActivity"
+            android:label="@string/title_activity_group_edit"
             android:launchMode="singleTop" >
         </activity>
         <activity
