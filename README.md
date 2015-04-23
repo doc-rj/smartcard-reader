@@ -121,8 +121,26 @@ new reader mode is a key enabler of smartcard-reader.
 <img align="left" width="50%" src="/docs/tn_screen_new_app.png">
 <img align="right" width="50%" src="/docs/tn_screen_app_view.png">
 
+<img align="left" width="50%" src="/docs/tn_screen_group_edit.png">
+<img align="right" width="50%" src="/docs/tn_screen_group_view.png">
+
 <img align="left" width="50%" src="/docs/tn_screen_batch_select_intro.png">
 <img align="right" width="50%" src="/docs/tn_screen_batch_select.png">
 
 <img align="left" width="50%" src="/docs/tn_screen_emv_read.png">
 <img align="right" width="50%" src="/docs/tn_screen_settings.png">
+
+#### Thanks!
+
+Special thanks to the authors of the following libraries and projects from whence
+this app benefits:
+
+- [fab][1] for the material style floating action menu widget
+- [material-dialogs][2] for backwards compatible material themed dialogs
+- [gson][3] for serialization and deserialization to/from JSON
+- [javaemvreader][4] as basis for payment classes used in emv read mode
+
+[1]: https://github.com/Clans/FloatingActionButton
+[2]: https://github.com/afollestad/material-dialogs
+[3]: https://github.com/google/gson
+[4]: https://github.com/sasc999/javaemvreader
