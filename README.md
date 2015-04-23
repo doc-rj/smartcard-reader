@@ -9,6 +9,7 @@ apps running on another smartphone.
 
 <img align="left" width="50%" src="/docs/tn_screen_nav_drawer.png">
 <img align="right" width="50%" src="/docs/tn_screen_app_select.png">
+...
 
 
 #### So What?
@@ -42,12 +43,14 @@ Read more about "application selection" and AIDs [here](http://en.wikipedia.org/
 And, [here](http://www.cardwerk.com/smartcards/smartcard_standard_ISO7816-4.aspx)
 is an ISO 7816-4 reference containing APDU commands including "select file".
 
+
 #### Come Again?
 
 Just run smartcard-reader on one device, set the App/AID that you want to select,
 and tap it against another device -- the device doing the card emulation. You can,
 of course, also tap a physical smartcard. You can also add your own Apps/AIDs, and
 modify the ones you've added.
+
 
 #### Test Modes
 
@@ -67,6 +70,7 @@ So, there are 4 test modes (app select has 2 sub-modes):
    tapping; assign apps to groups under "smartcard apps"
 
 **3. emv read** -- read payment card data
+
 
 #### Background Info
 
@@ -107,6 +111,7 @@ can listen solely for smartcards without having to worry about the potential
 interference of other NFC functions such as CE or P2P (peer-to-peer) modes. This
 new reader mode is a key enabler of smartcard-reader.
 
+
 #### Screenshots
 
 <img align="left" width="50%" src="/docs/tn_screen_nav_drawer.png">
@@ -129,6 +134,8 @@ new reader mode is a key enabler of smartcard-reader.
 
 <img align="left" width="50%" src="/docs/tn_screen_emv_read.png">
 <img align="right" width="50%" src="/docs/tn_screen_settings.png">
+...
+
 
 #### Thanks!
 
