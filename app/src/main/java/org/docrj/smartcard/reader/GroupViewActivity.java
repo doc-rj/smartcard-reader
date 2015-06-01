@@ -468,7 +468,7 @@ public class GroupViewActivity extends ActionBarActivity {
                                         dialog.cancel();
                                     }
                                 });
-                mConfirmDeleteDialog = builder.create();
+                mConfirmDeleteDialog = (AlertDialog) builder.create();
                 dialog = mConfirmDeleteDialog;
                 break;
         }

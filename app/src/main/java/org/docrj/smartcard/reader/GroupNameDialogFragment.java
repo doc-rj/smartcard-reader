@@ -66,7 +66,7 @@ public abstract class GroupNameDialogFragment extends DialogFragment {
                     }
                 )
                 .setNegativeButton(R.string.dialog_cancel, null);
-        final AlertDialog dialog = builder.create();
+        final AlertDialog dialog = (AlertDialog) builder.create();
 
         dialog.setOnShowListener(new OnShowListener() {
             @Override

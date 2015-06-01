@@ -108,7 +108,7 @@ public class NfcManager {
                             }
                         });
 
-        mEnableNfcDialog = builder.create();
+        mEnableNfcDialog = (AlertDialog) builder.create();
         return mEnableNfcDialog;
     }
 
