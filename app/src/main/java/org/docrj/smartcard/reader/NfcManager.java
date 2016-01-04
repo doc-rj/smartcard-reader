@@ -49,7 +49,7 @@ public class NfcManager {
     private static final int DIALOG_ENABLE_NFC = AppSelectActivity.DIALOG_ENABLE_NFC;
 
     private NfcAdapter mNfcAdapter;
-    private AlertDialog mEnableNfcDialog;
+    private Dialog mEnableNfcDialog;
     private Activity mActivity;
     private NfcAdapter.ReaderCallback mReaderCallback;
 
@@ -65,16 +65,18 @@ public class NfcManager {
         IntentFilter filter = new IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED);
         mActivity.registerReceiver(mBroadcastReceiver, filter);
 
-        if (!mNfcAdapter.isEnabled()) {
+        if (mNfcAdapter == null || !mNfcAdapter.isEnabled()) {
             mActivity.showDialog(DIALOG_ENABLE_NFC);
+        } else {
+            mNfcAdapter.enableReaderMode(mActivity, mReaderCallback, READER_FLAGS, null);
         }
-
-        mNfcAdapter.enableReaderMode(mActivity, mReaderCallback, READER_FLAGS, null);
     }
 
     public void onPause() {
         mActivity.unregisterReceiver(mBroadcastReceiver);
-        mNfcAdapter.disableReaderMode(mActivity);
+        if (mNfcAdapter != null) {
+            mNfcAdapter.disableReaderMode(mActivity);
+        }
     }
 
     public void onStop() {
@@ -83,10 +85,8 @@ public class NfcManager {
         }
     }
 
-    public Dialog onCreateDialog(int id, /*AlertDialog.Builder*/ AlertDialogWrapper.Builder builder, LayoutInflater li) {
-        //final View view = li.inflate( R.layout.dialog_enable_nfc, null);
-        builder//.setView(view)
-                .setCancelable(false)
+    public Dialog onCreateDialog(int id, AlertDialogWrapper.Builder builder, LayoutInflater li) {
+        builder.setCancelable(false)
                 .setIcon(R.drawable.ic_action_nfc_gray)
                 .setTitle(R.string.nfc_disabled)
                 .setMessage(R.string.enable_nfc)
@@ -108,7 +108,7 @@ public class NfcManager {
                             }
                         });
 
-        mEnableNfcDialog = (AlertDialog) builder.create();
+        mEnableNfcDialog = builder.create();
         return mEnableNfcDialog;
     }
 
