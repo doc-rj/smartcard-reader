@@ -24,8 +24,8 @@
 package org.docrj.smartcard.emv;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -40,9 +40,12 @@ import org.docrj.smartcard.iso7816.Tag;
 import org.docrj.smartcard.iso7816.TagAndLength;
 import org.docrj.smartcard.iso7816.TagImpl;
 import org.docrj.smartcard.iso7816.TagValueType;
+import org.docrj.smartcard.reader.R;
+import org.docrj.smartcard.util.ISO3166_1;
 import org.docrj.smartcard.util.ISO4217_Numeric;
 import org.docrj.smartcard.util.Util;
 
+import android.content.res.Resources;
 import android.util.Log;
 
 /**
@@ -54,42 +57,27 @@ public class EMVTerminal {
     private final static Properties defaultTerminalProperties = new Properties();
     private final static Properties runtimeTerminalProperties = new Properties();
     private final static TerminalVerifResults terminalVerifResults = new TerminalVerifResults();
-    
-//    private static CallbackHandler pinCallbackHandler;
-    
-//    private static boolean doVerifyPinIfRequired = false;
-//    private static boolean isOnline = true;
-  
-    static {
-        
+
+    // private static CallbackHandler pinCallbackHandler;
+    // private static boolean doVerifyPinIfRequired = false;
+    // private static boolean isOnline = true;
+
+    public static void loadProperties(Resources resources) {
+        InputStream defaultStream = resources.openRawResource(R.raw.terminal_properties);
         try {
-            //Default properties
-            defaultTerminalProperties.load(EMVTerminal.class.getResourceAsStream("/terminal.properties"));
+            defaultTerminalProperties.load(defaultStream);
             for (String key : defaultTerminalProperties.stringPropertyNames()) {
-                //Sanitize
+                // sanitize
                 String sanitizedKey = Util.byteArrayToHexString(Util.fromHexString(key)).toLowerCase();
-                String sanitizedValue = Util.byteArrayToHexString(Util.fromHexString(defaultTerminalProperties.getProperty(key))).toLowerCase();
+                byte[] valueBytes = Util.fromHexString(defaultTerminalProperties.getProperty(key));
+                String sanitizedValue = Util.byteArrayToHexString(valueBytes).toLowerCase();
                 defaultTerminalProperties.setProperty(sanitizedKey, sanitizedValue);
-            }
-            //Runtime/overridden properties
-            String runtimeTerminalPropertiesFile = System.getProperty("terminal.properties");
-            if (runtimeTerminalPropertiesFile != null) {
-                runtimeTerminalProperties.load(new FileInputStream(runtimeTerminalPropertiesFile));
-                for(String key : runtimeTerminalProperties.stringPropertyNames()) {
-                    //Sanitize
-                    String sanitizedKey   = Util.byteArrayToHexString(Util.fromHexString(key)).toLowerCase();
-                    String sanitizedValue = Util.byteArrayToHexString(Util.fromHexString(runtimeTerminalProperties.getProperty(key))).toLowerCase();
-                    if(defaultTerminalProperties.contains(sanitizedKey) && sanitizedValue.length() != defaultTerminalProperties.getProperty(key).length()) {
-                        //Attempt to set different length for a default value
-                        throw new RuntimeException("Attempted to set a value with unsupported length for key: "+sanitizedKey + " (value: "+sanitizedValue+")");
-                    }
-                    runtimeTerminalProperties.setProperty(sanitizedKey, sanitizedValue);
-                }
             }
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
-
+        ISO3166_1.init(resources);
+        ISO4217_Numeric.init(resources);
     }
 
     //PDOL (Processing options Data Object List)

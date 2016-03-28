@@ -23,8 +23,13 @@
 
 package org.docrj.smartcard.util;
 
+import android.content.res.Resources;
+
+import org.docrj.smartcard.reader.R;
+
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 
@@ -36,28 +41,26 @@ import java.util.HashMap;
  * so we must use our own list
  */
 public class ISO3166_1 {
-    
-    private final static HashMap<String, String> map;
-    
-    static{
-        map = new HashMap<String, String>();
 
+    private final static HashMap<String, String> map = new HashMap<>();
+
+    public static void init(Resources resources) {
+        InputStream inputStream = resources.openRawResource(R.raw.iso3166_1_numeric);
         BufferedReader br = null;
-
-        try{
-            br = new BufferedReader(new InputStreamReader(Util.loadResource(ISO3166_1.class, "/iso3166_1_numeric.txt"), "UTF-8"));
+        try {
+            br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
 
             String line;
-            while((line = br.readLine()) != null){
-                if(line.trim().length() < 4 || line.startsWith("#")){
+            while((line = br.readLine()) != null) {
+                if (line.trim().length() < 4 || line.startsWith("#")){
                     continue;
                 }
                 map.put(line.substring(0, 3), line.substring(4));
             }
-        }catch(IOException e){
+        } catch(IOException e) {
             throw new RuntimeException(e);
-        }finally{
-            if(br != null){
+        } finally {
+            if (br != null){
                 try {
                     br.close();
                 } catch (IOException ex) {

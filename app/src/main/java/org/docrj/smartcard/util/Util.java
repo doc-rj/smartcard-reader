@@ -598,11 +598,11 @@ public class Util {
         random.nextBytes(rndBytes);
         return rndBytes;
     }
-    
+
     public static InputStream loadResource(Class<?> cls, String path){
         return cls.getResourceAsStream(path);
     }
-    
+
     /**
      * Copies the specified array, prepending 0x00, or cutting off MSBytes if necessary
      * @param original

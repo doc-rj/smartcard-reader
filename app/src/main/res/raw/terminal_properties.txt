@@ -1,0 +1,39 @@
+# This file contains the default terminal properties
+# Key (tag id bytes) must be lowercase hex with no whitespace
+# Value must hex encoded (Uppercase or lowercase. Octets may be separated by whitespace)
+#
+
+# DEFAULT_TERMINAL_COUNTRY_CODE (ISO 3166)
+9f1a=08 40
+
+# DEFAULT_TRANSACTION_CURRENCY_CODE (ISO 4217)
+5f2a=08 40
+
+# TODO this should be set in a Transaction object, not here
+# If an amount field (either Amount, Authorised or Amount, Other) is referenced
+# in the PDOL and the terminal is unable to provide the amount at this point in
+# transaction processing, the amount field in the data element list shall be
+# filled with hexadecimal zeroes (EMV 4.2 Book 3, section 10.1, page 94)
+
+# DEFAULT_AMOUNT_AUTHORISED_NUMERIC
+9f02=00 00 00 00 00 00
+
+# DEFAULT_AMOUNT_OTHER_NUMERIC
+9f03=00 00 00 00 00 00
+
+# DEFAULT_AP_APP_VERSION_NUMBER_TERMINAL
+#9f09=00 00
+
+# DEFAULT_TERMINAL_TYPE
+9f35=14
+
+# DEFAULT_TERMINAL_CAPABILITIES
+9f33=00 60 c0
+
+# DEFAULT_ADDITIONAL_TERMINAL_CAPABILITIES
+9f40=00 00 00 00 00
+
+# DEFAULT_TRANSACTION_TYPE
+# 00:  "Payment"
+# 01:  "Withdrawal"
+9c=00

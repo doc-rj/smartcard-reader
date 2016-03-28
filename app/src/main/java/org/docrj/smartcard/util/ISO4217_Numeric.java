@@ -23,8 +23,13 @@
 
 package org.docrj.smartcard.util;
 
+import android.content.res.Resources;
+
+import org.docrj.smartcard.reader.R;
+
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,17 +50,14 @@ import java.util.StringTokenizer;
  */
 public class ISO4217_Numeric {
 
-    private static final HashMap<String, Currency> code2CurrencyMap;
-    private static final HashMap<String, Integer> currencyCode2NumericMap;
+    private static final HashMap<String, Currency> code2CurrencyMap = new HashMap<>();
+    private static final HashMap<String, Integer> currencyCode2NumericMap = new HashMap<>();
 
-    static {
-        code2CurrencyMap = new HashMap<String, Currency>();
-        currencyCode2NumericMap = new HashMap<String, Integer>();
-
+    public static void init(Resources resources) {
+        InputStream inputStream = resources.openRawResource(R.raw.iso4217_numeric);
         BufferedReader br = null;
-
         try {
-            br = new BufferedReader(new InputStreamReader(Util.loadResource(ISO3166_1.class, "/iso4217_numeric.txt"), "UTF-8"));
+            br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
 
             String line;
             while ((line = br.readLine()) != null) {
@@ -82,7 +84,6 @@ public class ISO4217_Numeric {
                 }
             }
         }
-
     }
 
     public static String getCurrencyNameForCode(int code) {

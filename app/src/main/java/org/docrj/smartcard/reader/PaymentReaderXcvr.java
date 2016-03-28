@@ -184,10 +184,8 @@ public class PaymentReaderXcvr extends ReaderXcvr {
                 return false;
             }
         } else {
-            mUiCallbacks.onError(
-                    mContext.getString(R.string.gpo_err,
-                            rspApdu.getSW1SW2(),
-                            ApduParser.parse(false, rspApdu.toBytes())));
+            mUiCallbacks.onError(mContext.getString(R.string.gpo_err, rspApdu.getSW1SW2()));
+                            //ApduParser.parse(false, rspApdu.toBytes())));
             return false;
         }
         return true;

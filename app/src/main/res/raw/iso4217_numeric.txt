@@ -1,0 +1,179 @@
+008,ALL,Lek
+012,DZD,Algerian Dinar
+032,ARS,Argentine Peso
+036,AUD,Australian Dollar
+044,BSD,Bahamian Dollar
+048,BHD,Bahraini Dinar
+050,BDT,Taka
+051,AMD,Armenian Dram
+052,BBD,Barbados Dollar
+060,BMD,Bermudian Dollar (customarily known as Bermuda Dollar)
+064,BTN,Ngultrum
+068,BOB,Boliviano
+072,BWP,Pula
+084,BZD,Belize Dollar
+090,SBD,Solomon Islands Dollar
+096,BND,Brunei Dollar
+104,MMK,Kyat
+108,BIF,Burundi Franc
+116,KHR,Riel
+124,CAD,Canadian Dollar
+132,CVE,Cape Verde Escudo
+136,KYD,Cayman Islands Dollar
+144,LKR,Sri Lanka Rupee
+152,CLP,Chilean Peso
+156,CNY,Yuan Renminbi
+170,COP,Colombian Peso
+174,KMF,Comoro Franc
+188,CRC,Costa Rican Colon
+191,HRK,Croatian Kuna
+192,CUP,Cuban Peso
+203,CZK,Czech Koruna
+208,DKK,Danish Krone
+214,DOP,Dominican Peso
+222,SVC,El Salvador Colon
+230,ETB,Ethiopian Birr
+232,ERN,Nakfa
+233,EEK,Kroon
+238,FKP,Falkland Islands Pound
+242,FJD,Fiji Dollar
+262,DJF,Djibouti Franc
+270,GMD,Dalasi
+292,GIP,Gibraltar Pound
+320,GTQ,Quetzal
+324,GNF,Guinea Franc
+328,GYD,Guyana Dollar
+332,HTG,Gourde
+340,HNL,Lempira
+344,HKD,Hong Kong Dollar
+348,HUF,Forint
+352,ISK,Iceland Krona
+356,INR,Indian Rupee
+360,IDR,Rupiah
+364,IRR,Iranian Rial
+368,IQD,Iraqi Dinar
+376,ILS,New Israeli Sheqel
+388,JMD,Jamaican Dollar
+392,JPY,Yen
+398,KZT,Tenge
+400,JOD,Jordanian Dinar
+404,KES,Kenyan Shilling
+408,KPW,North Korean Won
+410,KRW,Won
+414,KWD,Kuwaiti Dinar
+417,KGS,Som
+418,LAK,Kip
+422,LBP,Lebanese Pound
+426,LSL,Loti
+428,LVL,Latvian Lats
+430,LRD,Liberian Dollar
+434,LYD,Libyan Dinar
+440,LTL,Lithuanian Litas
+446,MOP,Pataca
+454,MWK,Kwacha
+458,MYR,Malaysian Ringgit
+462,MVR,Rufiyaa
+478,MRO,Ouguiya
+480,MUR,Mauritius Rupee
+484,MXN,Mexican Peso
+496,MNT,Tugrik
+498,MDL,Moldovan Leu
+504,MAD,Moroccan Dirham
+512,OMR,Rial Omani
+516,NAD,Namibia Dollar
+524,NPR,Nepalese Rupee
+532,ANG,Netherlands Antillian Guilder
+533,AWG,Aruban Guilder
+548,VUV,Vatu
+554,NZD,New Zealand Dollar
+558,NIO,Cordoba Oro
+566,NGN,Naira
+578,NOK,Norwegian Krone
+586,PKR,Pakistan Rupee
+590,PAB,Balboa
+598,PGK,Kina
+600,PYG,Guarani
+604,PEN,Nuevo Sol
+608,PHP,Philippine Peso
+634,QAR,Qatari Rial
+643,RUB,Russian Ruble
+646,RWF,Rwanda Franc
+654,SHP,Saint Helena Pound
+678,STD,Dobra
+682,SAR,Saudi Riyal
+690,SCR,Seychelles Rupee
+694,SLL,Leone
+702,SGD,Singapore Dollar
+704,VND,Dong
+706,SOS,Somali Shilling
+710,ZAR,Rand
+748,SZL,Lilangeni
+752,SEK,Swedish Krona
+756,CHF,Swiss Franc
+760,SYP,Syrian Pound
+764,THB,Baht
+776,TOP,Pa'anga
+780,TTD,Trinidad and Tobago Dollar
+784,AED,UAE Dirham
+788,TND,Tunisian Dinar
+800,UGX,Uganda Shilling
+807,MKD,Denar
+818,EGP,Egyptian Pound
+826,GBP,Pound Sterling
+834,TZS,Tanzanian Shilling
+840,USD,US Dollar
+858,UYU,Peso Uruguayo
+860,UZS,Uzbekistan Sum
+882,WST,Tala
+886,YER,Yemeni Rial
+894,ZMK,Zambian Kwacha
+901,TWD,New Taiwan Dollar
+931,CUC,Peso Convertible
+932,ZWL,Zimbabwe Dollar
+934,TMT,Manat
+936,GHS,Cedi
+937,VEF,Bolivar Fuerte
+938,SDG,Sudanese Pound
+940,UYI,Uruguay Peso en Unidades Indexadas
+941,RSD,Serbian Dinar
+943,MZN,Metical
+944,AZN,Azerbaijanian Manat
+946,RON,New Leu
+947,CHE,WIR Euro
+948,CHW,WIR Franc
+949,TRY,Turkish Lira
+950,XAF,CFA Franc BEAC
+951,XCD,East Caribbean Dollar
+952,XOF,CFA Franc BCEAO
+953,XPF,CFP Franc
+955,XBA,Bond Markets Units European Composite Unit (EURCO)
+956,XBB,European Monetary Unit (E.M.U.-6)
+957,XBC,European Unit of Account 9(E.U.A.-9)
+958,XBD,European Unit of Account 17(E.U.A.-17)
+959,XAU,Gold
+960,XDR,SDR
+961,XAG,Silver
+962,XPT,Platinum
+963,XTS,Codes specifically reserved for testing purposes
+964,XPD,Palladium
+968,SRD,Surinam Dollar
+969,MGA,Malagasy Ariary
+970,COU,Unidad de Valor Real
+971,AFN,Afghani
+972,TJS,Somoni
+973,AOA,Kwanza
+974,BYR,Belarussian Ruble
+975,BGN,Bulgarian Lev
+976,CDF,Congolese Franc
+977,BAM,Convertible Marks
+978,EUR,Euro
+979,MXV,Mexican Unidad de Inversion (UDI)
+980,UAH,Hryvnia
+981,GEL,Lari
+984,BOV,Mvdol
+985,PLN,Zloty
+986,BRL,Brazilian Real
+990,CLF,Unidades de fomento
+997,USN,US Dollar (Next day)
+998,USS,US Dollar (Same day)
+999,XXX,The codes assigned for transactions where no currency is involved

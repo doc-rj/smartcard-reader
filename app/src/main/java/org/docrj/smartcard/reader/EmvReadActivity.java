@@ -31,7 +31,6 @@ import android.nfc.NfcAdapter.ReaderCallback;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.view.MenuItemCompat;
@@ -44,6 +43,8 @@ import android.widget.ListView;
 import android.widget.ViewSwitcher;
 
 import com.afollestad.materialdialogs.AlertDialogWrapper;
+
+import org.docrj.smartcard.emv.EMVTerminal;
 
 
 public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiCallbacks,
@@ -92,6 +93,7 @@ public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiC
         mNfcManager = new NfcManager(this, this);
 
         ApduParser.init(this);
+        EMVTerminal.loadProperties(getResources());
 
         // persistent "shared preferences"
         SharedPreferences ss = getSharedPreferences("prefs", Context.MODE_PRIVATE);
