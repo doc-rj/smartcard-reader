@@ -7,10 +7,11 @@ contactless smartcard, either physical or emulated.
 Among other things, it is especially useful for testing HCE (host card emulation)
 apps running on another smartphone.
 
+<p>
 <img align="left" width="50%" src="/docs/tn_screen_nav_drawer.png">
 <img align="right" width="50%" src="/docs/tn_screen_app_select.png">
 ...
-
+</p>
 
 #### So What?
 
@@ -20,7 +21,7 @@ What exactly can smartcard-reader do for you?
 info, please read the "Background Info" section below first, and then come back
 here!)
 
-HCE relies heavily on the routing APDUs from contactless terminals to the correct
+HCE relies heavily on the routing of APDUs from contactless terminals to the correct
 apps, whether they reside on the host processor or UICC-based secure element.
 Routing is based on AID, or Application ID, which of course is meant to uniquely
 identify each smartcard app/service. That is the identifier used by the terminal
@@ -87,7 +88,7 @@ The contactless type of smartcard adds the NFC antenna and speaks an NFC protoco
 called ISO-DEP, based on ISO 14443-4. Apps still send APDUs -- based on ISO 7816-4
 -- on top of the NFC ISO-DEP layer.
 
-Contactless martcard emulation is made possible by the card emulation function of
+Contactless smartcard emulation is made possible by the card emulation function of
 NFC, also known as CE mode. While it's most commonly known for its use in credit
 card payments (eg. on an Android enabled smartphone through apps such as Google
 Wallet), it has other useful applications such as building access, public transit
@@ -114,6 +115,7 @@ new reader mode is a key enabler of smartcard-reader.
 
 #### Screenshots
 
+<p>
 <img align="left" width="50%" src="/docs/tn_screen_nav_drawer.png">
 <img align="right" width="50%" src="/docs/tn_screen_app_select.png">
 
@@ -135,7 +137,7 @@ new reader mode is a key enabler of smartcard-reader.
 <img align="left" width="50%" src="/docs/tn_screen_emv_read.png">
 <img align="right" width="50%" src="/docs/tn_screen_settings.png">
 ...
-
+</p>
 
 #### Thanks!
 
