@@ -34,7 +34,7 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -47,7 +47,7 @@ import com.afollestad.materialdialogs.AlertDialogWrapper;
 import org.docrj.smartcard.emv.EMVTerminal;
 
 
-public class EmvReadActivity extends ActionBarActivity implements ReaderXcvr.UiCallbacks,
+public class EmvReadActivity extends AppCompatActivity implements ReaderXcvr.UiCallbacks,
     ReaderCallback, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = LaunchActivity.TAG;

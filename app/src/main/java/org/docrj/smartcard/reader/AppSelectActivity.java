@@ -41,7 +41,7 @@ import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -65,7 +65,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 
-public class AppSelectActivity extends ActionBarActivity implements ReaderXcvr.UiCallbacks,
+public class AppSelectActivity extends AppCompatActivity implements ReaderXcvr.UiCallbacks,
     ReaderCallback, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = LaunchActivity.TAG;

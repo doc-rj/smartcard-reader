@@ -25,7 +25,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,7 +53,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 
-public class AppEditActivity extends ActionBarActivity {
+public class AppEditActivity extends AppCompatActivity {
 
     private static final String TAG = LaunchActivity.TAG;
 

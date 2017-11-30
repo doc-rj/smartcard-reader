@@ -23,7 +23,7 @@ import android.os.Build;
 import android.support.v4.view.MenuItemCompat;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.view.Menu;
@@ -35,7 +35,7 @@ import android.support.v7.widget.ShareActionProvider;
 import android.widget.TextView;
 
 
-public class MsgParseActivity extends ActionBarActivity {
+public class MsgParseActivity extends AppCompatActivity {
 
     String mMsgName;
     String mHtml;
