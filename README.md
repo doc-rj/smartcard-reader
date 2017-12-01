@@ -7,10 +7,8 @@ contactless smartcard, either physical or emulated.
 Among other things, it is especially useful for testing HCE (host card emulation)
 apps running on another smartphone.
 
-<p>
-<img align="left" width="50%" src="/docs/tn_screen_nav_drawer.png">
-<img align="right" width="50%" src="/docs/tn_screen_app_select.png">
-...
+<p style="background-color:black;">
+<img src="/docs/tn_screen_nav_drawer.png" width="400" border="0"/><img src="/docs/tn_screen_app_select.png" width="400" border="0"/>
 </p>
 
 #### So What?
@@ -115,29 +113,15 @@ new reader mode is a key enabler of smartcard-reader.
 
 #### Screenshots
 
-<p>
-<img align="left" width="50%" src="/docs/tn_screen_nav_drawer.png">
-<img align="right" width="50%" src="/docs/tn_screen_app_select.png">
-
-<img align="left" width="50%" src="/docs/tn_screen_parsed_msg.png">
-<img align="right" width="50%" src="/docs/tn_screen_share_gmail.png">
-
-<img align="left" width="50%" src="/docs/tn_screen_app_list.png">
-<img align="right" width="50%" src="/docs/tn_screen_app_list_fam.png">
-
-<img align="left" width="50%" src="/docs/tn_screen_new_app.png">
-<img align="right" width="50%" src="/docs/tn_screen_app_view.png">
-
-<img align="left" width="50%" src="/docs/tn_screen_group_edit.png">
-<img align="right" width="50%" src="/docs/tn_screen_group_view.png">
-
-<img align="left" width="50%" src="/docs/tn_screen_batch_select_intro.png">
-<img align="right" width="50%" src="/docs/tn_screen_batch_select.png">
-
-<img align="left" width="50%" src="/docs/tn_screen_emv_read.png">
-<img align="right" width="50%" src="/docs/tn_screen_settings.png">
-...
-</p>
+<div style="background-color:black;">
+<img src="/docs/tn_screen_nav_drawer.png" width="400" border="0"><img src="/docs/tn_screen_app_select.png" width="400" border="0">
+<img src="/docs/tn_screen_parsed_msg.png" width="400" border="0"><img src="/docs/tn_screen_share_gmail.png" width="400" border="0">
+<img src="/docs/tn_screen_app_list.png" width="400" border="0"><img src="/docs/tn_screen_app_list_fam.png" width="400" border="0">
+<img src="/docs/tn_screen_new_app.png" width="400" border="0"><img src="/docs/tn_screen_app_view.png" width="400" border="0">
+<img src="/docs/tn_screen_group_edit.png" width="400" border="0"><img src="/docs/tn_screen_group_view.png" width="400" border="0">
+<img src="/docs/tn_screen_batch_select_intro.png" width="400" border="0"><img src="/docs/tn_screen_batch_select.png" width="400" border="0">
+<img src="/docs/tn_screen_emv_read.png" width="400" border="0"><img src="/docs/tn_screen_settings.png" width="400" border="0">
+</div>
 
 #### Thanks!
 
